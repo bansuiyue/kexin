@@ -830,24 +830,8 @@
         <div class="form-section-title">数据加工说明</div>
         <div class="form-grid">
           <div class="form-group full">
-            <label class="form-label">数据产品形态</label>
-            <textarea class="form-textarea" id="productForms" placeholder="说明各数据产品的形态，如：数据集（统计表格）/ API接口 / 数据报告等"></textarea>
-          </div>
-          <div class="form-group full">
-            <label class="form-label">数据使用情况</label>
-            <textarea class="form-textarea" id="dataUsage" placeholder="说明各类数据（公共数据、企业自有数据、社会数据）的使用情况"></textarea>
-          </div>
-          <div class="form-group full">
-            <label class="form-label">数据加工逻辑</label>
-            <textarea class="form-textarea" id="processLogic" placeholder="说明数据加工逻辑（清洗、脱敏、融合、计算等过程）"></textarea>
-          </div>
-          <div class="form-group full">
-            <label class="form-label">算法模型</label>
-            <textarea class="form-textarea" id="algorithms" placeholder="说明使用的算法模型及用途"></textarea>
-          </div>
-          <div class="form-group full">
-            <label class="form-label">接口类产品出入参</label>
-            <textarea class="form-textarea" id="apiParams" placeholder="如为数据接口类产品，说明入参、出参结构"></textarea>
+            <label class="form-label">数据加工说明</label>
+            <textarea class="form-textarea" id="processDesc" placeholder="说明各数据产品的形态、数据使用情况、数据加工逻辑（清洗、脱敏、融合、计算等过程）、算法模型及用途、接口类产品出入参等"></textarea>
           </div>
         </div>
       </div>
@@ -1040,11 +1024,7 @@
           { name: '出行需求研判', desc: '输出区域出行需求热力分析，支撑运力调度与设施规划。' }
         ],
         plan: '授权运营期内分三阶段推进：第1-3个月完成数据接入与治理；第4-6个月完成算法模型建设；第7-12个月完成应用上线并投入试运行。',
-        productForms: '数据集：交通流量统计数据集、公交客流OD数据集；API：拥堵指数查询接口。',
-        dataUsage: '公共数据：公交IC卡刷卡、公交GPS轨迹、道路信息、交通流量；企业自有数据：公交运营台账；社会数据：互联网地图OD数据。',
-        processLogic: '多源数据清洗去重 → 空间网格化 → 指标计算 → 模型训练 → 结果脱敏 → 对外发布，全流程留痕可审计。',
-        algorithms: '拥堵指数采用时空图卷积网络（ST-GCN）；客流OD分析采用轨迹匹配与贝叶斯推断。',
-        apiParams: '拥堵指数查询：入参 city_code、road_id、time_range；出参 congestion_index、level、speed_avg。',
+        processDesc: '数据产品形态：数据集（交通流量统计数据集、公交客流OD数据集）、API（拥堵指数查询接口）。\n数据使用情况：公共数据包括公交IC卡刷卡、公交GPS轨迹、道路信息、交通流量；企业自有数据包括公交运营台账；社会数据包括互联网地图OD数据。\n数据加工逻辑：多源数据清洗去重 → 空间网格化 → 指标计算 → 模型训练 → 结果脱敏 → 对外发布，全流程留痕可审计。\n算法模型：拥堵指数采用时空图卷积网络（ST-GCN）；客流OD分析采用轨迹匹配与贝叶斯推断。\n接口类产品出入参：拥堵指数查询入参为 city_code、road_id、time_range；出参为 congestion_index、level、speed_avg。',
         socialBenefit: '提升公共交通分担率、缩短市民通勤时间，预计高峰拥堵指数下降8%。',
         economicBenefit: '支撑公交运力精准投放，预计年节省运营成本约500万元，带动智能交通产业生态发展。',
         compareEffect: '使用公共数据前：治理决策依赖人工经验、数据碎片化；使用后：全量数据支撑量化研判，预测准确率提升至92%，交通部门与公交企业获得感显著增强。',
@@ -1078,11 +1058,7 @@
           { name: '贷后风险监测', desc: '对企业经营异常进行实时监测并预警。' }
         ],
         plan: '第1-3个月完成数据接入与模型调优；第4-6个月试运行；第7-12个月规模化推广。',
-        productForms: '数据报告：企业信用评分报告；API：信用评分查询接口。',
-        dataUsage: '公共数据：企业信用数据；企业自有数据：企业经营台账。',
-        processLogic: '数据接入校验 → 指标加工 → 模型评分 → 人工复核 → 报告输出。',
-        algorithms: '信用评分采用逻辑回归与XGBoost融合模型。',
-        apiParams: '信用评分查询：入参 unified_code、query_type；出参 score、level、risk_hints。',
+        processDesc: '数据产品形态：数据报告（企业信用评分报告）、API（信用评分查询接口）。\n数据使用情况：公共数据包括企业信用数据；企业自有数据包括企业经营台账。\n数据加工逻辑：数据接入校验 → 指标加工 → 模型评分 → 人工复核 → 报告输出。\n算法模型：信用评分采用逻辑回归与XGBoost融合模型。\n接口类产品出入参：信用评分查询入参为 unified_code、query_type；出参为 score、level、risk_hints。',
         socialBenefit: '缓解中小企业融资难，优化区域营商环境。',
         economicBenefit: '预计年服务贷款规模超50亿元，降低银行坏账率。',
         compareEffect: '使用公共数据前：审批周期5-7个工作日；使用后：最快1个工作日完成评分，融资获得感明显提升。',
@@ -1114,11 +1090,7 @@
           { name: '实时风控', desc: '监测异常运输与处置行为并预警。' }
         ],
         plan: '第1-3个月完成数据接入；第4-6个月完成撮合与风控模型；第7-12个月全面运营推广。',
-        productForms: 'API：固废处置能力查询、资质核验接口；数据报告：交易撮合分析报告。',
-        dataUsage: '公共数据：环境监测数据、企业许可数据；社会数据：运输轨迹数据。',
-        processLogic: '多源数据接入 → 数据清洗与关联 → 标签画像 → 匹配推荐 → 风控预警。',
-        algorithms: '撮合推荐采用协同过滤；风控采用规则引擎与异常检测模型。',
-        apiParams: '处置能力查询：入参 waste_type、region；出参 provider_list、capacity、price_range。',
+        processDesc: '数据产品形态：API（固废处置能力查询、资质核验接口）、数据报告（交易撮合分析报告）。\n数据使用情况：公共数据包括环境监测数据、企业许可数据；社会数据包括运输轨迹数据。\n数据加工逻辑：多源数据接入 → 数据清洗与关联 → 标签画像 → 匹配推荐 → 风控预警。\n算法模型：撮合推荐采用协同过滤；风控采用规则引擎与异常检测模型。\n接口类产品出入参：处置能力查询入参为 waste_type、region；出参为 provider_list、capacity、price_range。',
         socialBenefit: '提升固废资源化利用率，降低环境违法风险。',
         economicBenefit: '预计年撮合交易额突破10亿元，降低产废企业处置成本约15%。',
         compareEffect: '使用公共数据前：信息不对称导致处置成本高昂；使用后：平均匹配时间从7天缩短至1天，企业获得感显著提升。',
@@ -1151,11 +1123,7 @@
           { name: '污染溯源分析', desc: '结合气象与流量数据分析污染来源。' }
         ],
         plan: '第1-6个月完成数据分析平台建设并试运行。',
-        productForms: '数据报告：污染成因分析报告。',
-        dataUsage: '公共数据：环境监测数据、交通流量数据。',
-        processLogic: '多源数据对齐 → 相关性分析 → 溯源建模 → 报告输出。',
-        algorithms: '溯源分析采用因子分析与源解析模型（PMF）。',
-        apiParams: '',
+        processDesc: '数据产品形态：数据报告（污染成因分析报告）。\n数据使用情况：公共数据包括环境监测数据、交通流量数据。\n数据加工逻辑：多源数据对齐 → 相关性分析 → 溯源建模 → 报告输出。\n算法模型：溯源分析采用因子分析与源解析模型（PMF）。\n接口类产品出入参：无。',
         socialBenefit: '提升大气污染治理的精准性与公众健康保障水平。',
         economicBenefit: '支撑污染防控措施优化，降低治理成本。',
         compareEffect: '使用公共数据前：预警依赖人工研判；使用后：实现污染趋势自动预测与提前预警。',
@@ -1380,7 +1348,7 @@
 
   // 新增申报
   function openApplyModal() {
-    ['scName','scField','scDesc','scScope','scRemark','industryBg','orgName','orgContact','orgIntro','problemAnalysis','demandAnalysis','scenarioIntro','architecture','plan','productForms','dataUsage','processLogic','algorithms','apiParams','socialBenefit','economicBenefit','compareEffect'].forEach(id => {
+    ['scName','scField','scDesc','scScope','scRemark','industryBg','orgName','orgContact','orgIntro','problemAnalysis','demandAnalysis','scenarioIntro','architecture','plan','processDesc','socialBenefit','economicBenefit','compareEffect'].forEach(id => {
       document.getElementById(id).value = '';
     });
     renderFuncRows();
@@ -1430,11 +1398,7 @@
       architecture: val('architecture'),
       functionItems: funcItems,
       plan: val('plan'),
-      productForms: val('productForms'),
-      dataUsage: val('dataUsage'),
-      processLogic: val('processLogic'),
-      algorithms: val('algorithms'),
-      apiParams: val('apiParams'),
+      processDesc: val('processDesc'),
       socialBenefit: val('socialBenefit'),
       economicBenefit: val('economicBenefit'),
       compareEffect: val('compareEffect'),
@@ -1538,11 +1502,16 @@
       </div>
       <div class="detail-block">
         <h3>数据加工说明</h3>
-        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">数据产品形态</span>${t(s.productForms)}</div>
-        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">数据使用情况</span>${t(s.dataUsage)}</div>
-        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">数据加工逻辑</span>${t(s.processLogic)}</div>
-        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">算法模型</span>${t(s.algorithms)}</div>
-        <div class="detail-item"><span class="d-label">接口类产品出入参</span>${t(s.apiParams)}</div>
+        <div class="detail-text">${(() => {
+          if (s.processDesc) return esc(s.processDesc);
+          const parts = [];
+          if (s.productForms) parts.push('数据产品形态：' + s.productForms);
+          if (s.dataUsage) parts.push('数据使用情况：' + s.dataUsage);
+          if (s.processLogic) parts.push('数据加工逻辑：' + s.processLogic);
+          if (s.algorithms) parts.push('算法模型：' + s.algorithms);
+          if (s.apiParams) parts.push('接口类产品出入参：' + s.apiParams);
+          return parts.length ? parts.join('\n') : '<span style="color:var(--text-secondary);">未填写</span>';
+        })()}</div>
       </div>
       <div class="detail-block">
         <h3>预期成效</h3>

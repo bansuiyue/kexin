@@ -220,6 +220,14 @@
     .status-passed { background: #dbeafe; color: #1e40af; }
     .status-rejected { background: #fee2e2; color: #991b1b; }
     .status-pending { background: #e0e7ff; color: #3730a3; }
+    .outbound-tag {
+      display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+      padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;
+    }
+    .outbound-passed { background: #d1fae5; color: #065f46; }
+    .outbound-audit { background: #fef3c7; color: #92400e; }
+    .outbound-rejected { background: #fee2e2; color: #991b1b; }
+    .outbound-none { background: #f3f4f6; color: #6b7280; }
     .price-tag {
       font-size: 16px; font-weight: 700; color: var(--danger); flex-shrink: 0;
     }
@@ -486,10 +494,10 @@
             <option value="">全部状态</option>
             <option value="online">已上架</option>
             <option value="offline">已下架</option>
-            <option value="audit">出域审核中</option>
-            <option value="passed">审核通过</option>
-            <option value="rejected">已驳回</option>
-            <option value="pending">草稿</option>
+            <option value="outboundAudit">出域审核中</option>
+            <option value="outboundPassed">出域已通过</option>
+            <option value="outboundRejected">出域已驳回</option>
+            <option value="outboundNone">待出域</option>
           </select>
           <button class="btn btn-primary" onclick="renderProducts()">查询</button>
           <button class="btn btn-default" onclick="resetFilters()">重置</button>
@@ -602,8 +610,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closePublishModal()">取消</button>
-      <button class="btn btn-primary" onclick="savePublish('draft')">保存草稿</button>
-      <button class="btn btn-success" onclick="savePublish('apply')">提交出域审核</button>
+      <button class="btn btn-primary" onclick="savePublish()">发布</button>
     </div>
   </div>
 </div>
@@ -790,26 +797,41 @@
   ];
 
   const seedProducts = [
-    { id: 1, name: '高德地图通勤路线 OD', code: '691350211M0000XQ46X0591JUV77DF7Q', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260625002'], auditTime: '2026-07-16 14:20:00', auditor: '数据空间审核员', auditOpinion: '数据来源清晰、用途合规，同意出域。', onlineTime: '2026-07-17 10:00:00', parseStatus: '解析完成', price: '0.01', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '通勤居住OD产品专注于城市通勤规律的离线数据，剖析早晚高峰的规律性出行特征。', tags: ['路线规划', '实时路况'], fields: [{name:'dt',note:'分区',type:'DATE',len:'-'}, {name:'received_time',note:'接收数据时间',type:'VARCHAR',len:'20'}] },
-    { id: 2, name: '交通流量预测', code: '691350211M0000XQ46X0591RWFSL2ABX', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260625002', 'SQ20260605005'], auditTime: '2026-07-16 15:02:11', auditor: '数据空间审核员', auditOpinion: '数据粒度为分钟级，含敏感度较低，审核通过。', onlineTime: '2026-07-17 10:00:00', parseStatus: '解析完成', price: '0.01', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '本数据集包含2026年全年全国主要城市快速路、主干道的交通流量数据，时间粒度为1分钟。', tags: ['车流量', '预测训练'], fields: [{name:'road_id',note:'道路编号',type:'VARCHAR',len:'32'}] },
-    { id: 3, name: '福建省道路信息数据', code: '691350211M0000XQ46X0591GKM2ZUYM8', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260605005'], auditTime: '2026-07-18 09:30:00', auditor: '数据空间审核员', auditOpinion: '道路网络数据为公开信息，同意出域。', onlineTime: '2026-07-18 14:00:00', parseStatus: '解析完成', price: '500', billing: 'perMonth', category: 'transport-02', type: 'dataset', desc: '本产品提供福建省完整的道路网络数据，涵盖高速公路、普通国省道、县乡道及城市道路。', tags: ['道路网络', '高速公路'], fields: [{name:'dt',note:'分区',type:'DATE',len:'-'}, {name:'received_time',note:'接收数据时间',type:'VARCHAR',len:'20'}, {name:'travelTime',note:'道路路段对应的通过时间，单位0.1秒',type:'VARCHAR',len:'20'}, {name:'state',note:'道路路段交通状态1畅通 2缓慢 3拥堵 4重度拥堵 5无数据',type:'INT',len:'-'}, {name:'speed',note:'道路路段平均速度，单位公里/小时',type:'VARCHAR',len:'20'}, {name:'linkId',note:'道路路段ID',type:'VARCHAR',len:'32'}] },
-    { id: 4, name: '车辆GPS轨迹', code: '691350211M0000XQ46X05912FMS86TTA', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260605005'], auditTime: '2026-07-18 10:15:00', auditor: '数据空间审核员', auditOpinion: '轨迹数据已按要求脱敏，同意出域。', onlineTime: '2026-07-18 14:00:00', parseStatus: '解析完成', price: '10.00', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '本产品提供福建省内营运车辆（含出租车、网约车、物流车、客车等）的实时与历史GPS轨迹数据。', tags: ['车辆轨迹', '实时位置'], fields: [] },
-    { id: 5, name: 'BUS站牌信息', code: '691350211M0000XQ46X0591P8BDKSHZQ', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260701001'], auditTime: '2026-07-18 11:42:00', auditor: '数据空间审核员', auditOpinion: '接口数据为公交运营公开信息，同意出域。', onlineTime: '2026-07-19 09:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'api', desc: '公交站牌信息查询服务，可查询公交线路、站点位置、到站时间等。', tags: ['站牌', '从业人员'], fields: [] },
-    { id: 6, name: '获取公交司机人员信息', code: '691350211M0000XQ46X0591WXDUKMB5U', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260701001'], auditTime: '2026-07-19 08:20:00', auditor: '数据空间审核员', auditOpinion: '从业人员信息经脱敏处理，同意出域。', onlineTime: '2026-07-19 09:00:00', parseStatus: '解析完成', price: '0.02', billing: 'perCall', category: 'transport-02', type: 'api', desc: '本接口提供公交企业内部的司机人员信息查询能力。', tags: ['API产品'], fields: [] },
-    { id: 7, name: '电力行业城乡居民用电情况', code: '691350211M0000XQ46X0591CB4TP9A2V', status: 'rejected', scenario: 'SC-20260717-001', auditTime: '2026-07-20 16:00:00', auditor: '数据空间审核员', auditOpinion: '用电量数据涉及居民隐私，暂不同意出域，请补充数据脱敏与安全承诺后重新申请。', parseStatus: '解析完成', price: '100.00', billing: 'perCall', category: 'utilities-01', type: 'report', desc: '电力行业城乡居民用电量情况分析报告。', tags: ['用电量', '峰值'], fields: [] },
-    { id: 8, name: '电商用户数据', code: '691350211M0000XQ46X0591LURX4TQI', status: 'online', scenario: 'SC-20260720-002', auditTime: '2026-07-21 10:00:00', auditor: '数据空间审核员', auditOpinion: '用户数据已做匿名化处理，同意出域。', onlineTime: '2026-07-22 09:30:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'wholesale', type: 'dataset', desc: '电商用户行为数据，包含浏览、购买、收藏等多维度数据。', tags: ['电商', '用户'], fields: [] },
-    { id: 9, name: '交通产品上架流程', code: '691350211M0000XQ46X0591RA9UE9BM', status: 'audit', scenario: 'SC-20260717-001', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'app', desc: '交通产品上架流程管理应用，已提交出域审核，等待独立审批后台审批。', tags: ['上架管理'], fields: [] },
-    { id: 10, name: '市区道路信息', code: '691350211M0000XQ46X0591W5M6ZW6S', status: 'online', scenario: 'SC-20260717-001', auditTime: '2026-07-19 15:30:00', auditor: '数据空间审核员', auditOpinion: '道路信息数据同意出域。', onlineTime: '2026-07-20 09:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '市区道路信息表。', tags: ['车流量'], fields: [] },
-    { id: 11, name: '电商订单履约数据', code: '691350211M0000XQ46X0591A3N0591Y2BDF33ZB', status: 'online', scenario: 'SC-20260720-002', auditTime: '2026-07-22 11:20:00', auditor: '数据空间审核员', auditOpinion: '同意出域。', onlineTime: '2026-07-22 15:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'wholesale', type: 'dataset', desc: '电商订单履约全流程数据，包含下单、支付、物流、签收等节点信息。', tags: ['电商', '订单'], fields: [] },
-    { id: 12, name: '电力数据报告', code: '691350100MA345GRA3N0591LURX4TQI', status: 'offline', scenario: 'SC-20260717-001', auditTime: '2026-07-20 09:00:00', auditor: '数据空间审核员', auditOpinion: '审核通过。', onlineTime: '2026-07-20 10:00:00', offTime: '2026-08-05 17:00:00', parseStatus: '未解析', price: '1.00', billing: 'perCall', category: 'utilities-01', type: 'report', desc: '电力数据报告。', tags: ['数据应用'], fields: [] }
+    { id: 1, name: '高德地图通勤路线 OD', code: '691350211M0000XQ46X0591JUV77DF7Q', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260625002'], auditTime: '2026-07-16 14:20:00', auditor: '数据空间审核员', auditOpinion: '数据来源清晰、用途合规，同意出域。', onlineTime: '2026-07-17 10:00:00', parseStatus: '解析完成', price: '0.01', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '通勤居住OD产品专注于城市通勤规律的离线数据，剖析早晚高峰的规律性出行特征。', tags: ['路线规划', '实时路况'], fields: [{name:'dt',note:'分区',type:'DATE',len:'-'}, {name:'received_time',note:'接收数据时间',type:'VARCHAR',len:'20'}] },
+    { id: 2, name: '交通流量预测', code: '691350211M0000XQ46X0591RWFSL2ABX', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260625002', 'SQ20260605005'], auditTime: '2026-07-16 15:02:11', auditor: '数据空间审核员', auditOpinion: '数据粒度为分钟级，含敏感度较低，审核通过。', onlineTime: '2026-07-17 10:00:00', parseStatus: '解析完成', price: '0.01', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '本数据集包含2026年全年全国主要城市快速路、主干道的交通流量数据，时间粒度为1分钟。', tags: ['车流量', '预测训练'], fields: [{name:'road_id',note:'道路编号',type:'VARCHAR',len:'32'}] },
+    { id: 3, name: '福建省道路信息数据', code: '691350211M0000XQ46X0591GKM2ZUYM8', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260605005'], auditTime: '2026-07-18 09:30:00', auditor: '数据空间审核员', auditOpinion: '道路网络数据为公开信息，同意出域。', onlineTime: '2026-07-18 14:00:00', parseStatus: '解析完成', price: '500', billing: 'perMonth', category: 'transport-02', type: 'dataset', desc: '本产品提供福建省完整的道路网络数据，涵盖高速公路、普通国省道、县乡道及城市道路。', tags: ['道路网络', '高速公路'], fields: [{name:'dt',note:'分区',type:'DATE',len:'-'}, {name:'received_time',note:'接收数据时间',type:'VARCHAR',len:'20'}, {name:'travelTime',note:'道路路段对应的通过时间，单位0.1秒',type:'VARCHAR',len:'20'}, {name:'state',note:'道路路段交通状态1畅通 2缓慢 3拥堵 4重度拥堵 5无数据',type:'INT',len:'-'}, {name:'speed',note:'道路路段平均速度，单位公里/小时',type:'VARCHAR',len:'20'}, {name:'linkId',note:'道路路段ID',type:'VARCHAR',len:'32'}] },
+    { id: 4, name: '车辆GPS轨迹', code: '691350211M0000XQ46X05912FMS86TTA', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260605005'], auditTime: '2026-07-18 10:15:00', auditor: '数据空间审核员', auditOpinion: '轨迹数据已按要求脱敏，同意出域。', onlineTime: '2026-07-18 14:00:00', parseStatus: '解析完成', price: '10.00', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '本产品提供福建省内营运车辆（含出租车、网约车、物流车、客车等）的实时与历史GPS轨迹数据。', tags: ['车辆轨迹', '实时位置'], fields: [] },
+    { id: 5, name: 'BUS站牌信息', code: '691350211M0000XQ46X0591P8BDKSHZQ', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260701001'], auditTime: '2026-07-18 11:42:00', auditor: '数据空间审核员', auditOpinion: '接口数据为公交运营公开信息，同意出域。', onlineTime: '2026-07-19 09:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'api', desc: '公交站牌信息查询服务，可查询公交线路、站点位置、到站时间等。', tags: ['站牌', '从业人员'], fields: [] },
+    { id: 6, name: '获取公交司机人员信息', code: '691350211M0000XQ46X0591WXDUKMB5U', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260701001'], auditTime: '2026-07-19 08:20:00', auditor: '数据空间审核员', auditOpinion: '从业人员信息经脱敏处理，同意出域。', onlineTime: '2026-07-19 09:00:00', parseStatus: '解析完成', price: '0.02', billing: 'perCall', category: 'transport-02', type: 'api', desc: '本接口提供公交企业内部的司机人员信息查询能力。', tags: ['API产品'], fields: [] },
+    { id: 7, name: '电力行业城乡居民用电情况', code: '691350211M0000XQ46X0591CB4TP9A2V', shelfStatus: 'offline', outboundStatus: 'rejected', scenario: 'SC-20260717-001', auditTime: '2026-07-20 16:00:00', auditor: '数据空间审核员', auditOpinion: '用电量数据涉及居民隐私，暂不同意出域，请补充数据脱敏与安全承诺后重新申请。', parseStatus: '解析完成', price: '100.00', billing: 'perCall', category: 'utilities-01', type: 'report', desc: '电力行业城乡居民用电量情况分析报告。', tags: ['用电量', '峰值'], fields: [] },
+    { id: 8, name: '电商用户数据', code: '691350211M0000XQ46X0591LURX4TQI', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260720-002', auditTime: '2026-07-21 10:00:00', auditor: '数据空间审核员', auditOpinion: '用户数据已做匿名化处理，同意出域。', onlineTime: '2026-07-22 09:30:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'wholesale', type: 'dataset', desc: '电商用户行为数据，包含浏览、购买、收藏等多维度数据。', tags: ['电商', '用户'], fields: [] },
+    { id: 9, name: '交通产品上架流程', code: '691350211M0000XQ46X0591RA9UE9BM', shelfStatus: 'offline', outboundStatus: 'audit', scenario: 'SC-20260717-001', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'app', desc: '交通产品上架流程管理应用，已提交出域审核，等待独立审批后台审批。', tags: ['上架管理'], fields: [] },
+    { id: 10, name: '市区道路信息', code: '691350211M0000XQ46X0591W5M6ZW6S', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', auditTime: '2026-07-19 15:30:00', auditor: '数据空间审核员', auditOpinion: '道路信息数据同意出域。', onlineTime: '2026-07-20 09:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '市区道路信息表。', tags: ['车流量'], fields: [] },
+    { id: 11, name: '电商订单履约数据', code: '691350211M0000XQ46X0591A3N0591Y2BDF33ZB', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260720-002', auditTime: '2026-07-22 11:20:00', auditor: '数据空间审核员', auditOpinion: '同意出域。', onlineTime: '2026-07-22 15:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'wholesale', type: 'dataset', desc: '电商订单履约全流程数据，包含下单、支付、物流、签收等节点信息。', tags: ['电商', '订单'], fields: [] },
+    { id: 12, name: '电力数据报告', code: '691350100MA345GRA3N0591LURX4TQI', shelfStatus: 'offline', outboundStatus: 'passed', scenario: 'SC-20260717-001', auditTime: '2026-07-20 09:00:00', auditor: '数据空间审核员', auditOpinion: '审核通过。', onlineTime: '2026-07-20 10:00:00', offTime: '2026-08-05 17:00:00', parseStatus: '未解析', price: '1.00', billing: 'perCall', category: 'utilities-01', type: 'report', desc: '电力数据报告。', tags: ['数据应用'], fields: [] }
   ];
+
+  function migrateProduct(p) {
+    if (p.shelfStatus) return p;
+    const old = p.status;
+    if (old === 'online') { p.shelfStatus = 'online'; p.outboundStatus = 'passed'; }
+    else if (old === 'offline') { p.shelfStatus = 'offline'; p.outboundStatus = 'passed'; }
+    else if (old === 'audit') { p.shelfStatus = 'offline'; p.outboundStatus = 'audit'; }
+    else if (old === 'passed') { p.shelfStatus = 'offline'; p.outboundStatus = 'passed'; }
+    else if (old === 'rejected') { p.shelfStatus = 'offline'; p.outboundStatus = 'rejected'; }
+    else if (old === 'pending') { p.shelfStatus = 'offline'; p.outboundStatus = 'none'; }
+    else { p.shelfStatus = 'offline'; p.outboundStatus = 'none'; }
+    delete p.status;
+    return p;
+  }
 
   function getProducts() {
     try {
       const saved = JSON.parse(localStorage.getItem('productRecords') || '[]');
-      return saved.length ? saved : seedProducts;
+      if (saved.length) return saved.map(migrateProduct);
+      return seedProducts.map(migrateProduct);
     } catch (e) {
-      return seedProducts;
+      return seedProducts.map(migrateProduct);
     }
   }
   function saveProducts() {
@@ -822,13 +844,15 @@
   let currentProductId = null;
   let pagination = { page: 1, pageSize: 12, total: 0 };
 
-  const statusMap = {
+  const shelfStatusMap = {
     online: { text: '已上架', class: 'status-online' },
-    offline: { text: '已下架', class: 'status-offline' },
-    audit: { text: '出域审核中', class: 'status-audit' },
-    passed: { text: '审核通过', class: 'status-passed' },
-    rejected: { text: '已驳回', class: 'status-rejected' },
-    pending: { text: '草稿', class: 'status-pending' }
+    offline: { text: '已下架', class: 'status-offline' }
+  };
+  const outboundStatusMap = {
+    none: { text: '待出域', class: 'outbound-none' },
+    audit: { text: '出域审核中', class: 'outbound-audit' },
+    passed: { text: '出域已通过', class: 'outbound-passed' },
+    rejected: { text: '出域已驳回', class: 'outbound-rejected' }
   };
   const billingMap = { perCall: '次', perMonth: '月', perYear: '年', free: '免费' };
   const typeMap = { dataset: '数据集', api: 'API产品', report: '数据报告', app: '数据应用' };
@@ -935,7 +959,14 @@
       }
       if (name && !p.name.includes(name)) return false;
       if (desc && !p.desc.includes(desc)) return false;
-      if (status && p.status !== status) return false;
+      if (status) {
+        if (status === 'online') return p.shelfStatus === 'online';
+        if (status === 'offline') return p.shelfStatus === 'offline';
+        if (status === 'outboundAudit') return p.outboundStatus === 'audit';
+        if (status === 'outboundPassed') return p.outboundStatus === 'passed';
+        if (status === 'outboundRejected') return p.outboundStatus === 'rejected';
+        if (status === 'outboundNone') return p.outboundStatus === 'none';
+      }
       return true;
     });
 
@@ -956,14 +987,24 @@
     document.getElementById('pagination').style.display = 'flex';
 
     grid.innerHTML = pageList.map(p => {
-      const st = statusMap[p.status];
+      const shelf = shelfStatusMap[p.shelfStatus] || shelfStatusMap.offline;
+      const outbound = outboundStatusMap[p.outboundStatus] || outboundStatusMap.none;
       const billingText = p.billing === 'free' ? '免费' : `¥${p.price}/${billingMap[p.billing]}`;
       const tagClass = p.type === 'api' ? 'tag-orange' : (p.type === 'report' ? 'tag-green' : '');
       let mainAction = '';
-      if (p.status === 'online') mainAction = `<button class="btn btn-sm btn-danger" onclick="openOfflineModal(${p.id})">下架</button>`;
-      else if (p.status === 'passed' || p.status === 'offline') mainAction = `<button class="btn btn-sm btn-primary" onclick="onlineProduct(${p.id})">上架</button>`;
-      else if (p.status === 'pending' || p.status === 'rejected') mainAction = `<button class="btn btn-sm btn-success" onclick="submitOutAudit(${p.id})">提交出域审核</button>`;
-      else if (p.status === 'audit') mainAction = `<button class="btn btn-sm btn-default" disabled>审核中</button>`;
+      if (p.shelfStatus === 'online') {
+        mainAction = `<button class="btn btn-sm btn-danger" onclick="openOfflineModal(${p.id})">下架</button>`;
+      } else {
+        if (p.outboundStatus === 'passed') {
+          mainAction = `<button class="btn btn-sm btn-primary" onclick="onlineProduct(${p.id})">上架</button>`;
+        } else if (p.outboundStatus === 'rejected') {
+          mainAction = `<button class="btn btn-sm btn-success" onclick="submitOutAudit(${p.id})">重新提交出域</button>`;
+        } else if (p.outboundStatus === 'audit') {
+          mainAction = `<button class="btn btn-sm btn-default" disabled>出域审核中</button>`;
+        } else {
+          mainAction = `<button class="btn btn-sm btn-success" onclick="submitOutAudit(${p.id})">提交出域审核</button>`;
+        }
+      }
 
       const metaLines = [];
       if (p.scenario) metaLines.push(`<span class="info-label">关联场景：</span>${getScenarioName(p.scenario)}`);
@@ -973,7 +1014,8 @@
         <div class="product-card">
           <div class="product-card-top">
             <div class="product-title-wrap">
-              <span class="status-tag ${st.class}">${st.text}</span>
+              <span class="status-tag ${shelf.class}">${shelf.text}</span>
+              <span class="outbound-tag ${outbound.class}">${outbound.text}</span>
               <span class="product-name" title="${p.name}">${p.name}</span>
             </div>
             <span class="price-tag">${billingText}</span>
@@ -1003,7 +1045,7 @@
                 <button onclick="openPublishModal(${p.id})">编辑</button>
                 ${p.type === 'api' ? `<button onclick="openApiTestModal(${p.id})">接口测试</button>` : ''}
                 ${p.type === 'api' ? `<button onclick="openApiConfigModal(${p.id})">接口配置</button>` : ''}
-                ${p.status === 'online' ? `<button class="danger" onclick="openOfflineModal(${p.id})">下架管理</button>` : ''}
+                ${p.shelfStatus === 'online' ? `<button class="danger" onclick="openOfflineModal(${p.id})">下架管理</button>` : ''}
                 <button onclick="viewLogs(${p.id})">调用日志</button>
                 <button class="danger" onclick="deleteProduct(${p.id})">删除</button>
               </div>
@@ -1051,8 +1093,8 @@
   function getPassedScenarios() {
     const custom = JSON.parse(localStorage.getItem('scenarioRecords') || '[]');
     const seed = [
-      { id: 'SC-20260717-001', name: '城市交通精准治理场景', status: 'passed', scope: '仅用于城市交通拥堵治理、公交调度优化等政务场景，不得用于个体轨迹画像。' },
-      { id: 'SC-20260720-002', name: '中小企业信用评估场景', status: 'passed', scope: '仅用于信贷风险评估场景，不用于消费贷与催收用途。' }
+      { id: 'SC-20260717-001', name: '城市交通精准治理场景', status: 'passed', scope: '仅用于城市交通拥堵治理、公交调度优化等政务场景，不得用于个体轨迹画像。', attachList: [{ unit: '义乌市交通运输局', dataset: '公交GPS轨迹数据', items: '车辆编号、位置、速度、方向、采集时间' }, { unit: '义乌市交通运输局', dataset: 'BUS站牌信息', items: '站牌编号、站点名称、经度、纬度、所属线路' }] },
+      { id: 'SC-20260720-002', name: '中小企业信用评估场景', status: 'passed', scope: '仅用于信贷风险评估场景，不用于消费贷与催收用途。', attachList: [{ unit: '义乌市市场监督管理局', dataset: '企业经营许可数据', items: '许可证编号、有效期、经营范围' }] }
     ];
     const list = custom.length ? custom : seed;
     return list.filter(s => s.status === 'passed');
@@ -1065,7 +1107,15 @@
 
   function getResourceName(id) {
     const r = getApprovedResources().find(x => x.id === id);
-    return r ? r.resourceName : id;
+    if (r) return r.resourceName;
+    // 从所有场景的 attachList 中查找
+    for (const s of getPassedScenarios()) {
+      if (s.attachList) {
+        const a = s.attachList.find(x => x.dataset === id);
+        if (a) return a.dataset;
+      }
+    }
+    return id;
   }
 
   function getApprovedResources() {
@@ -1084,19 +1134,34 @@
 
   function renderResourceOptions(autoId) {
     const scId = document.getElementById('pubScenario').value;
-    const list = getApprovedResources();
-    const filtered = scId ? list.filter(r => !r.scenario || r.scenario === scId) : list;
     const wrap = document.getElementById('pubResourceList');
-    if (!filtered.length) {
-      wrap.innerHTML = '<div style="color:var(--text-secondary);font-size:13px;">暂无已通过的数据资源申请，请先在「数据资源申请」中完成资源申请</div>';
+    // 优先从场景 attachList 中获取数据源
+    const scenario = getPassedScenarios().find(s => s.id === scId);
+    const attachList = scenario && scenario.attachList ? scenario.attachList : [];
+    const approvedList = getApprovedResources();
+    const approvedFiltered = scId ? approvedList.filter(r => !r.scenario || r.scenario === scId) : approvedList;
+
+    const resourceMap = new Map();
+    attachList.forEach(item => {
+      resourceMap.set(item.dataset, { id: item.dataset, name: item.dataset, unit: item.unit });
+    });
+    approvedFiltered.forEach(r => {
+      if (!resourceMap.has(r.resourceName)) {
+        resourceMap.set(r.resourceName, { id: r.id, name: r.resourceName, unit: r.providerUnit });
+      }
+    });
+    const allResources = Array.from(resourceMap.values());
+
+    if (!allResources.length) {
+      wrap.innerHTML = '<div style="color:var(--text-secondary);font-size:13px;">暂无数据资源</div>';
       return;
     }
     const selected = currentEditId ? (products.find(x => x.id === currentEditId) || {}).resources || [] : [];
-    wrap.innerHTML = filtered.map(r => {
-      const checked = selected.includes(r.id) || (autoId && r.id === autoId) ? 'checked' : '';
+    wrap.innerHTML = allResources.map(r => {
+      const checked = selected.includes(r.id) || selected.includes(r.name) || (autoId && (r.id === autoId || r.name === autoId)) ? 'checked' : '';
       return `<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
         <input type="checkbox" class="pub-resource" value="${r.id}" ${checked}>
-        <span>${r.resourceName}（${r.providerUnit}）</span>
+        <span>${r.name}（${r.unit}）</span>
       </label>`;
     }).join('');
   }
@@ -1162,6 +1227,8 @@
           if (res) {
             document.getElementById('pubScenario').value = res.scenario || sc;
             autoResource = sa;
+          } else {
+            autoResource = sa;
           }
         }
       }
@@ -1212,7 +1279,7 @@
     return valid;
   }
 
-  function savePublish(action) {
+  function savePublish() {
     if (!validatePublishForm()) { alert('请完善必填信息'); return; }
     const name = document.getElementById('pubName').value.trim();
     const code = document.getElementById('pubCode').value.trim();
@@ -1229,12 +1296,14 @@
       if (name) fields.push({ name, note: row.querySelector('.field-note').value, type: row.querySelector('.field-type').value, len: row.querySelector('.field-len').value });
     });
     const resources = Array.from(document.querySelectorAll('.pub-resource:checked')).map(cb => cb.value);
-    // 越权校验：产品使用的数据源必须属于该场景已审批通过的数据资源申请
+    // 越权校验：产品使用的数据源必须属于该场景已审批通过的数据资源申请或场景 attachList
     if (scenario) {
       const approvedByScenario = getApprovedResources().filter(r => r.scenario === scenario);
-      const unauthorized = resources.filter(rid => !approvedByScenario.some(r => r.id === rid));
+      const scObj = getPassedScenarios().find(s => s.id === scenario);
+      const attachNames = scObj && scObj.attachList ? scObj.attachList.map(a => a.dataset) : [];
+      const unauthorized = resources.filter(rid => !approvedByScenario.some(r => r.id === rid) && !attachNames.includes(rid));
       if (unauthorized.length) {
-        alert('产品使用的数据资源必须属于该场景已审批通过的数据资源申请；当前所选数据源未获该场景授权，请先在「数据资源申请」中完成资源申请或调整关联场景');
+        alert('产品使用的数据资源必须属于该场景已审批通过的数据资源申请或场景关联的数据源；当前所选数据源未获该场景授权，请先在「数据资源申请」中完成资源申请或调整关联场景');
         return;
       }
     }
@@ -1243,19 +1312,19 @@
       const p = products.find(x => x.id === currentEditId);
       if (p) {
         Object.assign(p, { name, category, type, price, billing, scenario, desc, remark, fields, resources });
-        if (action === 'apply') {
-          p.status = 'audit';
-          p.auditApplyTime = new Date().toLocaleString('zh-CN', { hour12: false });
-          delete p.auditTime; delete p.auditor; delete p.auditOpinion;
-        }
       }
-      alert(action === 'apply' ? '已提交出域审核' : '产品信息已保存');
+      alert('产品信息已保存');
     } else {
-      const status = action === 'apply' ? 'audit' : 'pending';
-      const prod = { id: Date.now(), name, code, status, parseStatus: '未解析', price, billing, category, type, scenario, desc, remark, tags: [typeMap[type]], fields, resources };
-      if (action === 'apply') prod.auditApplyTime = new Date().toLocaleString('zh-CN', { hour12: false });
+      const prod = {
+        id: Date.now(), name, code,
+        shelfStatus: 'offline',
+        outboundStatus: 'none',
+        parseStatus: '未解析',
+        price, billing, category, type, scenario, desc, remark,
+        tags: [typeMap[type]], fields, resources
+      };
       products.unshift(prod);
-      alert(action === 'apply' ? '已提交出域审核，等待独立审批后台审批' : '草稿已保存');
+      alert('产品已发布，当前为下架状态');
     }
     saveProducts();
     renderProducts();
@@ -1265,7 +1334,8 @@
   function viewDetail(id) {
     const p = products.find(x => x.id === id);
     if (!p) return;
-    const st = statusMap[p.status];
+    const shelf = shelfStatusMap[p.shelfStatus] || shelfStatusMap.offline;
+    const outbound = outboundStatusMap[p.outboundStatus] || outboundStatusMap.none;
     const billingText = p.billing === 'free' ? '免费' : `¥${p.price}/${billingMap[p.billing]}`;
     const fieldsRows = (p.fields || []).length ? p.fields.map(f => `<tr><td>${f.name}</td><td>${f.note || '-'}</td><td>${f.type}</td><td>${f.len || '-'}</td></tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);">暂无字段信息</td></tr>';
 
@@ -1274,7 +1344,8 @@
         <div class="detail-hero-header">
           <button class="btn btn-default btn-sm" onclick="closeDetailModal()" style="padding: 4px 10px;">&larr; 返回</button>
           <h2>${p.name}</h2>
-          <span class="status-tag ${st.class}">${st.text}</span>
+          <span class="status-tag ${shelf.class}">${shelf.text}</span>
+          <span class="outbound-tag ${outbound.class}">${outbound.text}</span>
         </div>
         <p>${p.desc}</p>
         <div class="detail-hero-meta">
@@ -1289,9 +1360,9 @@
         </div>` : ''}
         <div style="margin-top:12px;padding:12px 16px;background:#f0f7ff;border:1px solid #d0e3ff;border-radius:8px;font-size:13px;line-height:1.9;">
           <div style="font-weight:600;color:#1e40af;margin-bottom:4px;">出域审核信息</div>
-          ${p.status === 'pending' ? '产品为草稿状态，尚未提交出域审核。' :
-            (p.status === 'audit' ? `出域审核进行中，提交时间：${p.auditApplyTime || '-'}` :
-            (p.status === 'rejected' ? `出域审核未通过（${p.auditTime || '-'}），驳回原因：${p.rejectReason || p.auditOpinion || '-'}，可修改后重新提交。` :
+          ${p.outboundStatus === 'none' ? '产品尚未提交出域审核。' :
+            (p.outboundStatus === 'audit' ? `出域审核进行中，提交时间：${p.auditApplyTime || '-'}` :
+            (p.outboundStatus === 'rejected' ? `出域审核未通过（${p.auditTime || '-'}），驳回原因：${p.rejectReason || p.auditOpinion || '-'}，可修改后重新提交。` :
             (p.auditTime ? `出域审核通过（${p.auditTime}），审核人：${p.auditor || '-'}，意见：${p.auditOpinion || '-'}${p.onlineTime ? '；已上架：' + p.onlineTime : ''}${p.offTime ? '；已下架：' + p.offTime : ''}` : '暂无出域审核记录')))}
         </div>
       </div>
@@ -1427,7 +1498,8 @@
     const p = products.find(x => x.id === id);
     if (!p) return;
     if (confirm(`确定为「${p.name}」提交出域审核吗？提交后将由独立审批后台审批，审批通过后方可上架。`)) {
-      p.status = 'audit';
+      p.shelfStatus = 'offline';
+      p.outboundStatus = 'audit';
       p.auditApplyTime = new Date().toLocaleString('zh-CN', { hour12: false });
       delete p.auditTime; delete p.auditor; delete p.auditOpinion; delete p.rejectReason;
       saveProducts();
@@ -1445,16 +1517,14 @@
   function onlineProduct(id) {
     const p = products.find(x => x.id === id);
     if (!p) return;
-    const outboundList = getOutboundRecords();
-    const hasApproved = outboundList.some(o =>
-      o.status === 'approved' && (o.productId === id || (!o.productId && o.productName === p.name))
-    );
-    if (!hasApproved) {
-      alert('该产品尚未完成出域申请，请先前往出域管理提交出域申请');
+    if (p.outboundStatus !== 'passed') {
+      if (confirm('该产品尚未通过出域审核，是否前往出域管理进行出域申请？')) {
+        location.href = 'outbound-management.html';
+      }
       return;
     }
     if (confirm(`确认将「${p.name}」上架？上架后应用可提交调用申请。`)) {
-      p.status = 'online';
+      p.shelfStatus = 'online';
       p.onlineTime = new Date().toLocaleString('zh-CN', { hour12: false });
       delete p.offTime;
       saveProducts();
@@ -1478,10 +1548,13 @@
   function openOfflineModal(id) {
     const p = products.find(x => x.id === id);
     if (!p) return;
+    const shelf = shelfStatusMap[p.shelfStatus] || shelfStatusMap.offline;
+    const outbound = outboundStatusMap[p.outboundStatus] || outboundStatusMap.none;
     document.getElementById('offlineContent').innerHTML = `
       <div class="detail-hero-header" style="margin-bottom:16px;">
         <h2 style="font-size:16px;">${p.name}</h2>
-        <span class="status-tag ${statusMap[p.status].class}">${statusMap[p.status].text}</span>
+        <span class="status-tag ${shelf.class}">${shelf.text}</span>
+        <span class="outbound-tag ${outbound.class}">${outbound.text}</span>
       </div>
       <div class="stat-cards">
         <div class="stat-card"><div class="label">今日调用量</div><div class="value">1,248</div></div>
@@ -1511,7 +1584,7 @@
     const p = products.find(x => x.id === id);
     if (!p) return;
     if (confirm(`确定下架「${p.name}」吗？`)) {
-      p.status = 'offline';
+      p.shelfStatus = 'offline';
       p.offTime = new Date().toLocaleString('zh-CN', { hour12: false });
       delete p.onlineTime;
       saveProducts();

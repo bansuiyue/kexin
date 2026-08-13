@@ -662,19 +662,146 @@
   };
 
   /* ========== 场景申报数据联动（来自场景申报管理页） ========== */
+  function migrateScenarioFields(s) {
+    if (!s.attachList || !Array.isArray(s.attachList)) return s;
+    s.attachList.forEach(function(item) {
+      if (!item.fields || !item.fields.length) {
+        if (item.items) {
+          item.fields = item.items.split('、').map(function(name) {
+            return { name: name.trim(), type: '', remark: '', length: '' };
+          }).filter(function(f) { return f.name; });
+        } else {
+          item.fields = [
+            { name: 'data_day', type: 'DATE', remark: '时间分区', length: '' },
+            { name: 'xgsj', type: 'DATETIME', remark: '修改时间', length: '' },
+            { name: 'tkfsmc', type: 'VARCHAR', remark: '停靠方式', length: '50' }
+          ];
+        }
+      } else {
+        item.fields.forEach(function(f) {
+          if (f.remark === undefined) f.remark = '';
+          if (f.length === undefined) f.length = '';
+        });
+      }
+    });
+    return s;
+  }
+
   function getPassedScenarios() {
-    const custom = JSON.parse(localStorage.getItem('scenarioRecords') || '[]');
+    const custom = JSON.parse(localStorage.getItem('scenarioRecords') || '[]').map(migrateScenarioFields);
     const seed = [
-      { id: 'SC-20260717-001', name: '城市交通精准治理场景', scope: '仅用于城市交通拥堵分析、公交线网优化、出行需求研判，不得用于个体轨迹画像与营销推送。', attachList: [{ unit: '义乌市交通运输局', dataset: '公交GPS轨迹数据', items: '车辆编号、位置、速度、方向、采集时间' }, { unit: '义乌市交通运输局', dataset: 'BUS站牌信息', items: '站牌编号、站点名称、经度、纬度、所属线路' }], status: 'passed' },
-      { id: 'SC-20260720-002', name: '中小企业信用评估场景', scope: '仅用于信贷风险评估场景，不用于消费贷与催收用途。', attachList: [{ unit: '义乌市市场监督管理局', dataset: '企业经营许可数据', items: '许可证编号、有效期、经营范围' }], status: 'passed' },
-      { id: 'SC-20260801-003', name: '生态环境监测预警场景', scope: '仅用于空气质量监测、污染源溯源分析、环境风险预警，不得用于企业环保处罚关联营销。', attachList: [{ unit: '义乌市生态环境局', dataset: '空气质量监测数据', items: '监测站点、PM2.5、PM10、SO2、NO2、O3、CO、监测时间' }, { unit: '义乌市生态环境局', dataset: '重点排污企业在线监测数据', items: '企业编号、排放口、污染物种类、排放浓度、流量、监测时间' }], status: 'passed' },
-      { id: 'SC-20260805-004', name: '智慧医疗资源共享场景', scope: '仅用于医疗资源分布分析、就诊流量预测、分级诊疗评估，严格保护患者隐私，不得用于保险营销。', attachList: [{ unit: '义乌市卫生健康委员会', dataset: '医疗机构执业登记数据', items: '机构名称、执业许可证号、诊疗科目、床位数、地址' }, { unit: '义乌市卫生健康委员会', dataset: '区域就诊流量数据', items: '日期、科室、就诊人次、预约率、平均候诊时长' }], status: 'passed' },
-      { id: 'SC-20260810-005', name: '教育资源均衡配置场景', scope: '仅用于学区学位供需分析、教师资源配置评估、教育公平监测，不得用于房产学区营销。', attachList: [{ unit: '义乌市教育局', dataset: '中小学基础信息数据', items: '学校名称、办学类型、年级班级数、在校生人数、专任教师数' }, { unit: '义乌市教育局', dataset: '学区划分与学位数据', items: '学区名称、覆盖社区、计划招生数、实际入学数、空余学位' }], status: 'passed' }
+      { id: 'SC-20260717-001', name: '城市交通精准治理场景', scope: '仅用于城市交通拥堵分析、公交线网优化、出行需求研判，不得用于个体轨迹画像与营销推送。', attachList: [
+        { unit: '义乌市交通运输局', dataset: '公交GPS轨迹数据', fields: [
+          { name: '车辆编号', type: 'String(20)' }, { name: '位置', type: 'GeoPoint' }, { name: '速度', type: 'Float(km/h)' }, { name: '方向', type: 'Int(0-360)' }, { name: '采集时间', type: 'DateTime' }
+        ]},
+        { unit: '义乌市交通运输局', dataset: 'BUS站牌信息', fields: [
+          { name: 'data_day', type: 'DATE', remark: '时间分区', length: '' },
+          { name: 'xgsj', type: 'DATETIME', remark: '修改时间 格式:YYYY-MM-DD HH24:MI:SS', length: '' },
+          { name: 'tkfsmc', type: 'VARCHAR', remark: '停靠方式', length: '50' },
+          { name: 'zwdz', type: 'VARCHAR', remark: '具体地址（暨南路）', length: '200' },
+          { name: 'ssxsqmc', type: 'VARCHAR', remark: '所属区县（行政区划）', length: '100' },
+          { name: 'gdwd', type: 'VARCHAR', remark: '高德纬度', length: '20' },
+          { name: 'gdjd', type: 'VARCHAR', remark: '高德经度', length: '20' },
+          { name: 'zwwd', type: 'VARCHAR', remark: '站牌纬度/84坐标', length: '20' },
+          { name: 'zwjd', type: 'VARCHAR', remark: '站牌经度/84坐标', length: '20' },
+          { name: 'tjxl', type: 'VARCHAR', remark: '途经线路', length: '200' },
+          { name: 'sfdzzp', type: 'TINYINT', remark: '是否电子站牌 0:否；1:是', length: '1' },
+          { name: 'zplx', type: 'VARCHAR', remark: '站牌类型', length: '30' },
+          { name: 'zwfw', type: 'VARCHAR', remark: '站牌方位(路东,路南,路西,路北)', length: '50' },
+          { name: 'ssdlmc', type: 'VARCHAR', remark: '所属道路名称', length: '100' },
+          { name: 'zwbh', type: 'VARCHAR', remark: '站牌编号', length: '30' },
+          { name: 'zwmc', type: 'VARCHAR', remark: '站牌名称', length: '100' },
+          { name: 'id', type: 'INT', remark: '主键', length: '11' }
+        ]},
+        { unit: '义乌市交通运输局', dataset: '城市公交IC卡刷卡数据', fields: [
+          { name: '卡号', type: 'String(32)' }, { name: '刷卡线路', type: 'String(20)' }, { name: '刷卡站点', type: 'String(50)' }, { name: '刷卡时间', type: 'DateTime' }, { name: '交易金额', type: 'Decimal(10,2)' }
+        ]},
+        { unit: '义乌市交通运输局', dataset: '出租车运行数据', fields: [
+          { name: '上车点', type: 'GeoPoint' }, { name: '下车点', type: 'GeoPoint' }, { name: '行驶里程', type: 'Float(km)' }, { name: '计费金额', type: 'Decimal(10,2)' }, { name: '运营时间', type: 'DateTime' }
+        ]},
+        { unit: '高德软件有限公司', dataset: '高德地图通勤数据', fields: [
+          { name: '起终点', type: 'String(200)' }, { name: '出行方式', type: 'String(20)' }, { name: '出行时段', type: 'String(50)' }, { name: '路径距离', type: 'Float(km)' }, { name: '耗时', type: 'Int(分钟)' }
+        ]}
+      ], status: 'passed' },
+      { id: 'SC-20260720-002', name: '中小企业信用评估场景', scope: '仅用于信贷风险评估场景，不用于消费贷与催收用途。', attachList: [
+        { unit: '义乌市市场监督管理局', dataset: '企业经营许可数据', fields: [
+          { name: '许可证编号', type: 'String(30)' }, { name: '有效期', type: 'Date' }, { name: '经营范围', type: 'Text' }, { name: '发证机关', type: 'String(50)' }
+        ]},
+        { unit: '义乌市市场监督管理局', dataset: '企业年报公示数据', fields: [
+          { name: '企业名称', type: 'String(100)' }, { name: '统一社会信用代码', type: 'String(18)' }, { name: '注册资本', type: 'Decimal(18,2)' }, { name: '成立日期', type: 'Date' }, { name: '登记状态', type: 'String(20)' }
+        ]},
+        { unit: '义乌市税务局', dataset: '企业纳税信用等级数据', fields: [
+          { name: '纳税人识别号', type: 'String(20)' }, { name: '纳税信用等级', type: 'String(1)' }, { name: '评价年度', type: 'String(4)' }, { name: '评价得分', type: 'Int' }
+        ]},
+        { unit: '中国人民银行义乌市支行', dataset: '企业征信概要数据', fields: [
+          { name: '企业名称', type: 'String(100)' }, { name: '信贷记录数', type: 'Int' }, { name: '不良记录数', type: 'Int' }, { name: '查询日期', type: 'Date' }
+        ]}
+      ], status: 'passed' },
+      { id: 'SC-20260801-003', name: '生态环境监测预警场景', scope: '仅用于空气质量监测、污染源溯源分析、环境风险预警，不得用于企业环保处罚关联营销。', attachList: [
+        { unit: '义乌市生态环境局', dataset: '空气质量监测数据', fields: [
+          { name: '监测站点', type: 'String(30)' }, { name: 'PM2.5', type: 'Float' }, { name: 'PM10', type: 'Float' }, { name: 'SO2', type: 'Float' }, { name: 'NO2', type: 'Float' }, { name: 'O3', type: 'Float' }, { name: 'CO', type: 'Float' }, { name: '监测时间', type: 'DateTime' }
+        ]},
+        { unit: '义乌市生态环境局', dataset: '重点排污企业在线监测数据', fields: [
+          { name: '企业编号', type: 'String(20)' }, { name: '排放口', type: 'String(30)' }, { name: '污染物种类', type: 'String(50)' }, { name: '排放浓度', type: 'Float' }, { name: '流量', type: 'Float' }, { name: '监测时间', type: 'DateTime' }
+        ]},
+        { unit: '义乌市生态环境局', dataset: '建设项目环评审批数据', fields: [
+          { name: '项目名称', type: 'String(200)' }, { name: '建设单位', type: 'String(100)' }, { name: '环评类别', type: 'String(20)' }, { name: '审批日期', type: 'Date' }, { name: '批复文号', type: 'String(50)' }
+        ]},
+        { unit: '义乌市水利局', dataset: '饮用水源地水质监测数据', fields: [
+          { name: '水源地名称', type: 'String(50)' }, { name: 'pH值', type: 'Float' }, { name: '溶解氧', type: 'Float' }, { name: '高锰酸盐指数', type: 'Float' }, { name: '氨氮', type: 'Float' }, { name: '总磷', type: 'Float' }, { name: '监测时间', type: 'DateTime' }
+        ]}
+      ], status: 'passed' },
+      { id: 'SC-20260805-004', name: '智慧医疗资源共享场景', scope: '仅用于医疗资源分布分析、就诊流量预测、分级诊疗评估，严格保护患者隐私，不得用于保险营销。', attachList: [
+        { unit: '义乌市卫生健康委员会', dataset: '医疗机构执业登记数据', fields: [
+          { name: '机构名称', type: 'String(100)' }, { name: '执业许可证号', type: 'String(30)' }, { name: '诊疗科目', type: 'Text' }, { name: '床位数', type: 'Int' }, { name: '地址', type: 'String(200)' }
+        ]},
+        { unit: '义乌市卫生健康委员会', dataset: '区域就诊流量数据', fields: [
+          { name: '日期', type: 'Date' }, { name: '科室', type: 'String(50)' }, { name: '就诊人次', type: 'Int' }, { name: '预约率', type: 'Float' }, { name: '平均候诊时长', type: 'Float(分钟)' }
+        ]},
+        { unit: '义乌市卫生健康委员会', dataset: '医师执业注册数据', fields: [
+          { name: '医师姓名', type: 'String(50)' }, { name: '执业证书编码', type: 'String(30)' }, { name: '执业类别', type: 'String(20)' }, { name: '执业范围', type: 'Text' }, { name: '注册机构', type: 'String(100)' }
+        ]},
+        { unit: '义乌市卫生健康委员会', dataset: '药品采购配送数据', fields: [
+          { name: '药品名称', type: 'String(100)' }, { name: '规格', type: 'String(50)' }, { name: '采购数量', type: 'Int' }, { name: '配送单位', type: 'String(100)' }, { name: '配送日期', type: 'Date' }
+        ]}
+      ], status: 'passed' },
+      { id: 'SC-20260810-005', name: '教育资源均衡配置场景', scope: '仅用于学区学位供需分析、教师资源配置评估、教育公平监测，不得用于房产学区营销。', attachList: [
+        { unit: '义乌市教育局', dataset: '中小学基础信息数据', fields: [
+          { name: '学校名称', type: 'String(100)' }, { name: '办学类型', type: 'String(20)' }, { name: '年级班级数', type: 'Int' }, { name: '在校生人数', type: 'Int' }, { name: '专任教师数', type: 'Int' }
+        ]},
+        { unit: '义乌市教育局', dataset: '学区划分与学位数据', fields: [
+          { name: '学区名称', type: 'String(50)' }, { name: '覆盖社区', type: 'String(200)' }, { name: '计划招生数', type: 'Int' }, { name: '实际入学数', type: 'Int' }, { name: '空余学位', type: 'Int' }
+        ]},
+        { unit: '义乌市教育局', dataset: '教师基本信息数据', fields: [
+          { name: '教师姓名', type: 'String(50)' }, { name: '身份证号', type: 'String(18)' }, { name: '任教学科', type: 'String(30)' }, { name: '职称', type: 'String(20)' }, { name: '教龄', type: 'Int' }
+        ]},
+        { unit: '义乌市教育局', dataset: '教育经费投入数据', fields: [
+          { name: '学校名称', type: 'String(100)' }, { name: '经费年度', type: 'String(4)' }, { name: '生均公用经费', type: 'Decimal(18,2)' }, { name: '基建投入', type: 'Decimal(18,2)' }, { name: '设备购置费', type: 'Decimal(18,2)' }
+        ]}
+      ], status: 'passed' }
     ];
-    if (custom.length) {
-      return custom.filter(s => s.status === 'passed');
-    }
-    return seed;
+    const passed = custom.filter(s => s.status === 'passed').map(migrateScenarioFields);
+    const seedMap = new Map();
+    seed.forEach(s => seedMap.set(s.id, s));
+    passed.forEach(function(s) {
+      const base = seedMap.get(s.id);
+      if (base && base.attachList) {
+        const baseMap = new Map(base.attachList.map(a => [a.dataset, a]));
+        (s.attachList || []).forEach(function(a) {
+          if (baseMap.has(a.dataset)) {
+            const b = baseMap.get(a.dataset);
+            if (!a.fields || !a.fields.length) a.fields = b.fields || [];
+          } else {
+            baseMap.set(a.dataset, a);
+          }
+        });
+        s.attachList = Array.from(baseMap.values());
+      }
+    });
+    const map = new Map();
+    seed.forEach(s => map.set(s.id, s));
+    passed.forEach(s => map.set(s.id, s));
+    return Array.from(map.values());
   }
 
   function getScenarioName(id) {
@@ -701,11 +828,44 @@
     localStorage.setItem('dataApplyRecords', JSON.stringify(list));
   }
 
+  function migrateApplyRecord(r) {
+    if (r.resources && Array.isArray(r.resources)) {
+      r.resources.forEach(function(res) {
+        if (!res.selectedFields && res.dataItems) {
+          res.selectedFields = res.dataItems.split('、').map(function(s) { return s.trim(); }).filter(Boolean);
+        }
+        if (!res.fields && res.dataItems) {
+          res.fields = res.dataItems.split('、').map(function(s) {
+            return { name: s.trim(), type: '', remark: '', length: '' };
+          }).filter(function(f) { return f.name; });
+        }
+        if (res.fields) {
+          res.fields.forEach(function(f) {
+            if (f.remark === undefined) f.remark = '';
+            if (f.length === undefined) f.length = '';
+          });
+        }
+      });
+      return r;
+    }
+    r.resources = [{
+      name: r.resourceName || '',
+      providerUnit: r.providerUnit || '',
+      dataItems: r.dataItems || '',
+      selectedFields: (r.dataItems || '').split('、').map(function(s) { return s.trim(); }).filter(Boolean),
+      fields: (r.dataItems || '').split('、').map(function(s) {
+        return { name: s.trim(), type: '', remark: '', length: '' };
+      }).filter(function(f) { return f.name; })
+    }];
+    delete r.resourceName;
+    delete r.providerUnit;
+    delete r.dataItems;
+    return r;
+  }
+
   const applyRecords = [
     {
       id: 'SQ20260701001',
-      resourceName: 'BUS站牌信息',
-      providerUnit: '义乌市交通运输局',
       scenario: 'SC-20260717-001',
       applicant: '浙江义乌数据运营有限公司',
       securityOrg: '浙江义乌数据运营有限公司',
@@ -713,17 +873,38 @@
       contact: '138****6688',
       applyTime: '2026-07-01 09:30:22',
       status: 'pending',
-      dataItems: '站牌编号、站点名称、经度、纬度、所属线路',
       dataRange: '2026-01-01 至 2026-12-31，覆盖义乌市全部公交线路',
       productContent: '开发公交实时到站信息查询数据产品，为市民出行提供实时到站预测服务',
       serviceScope: '面向义乌市市民及公共交通出行用户',
       socialBenefit: '提升公共交通出行效率，改善市民出行体验',
-      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》'],
+      resources: [
+        { name: 'BUS站牌信息', providerUnit: '义乌市交通运输局', fields: [
+          { name: 'data_day', type: 'DATE', remark: '时间分区', length: '' },
+          { name: 'xgsj', type: 'DATETIME', remark: '修改时间 格式:YYYY-MM-DD HH24:MI:SS', length: '' },
+          { name: 'tkfsmc', type: 'VARCHAR', remark: '停靠方式', length: '50' },
+          { name: 'zwdz', type: 'VARCHAR', remark: '具体地址（暨南路）', length: '200' },
+          { name: 'ssxsqmc', type: 'VARCHAR', remark: '所属区县（行政区划）', length: '100' },
+          { name: 'gdwd', type: 'VARCHAR', remark: '高德纬度', length: '20' },
+          { name: 'gdjd', type: 'VARCHAR', remark: '高德经度', length: '20' },
+          { name: 'zwwd', type: 'VARCHAR', remark: '站牌纬度/84坐标', length: '20' },
+          { name: 'zwjd', type: 'VARCHAR', remark: '站牌经度/84坐标', length: '20' },
+          { name: 'tjxl', type: 'VARCHAR', remark: '途经线路', length: '200' },
+          { name: 'sfdzzp', type: 'TINYINT', remark: '是否电子站牌 0:否；1:是', length: '1' },
+          { name: 'zplx', type: 'VARCHAR', remark: '站牌类型', length: '30' },
+          { name: 'zwfw', type: 'VARCHAR', remark: '站牌方位(路东,路南,路西,路北)', length: '50' },
+          { name: 'ssdlmc', type: 'VARCHAR', remark: '所属道路名称', length: '100' },
+          { name: 'zwbh', type: 'VARCHAR', remark: '站牌编号', length: '30' },
+          { name: 'zwmc', type: 'VARCHAR', remark: '站牌名称', length: '100' },
+          { name: 'id', type: 'INT', remark: '主键', length: '11' }
+        ], selectedFields: ['data_day','xgsj','tkfsmc','zwdz','ssxsqmc','gdwd','gdjd','zwwd','zwjd','tjxl','sfdzzp','zplx','zwfw','ssdlmc','zwbh','zwmc','id'] },
+        { name: '城市公交GPS轨迹数据', providerUnit: '义乌市交通运输局', fields: [
+          { name: '车辆编号', type: 'String(20)' }, { name: '位置', type: 'GeoPoint' }, { name: '速度', type: 'Float(km/h)' }, { name: '方向', type: 'Int(0-360)' }, { name: '采集时间', type: 'DateTime' }
+        ], selectedFields: ['车辆编号','位置','速度','方向','采集时间'] }
+      ]
     },
     {
       id: 'SQ20260625002',
-      resourceName: '高德地图通勤数据',
-      providerUnit: '高德软件有限公司',
       scenario: 'SC-20260717-001',
       applicant: '浙江义乌数据运营有限公司',
       securityOrg: '浙江义乌数据运营有限公司',
@@ -731,17 +912,22 @@
       contact: '138****3355',
       applyTime: '2026-06-25 14:12:05',
       status: 'approved',
-      dataItems: '起终点、出行方式、出行时段、路径距离',
       dataRange: '2026-03-01 至 2026-09-30，义乌市城区范围',
       productContent: '开发城市通勤交通态势分析产品，输出高峰时段拥堵分布报告',
       serviceScope: '面向义乌市城市管理部门及交通规划机构',
       socialBenefit: '辅助城市交通规划，缓解高峰拥堵',
-      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》'],
+      resources: [
+        { name: '高德地图通勤数据', providerUnit: '高德软件有限公司', fields: [
+          { name: '起终点', type: 'String(200)' }, { name: '出行方式', type: 'String(20)' }, { name: '出行时段', type: 'String(50)' }, { name: '路径距离', type: 'Float(km)' }
+        ], selectedFields: ['起终点','出行方式','出行时段','路径距离'] },
+        { name: '出租车运行数据', providerUnit: '义乌市交通运输局', fields: [
+          { name: '上车点', type: 'GeoPoint' }, { name: '下车点', type: 'GeoPoint' }, { name: '行驶里程', type: 'Float(km)' }, { name: '计费金额', type: 'Decimal(10,2)' }
+        ], selectedFields: ['上车点','下车点','行驶里程','计费金额'] }
+      ]
     },
     {
       id: 'SQ20260618003',
-      resourceName: '公交IC卡刷卡数据',
-      providerUnit: '义乌市公共交通集团有限公司',
       scenario: 'SC-20260717-001',
       applicant: '浙江义乌数据运营有限公司',
       securityOrg: '浙江义乌数据运营有限公司',
@@ -750,48 +936,16 @@
       applyTime: '2026-06-18 10:45:33',
       status: 'rejected',
       rejectReason: '申请材料中数据用途说明不够具体，请补充公交客流数据的使用场景、数据安全保障措施及脱敏处理方案后重新提交。',
-      dataItems: '卡号（脱敏）、刷卡线路、刷卡站点、刷卡时间',
       dataRange: '2026-01-01 至 2026-06-30',
       productContent: '开发公交客流分析产品，输出线路客流热力图',
       serviceScope: '面向公交运营企业',
       socialBenefit: '优化公交运力配置',
-      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
-    },
-    {
-      id: 'SQ20260612004',
-      resourceName: '城市公交GPS轨迹数据',
-      providerUnit: '义乌市交通运输局',
-      scenario: 'SC-20260717-001',
-      applicant: '浙江义乌数据运营有限公司',
-      securityOrg: '浙江义乌数据运营有限公司',
-      securityPerson: '陈静',
-      contact: '135****8899',
-      applyTime: '2026-06-12 16:20:11',
-      status: 'pending',
-      dataItems: '车辆编号、位置、速度、方向、采集时间',
-      dataRange: '2026-06-01 起持续更新，义乌市全域',
-      productContent: '开发公交运行监测与调度优化数据产品，支持实时监控与调度建议',
-      serviceScope: '面向公交运营企业与交通管理部门',
-      socialBenefit: '提升公交准点率与运行效率',
-      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
-    },
-    {
-      id: 'SQ20260605005',
-      resourceName: '出租车运行数据',
-      providerUnit: '义乌市交通运输局',
-      scenario: 'SC-20260717-001',
-      applicant: '浙江义乌数据运营有限公司',
-      securityOrg: '浙江义乌数据运营有限公司',
-      securityPerson: '赵磊',
-      contact: '137****5566',
-      applyTime: '2026-06-05 09:08:47',
-      status: 'approved',
-      dataItems: '上车点、下车点、行驶里程、计费金额（脱敏）',
-      dataRange: '2026-01-01 至 2026-05-31，义乌市城区',
-      productContent: '开发城市出行需求分析产品，输出打车热点区域分布',
-      serviceScope: '面向城市管理部门',
-      socialBenefit: '辅助城市公共交通规划',
-      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》'],
+      resources: [
+        { name: '公交IC卡刷卡数据', providerUnit: '义乌市公共交通集团有限公司', fields: [
+          { name: '卡号', type: 'String(32)' }, { name: '刷卡线路', type: 'String(20)' }, { name: '刷卡站点', type: 'String(50)' }, { name: '刷卡时间', type: 'DateTime' }
+        ], selectedFields: ['卡号','刷卡线路','刷卡站点','刷卡时间'] }
+      ]
     }
   ];
 
@@ -801,18 +955,20 @@
   }
 
   function getAllRecords() {
-    return getCustomApplies().concat(applyRecords);
+    return getCustomApplies().concat(applyRecords).map(migrateApplyRecord);
   }
 
   function getFilteredRecords() {
     const keyword = document.getElementById('recordKeyword').value.trim().toLowerCase();
     const status = document.getElementById('recordStatus').value;
     return getAllRecords().filter(function(r) {
+      const resNames = (r.resources || []).map(function(res) { return (res.name || '').toLowerCase(); }).join(' ');
+      const resUnits = (r.resources || []).map(function(res) { return (res.providerUnit || '').toLowerCase(); }).join(' ');
       const matchKeyword = !keyword ||
         r.id.toLowerCase().indexOf(keyword) !== -1 ||
-        (r.resourceName || '').toLowerCase().indexOf(keyword) !== -1 ||
+        resNames.indexOf(keyword) !== -1 ||
         (r.applicant || '').toLowerCase().indexOf(keyword) !== -1 ||
-        (r.providerUnit || '').toLowerCase().indexOf(keyword) !== -1;
+        resUnits.indexOf(keyword) !== -1;
       const matchStatus = !status || r.status === status;
       return matchKeyword && matchStatus;
     });
@@ -827,10 +983,25 @@
     }
     body.innerHTML = list.map(function(r) {
       const scenarioName = r.scenario && r.scenario.indexOf('SC-') === 0 ? getScenarioName(r.scenario) : (r.scenario || '-');
+      const resources = r.resources || [];
+      let resourceNameHtml = '-';
+      if (resources.length === 1) {
+        resourceNameHtml = resources[0].name;
+      } else if (resources.length > 1) {
+        resourceNameHtml = resources.slice(0, 2).map(function(res) { return res.name; }).join('、') +
+          '<span style="color:var(--text-secondary);font-size:12px;"> 等' + resources.length + '项</span>';
+      }
+      let providerUnitHtml = '-';
+      if (resources.length === 1) {
+        providerUnitHtml = resources[0].providerUnit;
+      } else if (resources.length > 1) {
+        const units = [...new Set(resources.map(function(res) { return res.providerUnit; }))];
+        providerUnitHtml = units.slice(0, 2).join('、') + (units.length > 2 ? ' 等' : '');
+      }
       return '<tr>' +
         '<td>' + r.id + '</td>' +
-        '<td>' + r.resourceName + '</td>' +
-        '<td>' + r.providerUnit + '</td>' +
+        '<td>' + resourceNameHtml + '</td>' +
+        '<td>' + providerUnitHtml + '</td>' +
         '<td>' + scenarioName +
           (r.scenario && r.scenario.indexOf('SC-') === 0 ? '<div style="font-size:12px;color:var(--text-secondary);">' + r.scenario + '</div>' : '') +
         '</td>' +
@@ -864,30 +1035,47 @@
     const materialsHtml = r.materials.map(function(m) {
       return '<span class="material-item"><span class="file-icon">&#128196;</span>' + m + '</span>';
     }).join('');
+    const resources = r.resources || [];
+    const resourcesHtml = resources.length ?
+      '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+        '<thead><tr style="background:#f8fafc;">' +
+          '<th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">数据资源名称</th>' +
+          '<th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">数据提供单位</th>' +
+          '<th style="padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">申请字段</th>' +
+        '</tr></thead>' +
+        '<tbody>' +
+        resources.map(function(res) {
+          const selected = res.selectedFields || [];
+          const fieldsHtml = selected.length ? selected.join('、') : (res.dataItems || '-');
+          return '<tr>' +
+            '<td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);">' + (res.name || '-') + '</td>' +
+            '<td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);">' + (res.providerUnit || '-') + '</td>' +
+            '<td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);">' + fieldsHtml + '</td>' +
+          '</tr>';
+        }).join('') +
+        '</tbody>' +
+      '</table>' : '<div style="color:var(--text-tertiary);font-size:13px;">无数据资源</div>';
     document.getElementById('recordDetailBody').innerHTML =
       '<div class="detail-grid">' +
         '<div class="detail-item"><label>申请编号</label><div class="value">' + r.id + '</div></div>' +
         '<div class="detail-item"><label>申请状态</label><div class="value">' + getStatusTag(r.status) + '</div></div>' +
-        '<div class="detail-item"><label>数据资源名称</label><div class="value">' + r.resourceName + '</div></div>' +
-        '<div class="detail-item"><label>数据提供单位</label><div class="value">' + r.providerUnit + '</div></div>' +
         '<div class="detail-item"><label>授权运营场景</label><div class="value">' + (r.scenario && r.scenario.indexOf('SC-') === 0 ? getScenarioName(r.scenario) : (r.scenario || '-')) + '</div></div>' +
-        (r.applyCycle ? '<div class="detail-item"><label>申请数据周期</label><div class="value">' + r.applyCycle + '</div></div>' : '') +
-        (r.useMode ? '<div class="detail-item"><label>数据使用方式</label><div class="value">' + r.useMode + '</div></div>' : '') +
-        '<div class="detail-item"><label>申请单位</label><div class="value">' + r.applicant + '</div></div>' +
-        '<div class="detail-item"><label>申请时间</label><div class="value">' + r.applyTime + '</div></div>' +
-        '<div class="detail-item"><label>责任人</label><div class="value">' + r.securityPerson + '</div></div>' +
-        '<div class="detail-item"><label>联系方式</label><div class="value">' + r.contact + '</div></div>' +
-        '<div class="detail-item full"><label>数据资源数据项</label><div class="value">' + r.dataItems + '</div></div>' +
-        '<div class="detail-item full"><label>申请数据范围</label><div class="value">' + r.dataRange + '</div></div>' +
+        '<div class="detail-item"><label>申请单位</label><div class="value">' + (r.applicant || '-') + '</div></div>' +
+        '<div class="detail-item"><label>申请时间</label><div class="value">' + (r.applyTime || '-') + '</div></div>' +
+        '<div class="detail-item"><label>责任人</label><div class="value">' + (r.securityPerson || '-') + '</div></div>' +
+        '<div class="detail-item"><label>联系方式</label><div class="value">' + (r.contact || '-') + '</div></div>' +
+        '<div class="detail-item full"><label>申请数据范围</label><div class="value">' + (r.dataRange || '-') + '</div></div>' +
         '<div class="detail-item full"><label>待开发数据产品内容</label><div class="value">' + (r.productContent || '-') + '</div></div>' +
         '<div class="detail-item full"><label>服务范围</label><div class="value">' + (r.serviceScope || '-') + '</div></div>' +
         '<div class="detail-item full"><label>社会效益</label><div class="value">' + (r.socialBenefit || '-') + '</div></div>' +
         (r.status === 'rejected' && r.rejectReason ? '<div class="detail-item full reject-reason"><label>驳回原因</label><div class="value">' + r.rejectReason + '</div></div>' : '') +
       '</div>' +
+      '<div class="detail-section-title">数据资源清单（共' + resources.length + '项）</div>' +
+      '<div style="margin-bottom:20px;">' + resourcesHtml + '</div>' +
       '<div class="detail-section-title">数据安全责任</div>' +
       '<div class="detail-grid">' +
-        '<div class="detail-item"><label>数据安全责任单位</label><div class="value">' + r.securityOrg + '</div></div>' +
-        '<div class="detail-item"><label>数据安全责任人</label><div class="value">' + r.securityPerson + '</div></div>' +
+        '<div class="detail-item"><label>数据安全责任单位</label><div class="value">' + (r.securityOrg || '-') + '</div></div>' +
+        '<div class="detail-item"><label>数据安全责任人</label><div class="value">' + (r.securityPerson || '-') + '</div></div>' +
       '</div>' +
       '<div class="detail-section-title">所需提交材料</div>' +
       '<div class="material-list">' + materialsHtml + '</div>';
@@ -907,7 +1095,9 @@
       alert('仅已通过状态的申请支持去开发');
       return;
     }
-    if (confirm('即将跳转到数据产品管理页面，基于“' + r.resourceName + '”创建新的数据产品。')) {
+    const resources = r.resources || [];
+    const firstName = resources.length ? resources[0].name : '该批次数据资源';
+    if (confirm('即将跳转到数据产品管理页面，基于“' + firstName + '”创建新的数据产品。')) {
       const scenario = r.scenario || '';
       window.open('data-products.html?sourceApply=' + encodeURIComponent(r.id) + (scenario ? '&scenario=' + encodeURIComponent(scenario) : ''), '_blank');
     }
@@ -920,18 +1110,27 @@
       alert('仅已通过状态的申请支持下载');
       return;
     }
-    const content = '授权数据申请回执\n' +
+    const resources = r.resources || [];
+    let resourcesText = '';
+    resources.forEach(function(res, idx) {
+      const selected = res.selectedFields || [];
+      const fieldsText = selected.length ? selected.join('、') : (res.dataItems || '-');
+      resourcesText += '\n【资源' + (idx + 1) + '】\n' +
+        '数据资源名称：' + (res.name || '-') + '\n' +
+        '数据提供单位：' + (res.providerUnit || '-') + '\n' +
+        '申请字段：' + fieldsText + '\n';
+    });
+    const content = '授权数据申请回执（批次）\n' +
       '================================\n' +
       '申请编号：' + r.id + '\n' +
-      '数据资源名称：' + r.resourceName + '\n' +
-      '数据提供单位：' + r.providerUnit + '\n' +
       '授权运营场景：' + (r.scenario && r.scenario.indexOf('SC-') === 0 ? getScenarioName(r.scenario) : (r.scenario || '-')) + '\n' +
       '申请单位：' + r.applicant + '\n' +
       '责任人：' + r.securityPerson + '\n' +
       '联系方式：' + r.contact + '\n' +
       '申请时间：' + r.applyTime + '\n' +
-      '申请状态：' + statusMap[r.status].text + '\n\n' +
-      '数据资源数据项：' + r.dataItems + '\n' +
+      '申请状态：' + statusMap[r.status].text + '\n' +
+      '数据资源数量：' + resources.length + '项\n' +
+      resourcesText + '\n' +
       '申请数据范围：' + r.dataRange + '\n' +
       '待开发数据产品内容：' + r.productContent + '\n' +
       '服务范围：' + r.serviceScope + '\n' +
@@ -1004,13 +1203,42 @@
       if (resList) resList.style.display = 'block';
       if (resCards) {
         resCards.innerHTML = s.attachList.map(function(item, idx) {
-          return '<label class="res-card" style="display:flex;align-items:flex-start;gap:10px;border:1px solid #e5e7eb;border-radius:8px;padding:12px;cursor:pointer;transition:all .2s;background:transparent;" onmouseenter="this.style.borderColor=\'#3b82f6\';" onmouseleave="this.style.borderColor=\'#e5e7eb\';">' +
-            '<input type="checkbox" class="res-check" data-idx="' + idx + '" checked style="margin-top:2px;flex-shrink:0;" onchange="updateResSelectAll()">' +
-            '<div style="flex:1;">' +
-              '<div style="font-weight:600;color:var(--text);font-size:14px;">' + (item.dataset || '-') + '</div>' +
-              '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">' + (item.unit || '-') + ' · ' + (item.items || '-') + '</div>' +
+          const fieldRows = (item.fields || []).map(function(f, fidx) {
+            return '<tr>' +
+              '<td style="padding:6px 8px;border-bottom:1px solid var(--border);text-align:center;">' +
+                '<input type="checkbox" class="field-check" data-idx="' + idx + '" data-field="' + f.name + '" checked style="flex-shrink:0;" onchange="updateResCheck(' + idx + ')">' +
+              '</td>' +
+              '<td style="padding:6px 8px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;white-space:nowrap;">' + (f.name || '-') + '</td>' +
+              '<td style="padding:6px 8px;border-bottom:1px solid var(--border);color:var(--text-secondary);font-size:12px;">' + (f.remark || '-') + '</td>' +
+              '<td style="padding:6px 8px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;white-space:nowrap;">' + (f.type || '-') + '</td>' +
+              '<td style="padding:6px 8px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;text-align:center;white-space:nowrap;">' + (f.length || '-') + '</td>' +
+            '</tr>';
+          }).join('');
+          const fieldsTable = '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+            '<thead><tr style="background:#f8fafc;">' +
+              '<th style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);font-size:11px;">选择</th>' +
+              '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);font-size:11px;">字段名</th>' +
+              '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);font-size:11px;">字段备注</th>' +
+              '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);font-size:11px;">字段类型</th>' +
+              '<th style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);font-size:11px;">字段长度</th>' +
+            '</tr></thead>' +
+            '<tbody>' + fieldRows + '</tbody>' +
+          '</table>';
+          const fieldCount = (item.fields || []).length;
+          return '<div class="res-card" style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;transition:all .2s;background:transparent;" onmouseenter="this.style.borderColor=\'#3b82f6\';" onmouseleave="this.style.borderColor=\'#e5e7eb\';">' +
+            '<label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">' +
+              '<input type="checkbox" class="res-check" data-idx="' + idx + '" checked style="margin-top:2px;flex-shrink:0;" onchange="toggleResourceFields(' + idx + ')">' +
+              '<div style="flex:1;">' +
+                '<div style="font-weight:600;color:var(--text);font-size:14px;">' + (item.dataset || '-') + '</div>' +
+                '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">' + (item.unit || '-') + '</div>' +
+              '</div>' +
+            '</label>' +
+            '<div class="field-expand-bar" id="fieldBar' + idx + '" style="margin-top:10px;padding-top:8px;border-top:1px dashed #e5e7eb;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleFieldExpand(' + idx + ')">' +
+              '<span style="font-size:12px;color:var(--text-secondary);">字段清单（' + fieldCount + '个字段）</span>' +
+              '<span id="fieldExpandIcon' + idx + '" style="font-size:12px;color:var(--primary);font-weight:500;">展开选择字段 ▼</span>' +
             '</div>' +
-          '</label>';
+            '<div id="fieldList' + idx + '" style="display:none;margin-top:6px;">' + fieldsTable + '</div>' +
+          '</div>';
         }).join('');
       }
       document.getElementById('resSelectAll').checked = true;
@@ -1020,9 +1248,41 @@
     }
   }
 
+  function toggleResourceFields(idx) {
+    const resCheck = document.querySelector('.res-check[data-idx="' + idx + '"]');
+    if (!resCheck) return;
+    const checked = resCheck.checked;
+    document.querySelectorAll('.field-check[data-idx="' + idx + '"]').forEach(function(c) { c.checked = checked; });
+    updateResSelectAll();
+  }
+
+  function toggleFieldExpand(idx) {
+    const list = document.getElementById('fieldList' + idx);
+    const icon = document.getElementById('fieldExpandIcon' + idx);
+    if (!list || !icon) return;
+    if (list.style.display === 'none') {
+      list.style.display = 'block';
+      icon.textContent = '收起字段 ▲';
+    } else {
+      list.style.display = 'none';
+      icon.textContent = '展开选择字段 ▼';
+    }
+  }
+
+  function updateResCheck(idx) {
+    const fieldChecks = document.querySelectorAll('.field-check[data-idx="' + idx + '"]');
+    const checkedFields = document.querySelectorAll('.field-check[data-idx="' + idx + '"]:checked');
+    const resCheck = document.querySelector('.res-check[data-idx="' + idx + '"]');
+    if (resCheck) {
+      resCheck.checked = fieldChecks.length > 0 && fieldChecks.length === checkedFields.length;
+    }
+    updateResSelectAll();
+  }
+
   function toggleAllResources() {
     const checked = document.getElementById('resSelectAll').checked;
     document.querySelectorAll('.res-check').forEach(function(c) { c.checked = checked; });
+    document.querySelectorAll('.field-check').forEach(function(c) { c.checked = checked; });
   }
 
   function updateResSelectAll() {
@@ -1067,34 +1327,45 @@
     const pad = n => String(n).padStart(2, '0');
     const list = getCustomApplies();
     const batchTime = now.toLocaleString('zh-CN', { hour12: false });
-    const baseId = 'SQ' + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+    const batchId = 'SQ' + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
 
-    checkedIdx.forEach(function(idx, i) {
+    const resources = checkedIdx.map(function(idx) {
       const item = s.attachList[idx];
-      const record = {
-        id: baseId + '-' + (i + 1),
-        resourceName: item.dataset || '',
+      const selectedFields = Array.from(document.querySelectorAll('.field-check[data-idx="' + idx + '"]:checked')).map(function(c) { return c.getAttribute('data-field'); });
+      if (selectedFields.length === 0) {
+        alert('数据资源“' + (item.dataset || '') + '”未选择任何字段，请至少勾选一个字段'); return null;
+      }
+      return {
+        name: item.dataset || '',
         providerUnit: item.unit || '',
-        scenario: scenarioId,
-        applicant: '浙江义乌数据运营有限公司',
-        securityOrg: securityOrg || '浙江义乌数据运营有限公司',
-        securityPerson: securityPerson,
-        contact: contact,
-        applyTime: batchTime,
-        status: 'pending',
-        dataItems: item.items || '',
-        dataRange: dataRange,
-        productContent: productContent,
-        serviceScope: serviceScope,
-        socialBenefit: socialBenefit,
-        materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+        fields: (item.fields || []).map(function(f) { return { name: f.name, type: f.type || '' }; }),
+        selectedFields: selectedFields
       };
-      list.unshift(record);
-    });
+    }).filter(Boolean);
+
+    if (resources.length === 0) return;
+
+    const record = {
+      id: batchId,
+      scenario: scenarioId,
+      applicant: '浙江义乌数据运营有限公司',
+      securityOrg: securityOrg || '浙江义乌数据运营有限公司',
+      securityPerson: securityPerson,
+      contact: contact,
+      applyTime: batchTime,
+      status: 'pending',
+      dataRange: dataRange,
+      productContent: productContent,
+      serviceScope: serviceScope,
+      socialBenefit: socialBenefit,
+      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》'],
+      resources: resources
+    };
+    list.unshift(record);
     saveCustomApplies(list);
     closeApplyForm();
     renderRecords();
-    alert('数据资源申请已提交 ' + checkedIdx.length + ' 条，等待独立审批后台审批');
+    alert('数据资源申请已提交，批次编号：' + batchId + '，共包含 ' + resources.length + ' 项数据资源，等待审批');
   }
 
   // 初始化：从 URL 带出场景申报

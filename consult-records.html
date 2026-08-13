@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据咨询 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .top-nav {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 48px; }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 700; color: #1e3a8a;
+      text-decoration: none;
+    }
+    .nav-brand .logo-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 8px; list-style: none; }
+    .nav-menu a {
+      display: block; padding: 8px 18px; font-size: 15px;
+      color: var(--text-secondary); text-decoration: none;
+      border-radius: 6px; transition: all .15s; white-space: nowrap;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--primary-light); }
+    .nav-menu a.active { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+    .nav-user {
+      position: relative; display: flex; align-items: center; gap: 8px;
+      font-size: 14px; color: var(--text-secondary); cursor: pointer;
+      padding: 6px 8px; border-radius: 6px; transition: background .15s;
+    }
+    .nav-user:hover { background: #f3f4f6; }
+    .nav-user .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+    }
+    .user-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 150px; background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      z-index: 300; overflow: hidden;
+    }
+    .user-dropdown.show { display: block; }
+    .user-dropdown a, .user-dropdown button {
+      display: block; width: 100%; padding: 10px 16px; font-size: 14px;
+      color: var(--text); text-decoration: none; background: #fff;
+      border: none; text-align: left; cursor: pointer;
+      transition: background .15s; font-family: inherit;
+    }
+    .user-dropdown a:hover, .user-dropdown button:hover { background: #f3f4f6; }
+
+    .breadcrumb {
+      max-width: 1360px; margin: 0 auto; padding: 16px 48px 0;
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--primary); }
+    .breadcrumb span { color: var(--text-tertiary); margin: 0 6px; }
+
+    .page-container {
+      display: flex; max-width: 1360px; margin: 0 auto; padding: 16px 48px 60px; gap: 24px;
+    }
+    .sidebar { width: 220px; flex-shrink: 0; }
+    .sidebar-card {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 0;
+    }
+    .sidebar-title {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      padding: 0 20px 14px; border-bottom: 1px solid var(--border); margin-bottom: 8px;
+    }
+    .sidebar-menu { list-style: none; }
+    .sidebar-menu li a {
+      display: block; padding: 10px 20px; font-size: 14px;
+      color: var(--text-secondary); text-decoration: none;
+      transition: all .15s; cursor: pointer;
+    }
+    .sidebar-menu li a:hover { color: var(--primary); background: var(--primary-light); }
+    .sidebar-menu li a.active { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+
+    .main-panel { flex: 1; min-width: 0; }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+    }
+    .panel-title { font-size: 18px; font-weight: 700; color: var(--text); }
+    .panel-count { font-size: 13px; color: var(--text-secondary); margin-left: 8px; font-weight: 400; }
+    .panel-actions { display: flex; gap: 10px; }
+    .panel-actions .btn-primary {
+      padding: 8px 18px; font-size: 13px; border-radius: 6px;
+      background: var(--primary); color: #fff; border: 1px solid var(--primary);
+      cursor: pointer; transition: background .15s;
+    }
+    .panel-actions .btn-primary:hover { background: var(--primary-dark); }
+
+    .table-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .data-table th {
+      background: #f8fafc; color: var(--text-secondary); font-weight: 500;
+      text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .data-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover { background: #f8fafc; }
+    .cell-ellipsis { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cell-ellipsis2 { max-width: 260px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-processed { background: #dcfce7; color: #166534; }
+    .link-btn { color: var(--primary); cursor: pointer; font-size: 14px; white-space: nowrap; }
+    .link-btn:hover { text-decoration: underline; }
+
+    .pagination {
+      display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+      padding: 16px; border-top: 1px solid var(--border);
+    }
+    .pagination button {
+      padding: 6px 12px; font-size: 13px; border: 1px solid var(--border); background: #fff;
+      border-radius: 6px; cursor: pointer; color: var(--text); transition: all .15s;
+    }
+    .pagination button:hover { border-color: var(--primary); color: var(--primary); }
+    .pagination button:disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--border); color: var(--text-tertiary); }
+    .pagination .page-info { font-size: 13px; color: var(--text-secondary); margin-right: 8px; }
+    .pagination .page-jump { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); }
+    .pagination .page-jump input {
+      width: 44px; padding: 5px 6px; font-size: 13px; border: 1px solid var(--border);
+      border-radius: 4px; text-align: center;
+    }
+
+    .empty-state { text-align: center; padding: 60px; color: var(--text-secondary); font-size: 14px; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      z-index: 400; align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 12px; width: 100%; max-width: 640px;
+      max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 24px; border-bottom: 1px solid var(--border);
+    }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .modal-close { background: none; border: none; font-size: 22px; color: var(--text-tertiary); cursor: pointer; }
+    .modal-body { padding: 20px 24px; }
+    .detail-section { margin-bottom: 22px; }
+    .detail-section:last-child { margin-bottom: 0; }
+    .detail-section-title {
+      font-size: 13px; font-weight: 600; color: var(--text);
+      padding-bottom: 8px; margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-row { display: flex; margin-bottom: 12px; font-size: 14px; line-height: 1.6; }
+    .detail-row:last-child { margin-bottom: 0; }
+    .detail-label { width: 100px; flex-shrink: 0; color: var(--text-secondary); }
+    .detail-value { flex: 1; color: var(--text); word-break: break-word; }
+    .detail-value pre { white-space: pre-wrap; word-break: break-word; font-family: inherit; margin: 0; }
+    .detail-value a { color: var(--primary); word-break: break-all; }
+    .detail-value .badge { margin-top: 0; vertical-align: middle; }
+    .detail-row.reply-row .detail-value pre {
+      background: #f0f9ff; border: 1px solid #dbeafe; border-radius: 8px;
+      padding: 12px 14px; color: #1e40af; line-height: 1.7;
+    }
+    .detail-files { display: flex; flex-wrap: wrap; gap: 8px; }
+    .detail-files .file-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px; background: #f3f4f6; border-radius: 6px;
+      font-size: 13px; color: var(--text); border: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 0 16px; height: 56px; }
+      .nav-menu { display: none; }
+      .page-container { flex-direction: column; padding: 16px; }
+      .sidebar { width: 100%; }
+      .cell-ellipsis { max-width: 120px; }
+      .cell-ellipsis2 { max-width: 140px; }
+      .breadcrumb { padding: 12px 16px 0; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-left">
+      <a href="home.html" class="nav-brand">
+        <div class="logo-icon">Z</div>
+        <span>数据跨域流通平台</span>
+      </a>
+      <ul class="nav-menu">
+        <li><a href="home.html">首页</a></li>
+        <li><a href="home.html">数据产品</a></li>
+        <li><a href="scenarios.html">授权场景</a></li>
+        <li><a href="data-catalog.html">数据资源目录</a></li>
+        <li><a href="consult-records.html" class="active">数据咨询</a></li>
+        <li><a href="#">需求大厅</a></li>
+        <li><a href="operator-register.html">授权运营商入驻</a></li>
+      </ul>
+    </div>
+    <div class="nav-user" onclick="toggleUserDropdown()">
+      <div class="avatar">管</div>
+      <span>超级管理员</span>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="dashboard.html">进入后台</a>
+        <button onclick="logout(event)">退出登录</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="breadcrumb">
+    <a href="home.html">首页</a><span>/</span><span>数据咨询</span>
+  </div>
+
+  <div class="page-container">
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">互动交流</div>
+        <ul class="sidebar-menu" id="sidebarMenu">
+          <li><a data-type="全部" onclick="switchType('全部')">全部</a></li>
+          <li><a class="active" data-type="目录有误" onclick="switchType('目录有误')">目录有误</a></li>
+          <li><a data-type="数据需求" onclick="switchType('数据需求')">数据需求</a></li>
+          <li><a data-type="其他" onclick="switchType('其他')">其他</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <div class="panel-header">
+        <div class="panel-title" id="panelTitle">目录有误 <span class="panel-count" id="panelCount">(0)</span></div>
+      </div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>序号</th>
+              <th>标题/名称</th>
+              <th>问题描述</th>
+              <th>资产名称</th>
+              <th>反馈时间</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display:none;">暂无记录</div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetail()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">咨询详情</div>
+        <button class="modal-close" onclick="closeDetail()">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentType = '全部';
+    let currentPage = 1;
+    const pageSize = 10;
+
+    const defaultRecords = [
+      {
+        id: 'JC20260813000001',
+        resourceName: 'BUS站牌信息',
+        type: '目录有误',
+        name: '张明',
+        phone: '13800138001',
+        email: 'zhangming@example.com',
+        title: '站牌经纬度字段格式有误',
+        dept: '交通运输局',
+        desc: '资源详情中“zwwd”字段备注为“站牌纬度/84坐标”，但实际示例数据使用的是高德火星坐标系，建议修正坐标系说明，避免使用者误解。',
+        files: ['坐标对比截图.png'],
+        submitTime: '2026-08-10 09:30:25',
+        status: '待处理'
+      },
+      {
+        id: 'JC20260813000002',
+        resourceName: '道路信息表',
+        type: '目录有误',
+        name: '李华',
+        phone: '13900139002',
+        email: 'lihua@example.com',
+        title: '道路长度单位标注不一致',
+        dept: '市住建局',
+        desc: '字段“road_length”备注为“道路长度（米）”，但在数据样例中部分记录使用千米为单位，存在单位混用问题，请统一并更新说明。',
+        files: [],
+        submitTime: '2026-08-11 14:22:08',
+        status: '已处理',
+        reply: '已确认问题，字段说明已统一为“米”，并重新发布了最新版本数据样例，请重新下载查看。'
+      },
+      {
+        id: 'JC20260813000003',
+        resourceName: '车辆GPS定位数据',
+        type: '目录有误',
+        name: '王强',
+        phone: '13700137003',
+        email: 'wangqiang@example.com',
+        title: '定位时间存在空值',
+        dept: '公交集团',
+        desc: '最近一周下载的数据中，约2%记录的“gpstime”字段为空，影响轨迹分析，请确认是采集问题还是脱敏导致。',
+        files: ['异常样本.xlsx'],
+        submitTime: '2026-08-12 16:45:33',
+        status: '待处理'
+      },
+      {
+        id: 'XQ20260813000004',
+        resourceName: '高德地图通勤数据',
+        type: '数据需求',
+        name: '区域通勤OD矩阵',
+        desc: '希望获取按行政区划聚合的通勤OD矩阵，包含起点区域、终点区域、通勤人数、平均通勤时间等字段，时间粒度为月度。',
+        use: '用于城市交通规划与轨道线路客流预测分析。',
+        contact: '13800138004 / zhouli@example.com',
+        submitTime: '2026-08-11 10:15:47',
+        status: '待处理'
+      },
+      {
+        id: 'XQ20260813000005',
+        resourceName: '交通流量预测训练数据',
+        type: '数据需求',
+        name: '节假日特殊日期流量样本',
+        desc: '现有训练数据以工作日为主，缺少春节、国庆等重大节假日的交通流量样本，希望补充此类特殊日期的历史数据。',
+        use: '提升节假日交通流量预测模型的泛化能力。',
+        contact: '13600136005',
+        submitTime: '2026-08-12 11:08:19',
+        status: '已处理',
+        reply: '该需求已纳入数据共享计划，预计本月内发布“节假日交通流量补充数据集”，届时会通过站内消息通知您。'
+      },
+      {
+        id: 'CZ20260813000006',
+        resourceName: '获取公交司机人员信息接口',
+        type: '其他',
+        content: '想咨询该接口的调用频率限制、鉴权方式以及是否支持按所属公司批量查询，是否有对接文档可以发送？',
+        contact: '13500135006 / zhaomin@example.com',
+        submitTime: '2026-08-13 08:55:02',
+        status: '待处理'
+      }
+    ];
+
+    function getRecords() {
+      let stored = localStorage.getItem('consultRecords');
+      let records;
+      if (!stored) {
+        records = defaultRecords.map(r => ({ ...r }));
+      } else {
+        records = JSON.parse(stored);
+      }
+      // 数据迁移：为已存在的记录补充“处理回复”
+      const defaultById = {};
+      defaultRecords.forEach(r => { defaultById[r.id] = r; });
+      records = records.map(function(r) {
+        const d = defaultById[r.id];
+        if (d && r.status === '已处理' && !r.reply) {
+          return Object.assign({}, r, { reply: d.reply });
+        }
+        return r;
+      });
+      localStorage.setItem('consultRecords', JSON.stringify(records));
+      return records;
+    }
+
+    function filterRecords(type) {
+      const all = getRecords();
+      if (type === '全部') return all;
+      return all.filter(r => r.type === type);
+    }
+
+    function switchType(type) {
+      currentType = type;
+      currentPage = 1;
+      document.querySelectorAll('#sidebarMenu a').forEach(a => {
+        a.classList.toggle('active', a.dataset.type === type);
+      });
+      render();
+    }
+
+    function render() {
+      const list = filterRecords(currentType);
+      const total = list.length;
+      const start = (currentPage - 1) * pageSize;
+      const pageList = list.slice(start, start + pageSize);
+
+      document.getElementById('panelTitle').innerHTML = esc(currentType) + ' <span class="panel-count">(' + total + ')</span>';
+      const tbody = document.getElementById('tableBody');
+      const empty = document.getElementById('emptyState');
+
+      if (!pageList.length) {
+        tbody.innerHTML = '';
+        empty.style.display = '';
+        document.getElementById('pagination').innerHTML = '';
+        return;
+      }
+      empty.style.display = 'none';
+
+      tbody.innerHTML = pageList.map((item, idx) => {
+        const title = item.title || item.name || (item.content ? item.content.substring(0, 30) + (item.content.length > 30 ? '…' : '') : '-');
+        const desc = item.desc || item.content || '-';
+        return '<tr>' +
+          '<td>' + (start + idx + 1) + '</td>' +
+          '<td class="cell-ellipsis" title="' + esc(title) + '">' + esc(title) + '</td>' +
+          '<td class="cell-ellipsis2" title="' + esc(desc) + '">' + esc(desc) + '</td>' +
+          '<td class="cell-ellipsis" title="' + esc(item.resourceName || '-') + '">' + esc(item.resourceName || '-') + '</td>' +
+          '<td>' + esc(item.submitTime || '-') + '</td>' +
+          '<td><span class="badge ' + (item.status === '待处理' ? 'badge-pending' : 'badge-processed') + '">' + esc(item.status || '待处理') + '</span></td>' +
+          '<td><span class="link-btn" onclick="showDetail(\'' + esc(item.id) + '\')">查看详情</span></td>' +
+        '</tr>';
+      }).join('');
+
+      renderPagination(total);
+    }
+
+    function renderPagination(total) {
+      const totalPages = Math.ceil(total / pageSize) || 1;
+      let html = '<span class="page-info">共 ' + total + ' 条，' + totalPages + ' 页</span>';
+      html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="changePage(' + (currentPage - 1) + ')">上一页</button>';
+      for (let i = 1; i <= totalPages; i++) {
+        html += '<button style="' + (i === currentPage ? 'background:var(--primary);color:#fff;border-color:var(--primary);' : '') + '" onclick="changePage(' + i + ')">' + i + '</button>';
+      }
+      html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="changePage(' + (currentPage + 1) + ')">下一页</button>';
+      html += '<span class="page-jump">前往 <input type="number" min="1" max="' + totalPages + '" value="' + currentPage + '" onkeydown="if(event.key===\'Enter\')jumpPage(this.value,' + totalPages + ')"> 页</span>';
+      document.getElementById('pagination').innerHTML = html;
+    }
+
+    function changePage(p) {
+      currentPage = p;
+      render();
+    }
+
+    function jumpPage(val, max) {
+      const p = parseInt(val, 10);
+      if (!p || p < 1 || p > max) return;
+      changePage(p);
+    }
+
+    function renderDetailRows(rows) {
+      return rows.map(function(row) {
+        var extraClass = row[0] === '处理回复' ? ' reply-row' : '';
+        var valueHtml = row[2] ? row[2] : '<pre>' + esc(row[1]) + '</pre>';
+        return '<div class="detail-row' + extraClass + '"><div class="detail-label">' + esc(row[0]) + '</div><div class="detail-value">' + valueHtml + '</div></div>';
+      }).join('');
+    }
+
+    function fileTag(name) {
+      return '<span class="file-tag">📎 ' + esc(name) + '</span>';
+    }
+
+    function showDetail(id) {
+      const all = getRecords();
+      const item = all.find(r => r.id === id);
+      if (!item) return;
+
+      const basicRows = [
+        ['记录编号', item.id],
+        ['咨询类型', item.type],
+        ['资产名称', item.resourceName || '-'],
+        ['反馈时间', item.submitTime || '-'],
+        ['状态', item.status || '待处理', '<span class="badge ' + (item.status === '已处理' ? 'badge-processed' : 'badge-pending') + '">' + esc(item.status || '待处理') + '</span>']
+      ];
+
+      const bodyRows = [];
+      if (item.type === '目录有误') {
+        bodyRows.push(['姓名', item.name || '-']);
+        bodyRows.push(['联系电话', item.phone || '-']);
+        bodyRows.push(['邮箱', item.email || '-']);
+        bodyRows.push(['问题标题', item.title || '-']);
+        bodyRows.push(['数源部门', item.dept || '-']);
+        bodyRows.push(['问题描述', item.desc || '-']);
+        if (item.files && item.files.length) {
+          bodyRows.push(['附件', null, '<div class="detail-files">' + item.files.map(fileTag).join('') + '</div>']);
+        }
+      } else if (item.type === '数据需求') {
+        bodyRows.push(['需求名称', item.name || '-']);
+        bodyRows.push(['需求描述', item.desc || '-']);
+        bodyRows.push(['数据用途', item.use || '-']);
+        bodyRows.push(['联系方式', item.contact || '-']);
+      } else {
+        bodyRows.push(['咨询内容', item.content || '-']);
+        bodyRows.push(['联系方式', item.contact || '-']);
+      }
+
+      let body = '<div class="detail-section"><div class="detail-section-title">基本信息</div>' + renderDetailRows(basicRows) + '</div>';
+      body += '<div class="detail-section"><div class="detail-section-title">咨询内容</div>' + renderDetailRows(bodyRows) + '</div>';
+
+      if (item.status === '已处理') {
+        body += '<div class="detail-section"><div class="detail-section-title">处理结果</div>' + renderDetailRows([['处理回复', item.reply || '该问题已处理完成，暂无回复说明。']]) + '</div>';
+      }
+
+      document.getElementById('modalTitle').textContent = '咨询详情';
+      document.getElementById('modalBody').innerHTML = body;
+      document.getElementById('detailModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetail() {
+      document.getElementById('detailModal').classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function esc(str) {
+      const div = document.createElement('div');
+      div.textContent = String(str ?? '');
+      return div.innerHTML;
+    }
+
+    function toggleUserDropdown() {
+      document.getElementById('userDropdown').classList.toggle('show');
+    }
+    function logout(e) {
+      e.stopPropagation();
+      if (confirm('确定退出登录？')) window.location.href = 'index.html';
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-user')) {
+        document.getElementById('userDropdown').classList.remove('show');
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>

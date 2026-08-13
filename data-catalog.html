@@ -262,6 +262,28 @@
     }
     .back-btn:hover { border-color: var(--primary); color: var(--primary); }
 
+    .consult-btn {
+      padding: 6px 14px;
+      border: 1px solid var(--primary);
+      background: #fff;
+      color: var(--primary);
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .consult-btn:hover { background: var(--primary); color: #fff; }
+
+    .card-consult-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+    }
+
     .detail-actions {
       display: flex;
       align-items: center;
@@ -489,6 +511,74 @@
     }
     .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
 
+    /* 数据咨询弹窗 */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 500;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: var(--radius); width: 640px;
+      max-width: 90vw; max-height: 90vh; overflow: hidden;
+      display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .modal-header {
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none; font-size: 24px;
+      color: var(--text-secondary); cursor: pointer;
+    }
+    .modal-body { padding: 24px; overflow-y: auto; }
+    .modal-footer {
+      padding: 14px 24px; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 12px;
+    }
+    .form-group {
+      display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;
+    }
+    .form-group label {
+      font-size: 14px; font-weight: 500; color: var(--text);
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color .15s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none; border-color: var(--primary);
+    }
+    .form-group input[readonly] {
+      background: #f8fafc; color: var(--text-secondary);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group select {
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px;
+    }
+    .required { color: var(--danger); margin-left: 2px; }
+    .char-count { text-align: right; font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+    .input-with-btn { display: flex; gap: 10px; }
+    .input-with-btn input { flex: 1; }
+    .input-with-btn .btn-primary { padding: 8px 16px; font-size: 13px; white-space: nowrap; }
+    .upload-area { margin-bottom: 6px; }
+    .upload-area .btn-primary { padding: 8px 16px; font-size: 13px; }
+    .upload-tip { font-size: 12px; color: var(--text-secondary); }
+    .file-list { margin-top: 6px; }
+    .file-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); padding: 4px 0; }
+    .file-item .remove-file { color: var(--danger); cursor: pointer; font-size: 12px; }
+
     @media (max-width: 768px) {
       .top-nav { padding: 0 16px; height: 56px; }
       .nav-menu { display: none; }
@@ -521,6 +611,7 @@
       <li><a href="home.html">首页</a></li>
       <li><a href="data-catalog.html" class="active">数据资源目录</a></li>
       <li><a href="home.html">数据产品</a></li>
+      <li><a href="consult-records.html">数据咨询</a></li>
       <li><a href="#">需求大厅</a></li>
       <li><a href="operator-register.html">授权运营商入驻</a></li>
     </ul>
@@ -592,7 +683,7 @@
         </div>
       </div>
       <div class="detail-actions">
-        <button class="apply-btn" onclick="openApplyModal()">授权数据申请</button>
+        <button class="consult-btn" onclick="openConsultModal()">数据咨询</button>
         <button class="back-btn" onclick="showList()">返回</button>
       </div>
     </div>
@@ -623,111 +714,107 @@
   </div>
 </div>
 
-<!-- 授权数据申请弹窗 -->
-<div class="modal-overlay" id="applyModal" onclick="if(event.target===this)closeApplyModal()">
-  <div class="modal">
+<!-- 数据咨询弹窗 -->
+<div class="modal-overlay" id="consultModal" onclick="if(event.target===this)closeConsultModal()">
+  <div class="modal" style="max-width:560px;">
     <div class="modal-header">
-      <h3>授权数据申请</h3>
-      <button class="modal-close" onclick="closeApplyModal()" type="button">&times;</button>
+      <div class="modal-title">数据咨询</div>
+      <button class="modal-close" onclick="closeConsultModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <form id="applyForm">
-        <div class="form-row">
+      <form id="consultForm">
+        <div class="form-group">
+          <label>数据资源名称</label>
+          <input type="text" id="consultResourceName" readonly>
+        </div>
+        <div class="form-group">
+          <label>咨询类型 <span class="required">*</span></label>
+          <select id="consultType" required onchange="toggleConsultType()">
+            <option value="">请选择咨询类型</option>
+            <option value="目录有误">目录有误</option>
+            <option value="数据需求">数据需求</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+
+        <!-- 目录有误字段区 -->
+        <div id="consultErrorFields" style="display:none;">
           <div class="form-group">
-            <label>数据资源名称 <span class="required">*</span></label>
-            <input type="text" id="applyResourceName" name="resourceName" readonly>
+            <label>姓名 <span class="required">*</span></label>
+            <input type="text" id="correctName" placeholder="请输入姓名">
           </div>
           <div class="form-group">
-            <label>数据提供单位 <span class="required">*</span></label>
-            <input type="text" name="providerUnit" placeholder="请输入数据提供单位" required>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>申请单位 <span class="required">*</span></label>
-            <input type="text" name="applicant" placeholder="请输入申请单位名称" required>
+            <label>联系电话 <span class="required">*</span></label>
+            <input type="text" id="correctPhone" placeholder="请输入联系电话">
           </div>
           <div class="form-group">
-            <label>授权运营场景 <span class="required">*</span></label>
-            <input type="text" name="scenario" id="applyScenario" list="scenarioOptions" placeholder="选择已通过场景，或手动输入" required>
-            <datalist id="scenarioOptions"></datalist>
-            <div id="scenarioHint" style="display:none;margin-top:6px;font-size:12px;color:var(--text-secondary);line-height:1.6;"></div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>申请数据周期 <span class="required">*</span></label>
-            <select name="applyCycle" style="width:100%;" required>
-              <option value="">请选择</option>
-              <option>月度</option>
-              <option>季度</option>
-              <option>年度</option>
-            </select>
+            <label>邮箱 <span class="required">*</span></label>
+            <input type="email" id="correctEmail" placeholder="请输入邮箱">
           </div>
           <div class="form-group">
-            <label>数据使用方式 <span class="required">*</span></label>
-            <select name="useMode" style="width:100%;" required>
-              <option value="">请选择</option>
-              <option>API实时调用</option>
-              <option>离线批量交换</option>
-              <option>数据沙箱</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group full">
-          <label>数据资源数据项 <span class="required">*</span></label>
-          <input type="text" name="dataItems" placeholder="请输入需要申请的数据项" required>
-        </div>
-        <div class="form-group full">
-          <label>申请数据范围 <span class="required">*</span></label>
-          <textarea name="dataRange" rows="3" placeholder="例如：指定时间段内、指定特征值、指定区域等" required></textarea>
-        </div>
-        <div class="form-group full">
-          <label>待开发数据产品内容 <span class="required">*</span></label>
-          <textarea name="productContent" rows="3" placeholder="准确描述拟开发的数据产品内容" required></textarea>
-        </div>
-        <div class="form-group full">
-          <label>服务范围 <span class="required">*</span></label>
-          <textarea name="serviceScope" rows="3" placeholder="描述数据产品的服务范围" required></textarea>
-        </div>
-        <div class="form-group full">
-          <label>社会效益 <span class="required">*</span></label>
-          <textarea name="socialBenefit" rows="3" placeholder="描述预期社会效益" required></textarea>
-        </div>
-        <div class="form-row three-col">
-          <div class="form-group">
-            <label>数据安全责任单位 <span class="required">*</span></label>
-            <input type="text" name="securityOrg" placeholder="请输入单位名称" required>
+            <label>问题标题 <span class="required">*</span></label>
+            <textarea id="correctTitle" rows="2" placeholder="请简要描述目录存在的问题" maxlength="30"></textarea>
+            <div class="char-count"><span id="correctTitleCount">0</span> / 30</div>
           </div>
           <div class="form-group">
-            <label>责任人 <span class="required">*</span></label>
-            <input type="text" name="securityPerson" placeholder="请输入责任人姓名" required>
+            <label>数源部门 <span class="required">*</span></label>
+            <input type="text" id="correctDept" readonly placeholder="数据提供单位">
+          </div>
+          <div class="form-group">
+            <label>问题描述 <span class="required">*</span></label>
+            <textarea id="correctDesc" rows="4" placeholder="请详细描述目录信息有误的地方，如字段名称、更新频率、数据范围等" maxlength="500"></textarea>
+            <div class="char-count"><span id="correctDescCount">0</span> / 500</div>
+          </div>
+          <div class="form-group">
+            <label>上传附件</label>
+            <div class="upload-area">
+              <button type="button" class="btn-primary" onclick="document.getElementById('correctFile').click()">点击上传</button>
+              <input type="file" id="correctFile" style="display:none;" multiple onchange="handleCorrectFile(this)">
+            </div>
+            <div class="file-list" id="correctFileList"></div>
+            <div class="upload-tip">最多上传3个文件，每个文件不超过50M</div>
+          </div>
+        </div>
+
+        <!-- 数据需求字段区 -->
+        <div id="consultNeedFields" style="display:none;">
+          <div class="form-group">
+            <label>需求名称 <span class="required">*</span></label>
+            <textarea id="needName" rows="2" placeholder="请输入您需要的数据名称" maxlength="30"></textarea>
+            <div class="char-count"><span id="needNameCount">0</span> / 30</div>
+          </div>
+          <div class="form-group">
+            <label>需求描述 <span class="required">*</span></label>
+            <textarea id="needDesc" rows="4" placeholder="请详细描述您需要的数据内容、字段范围、更新频率等" maxlength="500"></textarea>
+            <div class="char-count"><span id="needDescCount">0</span> / 500</div>
+          </div>
+          <div class="form-group">
+            <label>数据用途 <span class="required">*</span></label>
+            <textarea id="needUse" rows="3" placeholder="请说明数据的使用场景和用途" maxlength="300"></textarea>
+            <div class="char-count"><span id="needUseCount">0</span> / 300</div>
           </div>
           <div class="form-group">
             <label>联系方式 <span class="required">*</span></label>
-            <input type="text" name="contact" placeholder="手机号/邮箱" required>
+            <input type="text" id="needContact" placeholder="手机号或邮箱，方便我们与您联系">
           </div>
         </div>
-        <div class="form-section-title">所需提交材料</div>
-        <div class="form-row three-col">
+
+        <!-- 其他咨询字段区 -->
+        <div id="consultOtherFields" style="display:none;">
           <div class="form-group">
-            <label>《授权运营协议》 <span class="required">*</span></label>
-            <input type="file" name="agreementFile" accept=".pdf,.doc,.docx" required>
+            <label>咨询内容 <span class="required">*</span></label>
+            <textarea id="consultContent" rows="4" placeholder="请详细描述您的问题或需求" required></textarea>
           </div>
           <div class="form-group">
-            <label>《授权运营业务场景说明》 <span class="required">*</span></label>
-            <input type="file" name="scenarioFile" accept=".pdf,.doc,.docx" required>
-          </div>
-          <div class="form-group">
-            <label>《授权运营数据清单》 <span class="required">*</span></label>
-            <input type="file" name="dataListFile" accept=".pdf,.doc,.docx" required>
+            <label>联系方式 <span class="required">*</span></label>
+            <input type="text" id="consultContact" placeholder="手机号或邮箱，方便我们回复您" required>
           </div>
         </div>
       </form>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="closeApplyModal()" type="button">取消</button>
-      <button class="btn-primary" onclick="submitApplication()" type="button">提交申请</button>
+      <button class="btn-secondary" onclick="closeConsultModal()">取消</button>
+      <button class="btn-primary" onclick="submitConsult()">提交</button>
     </div>
   </div>
 </div>
@@ -891,7 +978,6 @@
 
   let filteredResources = [...resources];
   let currentDetailItem = null;
-  let applyScenarioPreset = '';
   let currentIndustry = '全部';
   let currentType = '全部';
   let keyword = '';
@@ -918,69 +1004,11 @@
     }
   }
 
-  function getPassedScenarios() {
-    try {
-      const custom = JSON.parse(localStorage.getItem('scenarioRecords') || '[]');
-      const seed = [
-        { id: 'SC-20260717-001', name: '城市交通精准治理场景', scope: '仅用于城市交通拥堵治理、公交调度优化等政务场景。' },
-        { id: 'SC-20260720-002', name: '中小企业信用评估场景', scope: '仅用于信贷风险评估场景，不用于消费贷与催收用途。' }
-      ];
-      const list = custom.length ? custom : seed;
-      return list.filter(s => s.status === 'passed');
-    } catch (e) { return []; }
-  }
-
-  function renderScenarioOptions() {
-    const dl = document.getElementById('scenarioOptions');
-    if (!dl) return;
-    dl.innerHTML = getPassedScenarios().map(s =>
-      '<option value="' + s.name + '（' + s.id + '）">'
-    ).join('');
-    const input = document.getElementById('applyScenario');
-    if (input && !input.dataset.hooked) {
-      input.dataset.hooked = '1';
-      input.addEventListener('input', updateScenarioHint);
-    }
-  }
-
-  function updateScenarioHint() {
-    const input = document.getElementById('applyScenario');
-    const hint = document.getElementById('scenarioHint');
-    if (!input || !hint) return;
-    const v = input.value.trim();
-    const m = v.match(/[（(](SC-[^)）]+)[)）]/);
-    const list = getPassedScenarios();
-    const sc = m ? list.find(s => s.id === m[1]) : (v ? list.find(s => s.name === v || s.id === v) : null);
-    if (sc && sc.scope) {
-      hint.textContent = '该场景数据使用范围：' + sc.scope;
-      hint.style.display = 'block';
-    } else if (v && !m) {
-      hint.textContent = '未匹配到已通过场景，将以文本形式提交';
-      hint.style.display = 'block';
-    } else {
-      hint.style.display = 'none';
-    }
-  }
 
   function init() {
-    const params = new URLSearchParams(location.search);
-    applyScenarioPreset = params.get('scenario') || '';
     renderIndustryFilter();
     renderTypeFilter();
     renderList();
-    renderScenarioOptions();
-    applyUrlScenario();
-  }
-
-  // 从场景详情「申请数据资源」跳转而来时预填场景
-  function applyUrlScenario() {
-    if (!applyScenarioPreset) return;
-    const input = document.getElementById('applyScenario');
-    const list = getPassedScenarios();
-    const sc = list.find(s => s.id === applyScenarioPreset);
-    if (!input || !sc) return;
-    input.value = sc.name + '（' + sc.id + '）';
-    updateScenarioHint();
   }
 
   function renderIndustryFilter() {
@@ -1063,6 +1091,9 @@
           <div class="resource-meta"><strong>资源类型</strong> ${item.type}</div>
           <div class="resource-meta"><strong>上架时间</strong> ${item.shelfTime}</div>
         </div>
+        <div class="card-consult-row">
+          <button class="consult-btn" onclick="event.stopPropagation();openConsultModal(${item.id})">数据咨询</button>
+        </div>
       </div>
     `).join('');
   }
@@ -1105,78 +1136,175 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function openApplyModal() {
-    if (!currentDetailItem) return;
-    document.getElementById('applyResourceName').value = currentDetailItem.title;
-    document.getElementById('applyModal').classList.add('show');
+
+  let consultResourceItem = null;
+  let correctFiles = [];
+
+  function toggleConsultType() {
+    const type = document.getElementById('consultType').value;
+    document.getElementById('consultErrorFields').style.display = (type === '目录有误') ? '' : 'none';
+    document.getElementById('consultNeedFields').style.display = (type === '数据需求') ? '' : 'none';
+    document.getElementById('consultOtherFields').style.display = (type === '其他') ? '' : 'none';
+  }
+
+  function openConsultModal(resourceId) {
+    const item = resourceId ? resources.find(r => r.id === resourceId) : currentDetailItem;
+    if (!item) return;
+    consultResourceItem = item;
+    document.getElementById('consultResourceName').value = item.title;
+    document.getElementById('correctDept').value = item.provider || '';
+    document.getElementById('consultType').value = '';
+    toggleConsultType();
+    document.getElementById('consultModal').classList.add('show');
     document.body.style.overflow = 'hidden';
   }
 
-  function closeApplyModal() {
-    document.getElementById('applyModal').classList.remove('show');
+  function closeConsultModal() {
+    document.getElementById('consultModal').classList.remove('show');
     document.body.style.overflow = '';
-    document.getElementById('applyForm').reset();
+    document.getElementById('consultForm').reset();
+    document.getElementById('correctTitleCount').textContent = '0';
+    document.getElementById('correctDescCount').textContent = '0';
+    document.getElementById('needNameCount').textContent = '0';
+    document.getElementById('needDescCount').textContent = '0';
+    document.getElementById('needUseCount').textContent = '0';
+    correctFiles = [];
+    updateCorrectFileList();
+    consultResourceItem = null;
   }
 
-  function submitApplication() {
-    const form = document.getElementById('applyForm');
-    const requiredInputs = form.querySelectorAll('input[required], textarea[required]');
-    for (const input of requiredInputs) {
-      if (!input.value.trim()) {
-        alert('请填写所有必填项');
-        input.focus();
-        return;
-      }
+  function handleCorrectFile(input) {
+    const files = Array.from(input.files);
+    if (correctFiles.length + files.length > 3) {
+      alert('最多上传3个文件');
+      input.value = '';
+      return;
     }
-    const fileInputs = form.querySelectorAll('input[type="file"]');
-    for (const input of fileInputs) {
-      if (!input.files || input.files.length === 0) {
-        alert('请上传所需材料：' + input.previousElementSibling.textContent.replace(/\s*\*\s*$/, ''));
-        input.focus();
-        return;
+    for (const f of files) {
+      if (f.size > 50 * 1024 * 1024) {
+        alert('文件 "' + f.name + '" 超过50M限制');
+        continue;
       }
+      correctFiles.push(f);
     }
-    // 收集表单数据并写入 dataApplyRecords，供后台 apply-records.html 查看
-    const fd = new FormData(form);
+    input.value = '';
+    updateCorrectFileList();
+  }
+
+  function updateCorrectFileList() {
+    const box = document.getElementById('correctFileList');
+    if (!correctFiles.length) { box.innerHTML = ''; return; }
+    box.innerHTML = correctFiles.map((f, i) =>
+      '<div class="file-item"><span>' + esc(f.name) + ' (' + (f.size > 1024 * 1024 ? (f.size / 1024 / 1024).toFixed(2) + 'MB' : (f.size / 1024).toFixed(2) + 'KB') + ')</span>' +
+      '<span class="remove-file" onclick="removeCorrectFile(' + i + ')">删除</span></div>'
+    ).join('');
+  }
+
+  function removeCorrectFile(idx) {
+    correctFiles.splice(idx, 1);
+    updateCorrectFileList();
+  }
+
+  function submitConsult() {
+    const type = document.getElementById('consultType').value;
+    const resourceName = document.getElementById('consultResourceName').value;
+    if (!type) { alert('请选择咨询类型'); return; }
+
     const now = new Date();
     const pad = n => String(n).padStart(2, '0');
-    const id = 'SQ' + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) +
-      pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
-    // 场景：优先解析为场景 ID（与后台 scenario 下拉对齐），无法匹配时保留文本
-    let scenario = fd.get('scenario') || '';
-    if (scenario) {
-      const m = scenario.match(/[（(](SC-[^)）]+)[)）]/);
-      const hit = m
-        ? getPassedScenarios().find(s => s.id === m[1])
-        : getPassedScenarios().find(s => s.name === scenario || s.id === scenario);
-      if (hit) scenario = hit.id;
-    }
-    const record = {
-      id: id,
-      resourceName: fd.get('resourceName') || '',
-      providerUnit: fd.get('providerUnit') || '',
-      scenario: scenario,
-      applicant: fd.get('applicant') || '',
-      applyCycle: fd.get('applyCycle') || '',
-      useMode: fd.get('useMode') || '',
-      securityOrg: fd.get('securityOrg') || '',
-      securityPerson: fd.get('securityPerson') || '',
-      contact: fd.get('contact') || '',
-      applyTime: now.toLocaleString('zh-CN', { hour12: false }),
-      status: 'pending',
-      dataItems: fd.get('dataItems') || '',
-      dataRange: fd.get('dataRange') || '',
-      productContent: fd.get('productContent') || '',
-      serviceScope: fd.get('serviceScope') || '',
-      socialBenefit: fd.get('socialBenefit') || '',
-      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
-    };
-    const list = JSON.parse(localStorage.getItem('dataApplyRecords') || '[]');
-    list.unshift(record);
-    localStorage.setItem('dataApplyRecords', JSON.stringify(list));
+    const idPrefix = (type === '目录有误') ? 'JC' : (type === '数据需求') ? 'XQ' : 'CZ';
+    const id = idPrefix + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
 
-    alert('授权数据申请已提交，等待独立审批后台审批。');
-    closeApplyModal();
+    let record;
+    if (type === '目录有误') {
+      const name = document.getElementById('correctName').value.trim();
+      const phone = document.getElementById('correctPhone').value.trim();
+      const email = document.getElementById('correctEmail').value.trim();
+      const title = document.getElementById('correctTitle').value.trim();
+      const dept = document.getElementById('correctDept').value.trim();
+      const desc = document.getElementById('correctDesc').value.trim();
+      if (!name) { alert('请输入姓名'); return; }
+      if (!phone) { alert('请输入联系电话'); return; }
+      if (!email) { alert('请输入邮箱'); return; }
+      if (!title) { alert('请输入问题标题'); return; }
+      if (!dept) { alert('数源部门不能为空'); return; }
+      if (!desc) { alert('请输入问题描述'); return; }
+      record = {
+        id: id,
+        resourceName: resourceName,
+        type: type,
+        name: name, phone: phone, email: email,
+        title: title, dept: dept, desc: desc,
+        files: correctFiles.map(f => f.name),
+        submitTime: now.toLocaleString('zh-CN', { hour12: false }),
+        status: '待处理'
+      };
+    } else if (type === '数据需求') {
+      const name = document.getElementById('needName').value.trim();
+      const desc = document.getElementById('needDesc').value.trim();
+      const use = document.getElementById('needUse').value.trim();
+      const contact = document.getElementById('needContact').value.trim();
+      if (!name) { alert('请输入需求名称'); return; }
+      if (!desc) { alert('请输入需求描述'); return; }
+      if (!use) { alert('请输入数据用途'); return; }
+      if (!contact) { alert('请填写联系方式'); return; }
+      record = {
+        id: id,
+        resourceName: resourceName,
+        type: type,
+        name: name, desc: desc, use: use,
+        contact: contact,
+        submitTime: now.toLocaleString('zh-CN', { hour12: false }),
+        status: '待处理'
+      };
+    } else {
+      const content = document.getElementById('consultContent').value.trim();
+      const contact = document.getElementById('consultContact').value.trim();
+      if (!content) { alert('请填写咨询内容'); return; }
+      if (!contact) { alert('请填写联系方式'); return; }
+      record = {
+        id: id,
+        resourceName: resourceName,
+        type: type,
+        content: content,
+        contact: contact,
+        submitTime: now.toLocaleString('zh-CN', { hour12: false }),
+        status: '待处理'
+      };
+    }
+
+    const list = JSON.parse(localStorage.getItem('consultRecords') || '[]');
+    list.unshift(record);
+    localStorage.setItem('consultRecords', JSON.stringify(list));
+
+    const tip = (type === '目录有误') ? '反馈提交成功，感谢您的纠错！'
+      : (type === '数据需求') ? '需求提交成功，我们会尽快评估并回复您。'
+      : '咨询提交成功，我们会尽快处理并回复您。';
+    alert(tip);
+    closeConsultModal();
+  }
+
+  // 字数统计
+  document.getElementById('correctTitle').addEventListener('input', function() {
+    document.getElementById('correctTitleCount').textContent = this.value.length;
+  });
+  document.getElementById('correctDesc').addEventListener('input', function() {
+    document.getElementById('correctDescCount').textContent = this.value.length;
+  });
+  document.getElementById('needName').addEventListener('input', function() {
+    document.getElementById('needNameCount').textContent = this.value.length;
+  });
+  document.getElementById('needDesc').addEventListener('input', function() {
+    document.getElementById('needDescCount').textContent = this.value.length;
+  });
+  document.getElementById('needUse').addEventListener('input', function() {
+    document.getElementById('needUseCount').textContent = this.value.length;
+  });
+
+  function esc(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
   }
 
   init();
