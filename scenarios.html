@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>授权场景 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .top-nav {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 48px; }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 700; color: #1e3a8a;
+      text-decoration: none;
+    }
+    .nav-brand .logo-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 8px; list-style: none; }
+    .nav-menu a {
+      display: block; padding: 8px 18px; font-size: 15px;
+      color: var(--text-secondary); text-decoration: none;
+      border-radius: 6px; transition: all .15s; white-space: nowrap;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--primary-light); }
+    .nav-menu a.active { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+    .nav-user {
+      position: relative; display: flex; align-items: center; gap: 8px;
+      font-size: 14px; color: var(--text-secondary); cursor: pointer;
+      padding: 6px 8px; border-radius: 6px; transition: background .15s;
+    }
+    .nav-user:hover { background: #f3f4f6; }
+    .nav-user .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+    }
+    .user-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 150px; background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      z-index: 300; overflow: hidden;
+    }
+    .user-dropdown.show { display: block; }
+    .user-dropdown a, .user-dropdown button {
+      display: block; width: 100%; padding: 10px 16px; font-size: 14px;
+      color: var(--text); text-decoration: none; background: #fff;
+      border: none; text-align: left; cursor: pointer;
+      transition: background .15s; font-family: inherit;
+    }
+    .user-dropdown a:hover, .user-dropdown button:hover { background: #f3f4f6; }
+
+    .hero {
+      position: relative;
+      background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 60%, #e0f2fe 100%);
+      padding: 72px 48px 60px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; right: 8%; top: 50%; transform: translateY(-50%);
+      width: 320px; height: 220px;
+      background: url("data:image/svg+xml,%3Csvg width='320' height='220' viewBox='0 0 320 220' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='120' y='60' width='160' height='120' rx='12' fill='%23dbeafe' fill-opacity='0.6'/%3E%3Crect x='60' y='100' width='120' height='90' rx='10' fill='%23bfdbfe' fill-opacity='0.5'/%3E%3Crect x='170' y='30' width='100' height='80' rx='10' fill='%2393c5fd' fill-opacity='0.4'/%3E%3Ccircle cx='90' cy='70' r='28' fill='%2360a5fa' fill-opacity='0.25'/%3E%3Cpath d='M90 58 L96 76 L82 66 H98 L84 76 L90 58Z' fill='%233b82f6' fill-opacity='0.4'/%3E%3C/svg%3E") no-repeat center;
+      background-size: contain; opacity: .9; pointer-events: none;
+    }
+    .hero-inner { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+    .hero h1 { font-size: 42px; font-weight: 800; color: #1e3a8a; margin-bottom: 18px; letter-spacing: -1px; }
+    .hero p { font-size: 17px; color: var(--text-secondary); line-height: 1.8; max-width: 600px; margin: 0 auto 36px; }
+    .search-box {
+      max-width: 640px; margin: 0 auto;
+      display: flex; align-items: center;
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 50px; box-shadow: 0 8px 24px rgba(37,99,235,.12);
+      padding: 6px 6px 6px 22px;
+    }
+    .search-box input {
+      flex: 1; border: none; outline: none; font-size: 15px;
+      color: var(--text); background: transparent; padding: 10px 0;
+    }
+    .search-box input::placeholder { color: var(--text-tertiary); }
+    .search-box button {
+      background: var(--primary); color: #fff; border: none;
+      padding: 11px 36px; border-radius: 50px; font-size: 15px;
+      cursor: pointer; transition: background .15s;
+    }
+    .search-box button:hover { background: var(--primary-dark); }
+
+    .main-content {
+      max-width: 1360px; margin: 0 auto; padding: 28px 48px 60px;
+    }
+    .section-title {
+      font-size: 18px; font-weight: 700; color: var(--text);
+      margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::before {
+      content: ''; display: inline-block; width: 4px; height: 18px;
+      background: var(--primary); border-radius: 2px;
+    }
+
+    .scenario-filter {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;
+    }
+    .scenario-filter button {
+      padding: 5px 14px; font-size: 14px; border-radius: 6px; border: none;
+      background: transparent; color: var(--text-secondary); cursor: pointer; transition: all .15s;
+    }
+    .scenario-filter button:hover { color: var(--primary); background: #f0f7ff; }
+    .scenario-filter button.active { color: #fff; background: var(--primary); }
+    .scenario-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px;
+    }
+    .scenario-card {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 20px; display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s;
+    }
+    .scenario-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .scenario-card-header { display: flex; gap: 14px; margin-bottom: 14px; }
+    .scenario-logo {
+      width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 700; color: #fff;
+    }
+    .scenario-info { flex: 1; min-width: 0; }
+    .scenario-title {
+      font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .scenario-org {
+      font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .scenario-field {
+      display: inline-block; font-size: 12px; color: var(--primary);
+      background: var(--primary-light); padding: 2px 8px; border-radius: 4px;
+    }
+    .scenario-desc {
+      font-size: 13px; color: var(--text-secondary); line-height: 1.7; flex: 1;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+      min-height: 66px; margin-bottom: 16px;
+    }
+    .scenario-card-footer {
+      display: flex; align-items: center; justify-content: space-between; margin-top: auto;
+    }
+    .scenario-time { font-size: 13px; color: var(--text-tertiary); }
+    .scenario-more {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 13px; color: var(--primary); text-decoration: none; cursor: pointer;
+    }
+    .scenario-more:hover { color: var(--primary-dark); }
+    .scenario-more::after { content: '→'; }
+
+    .empty-state {
+      text-align: center; padding: 60px; color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 0 16px; height: 56px; }
+      .nav-menu { display: none; }
+      .hero { padding: 48px 16px 40px; }
+      .hero h1 { font-size: 28px; }
+      .hero p { font-size: 14px; }
+      .search-box { padding: 4px 4px 4px 16px; }
+      .search-box button { padding: 9px 20px; }
+      .main-content { padding: 20px 16px 40px; }
+      .scenario-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-left">
+      <a href="home.html" class="nav-brand">
+        <div class="logo-icon">Z</div>
+        <span>数据跨域流通平台</span>
+      </a>
+      <ul class="nav-menu">
+        <li><a href="home.html">首页</a></li>
+        <li><a href="home.html">数据产品</a></li>
+        <li><a href="scenarios.html" class="active">授权场景</a></li>
+        <li><a href="data-catalog.html">数据资源目录</a></li>
+        <li><a href="#">需求大厅</a></li>
+        <li><a href="operator-register.html">授权运营商入驻</a></li>
+      </ul>
+    </div>
+    <div class="nav-user" onclick="toggleUserDropdown()">
+      <div class="avatar">管</div>
+      <span>超级管理员</span>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="dashboard.html">进入后台</a>
+        <button onclick="logout(event)">退出登录</button>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>授权场景</h1>
+      <p>汇聚已授权运营的应用场景，覆盖工业制造、金融服务、城市治理等多个领域，释放公共数据要素价值。</p>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="请输入场景名称 / 描述关键字" onkeyup="handleSearch(event)">
+        <button onclick="searchScenarios()">搜索</button>
+      </div>
+    </div>
+  </section>
+
+  <main class="main-content">
+    <div class="section-title">授权场景</div>
+    <div class="scenario-filter" id="scenarioFilter"></div>
+    <div class="scenario-grid" id="scenarioGrid"></div>
+    <div class="empty-state" id="scenarioEmpty" style="display:none;">暂无符合条件的授权场景</div>
+  </main>
+
+  <script>
+    var keyword = '';
+    var currentScenarioField = '全部';
+
+    var scenarioFields = ['全部','工业制造','现代农业','商贸流通','交通运输','金融服务','文化旅游','医疗健康','应急管理','城市治理','生态环境'];
+
+    function getOnlineScenarios() {
+      // 与 scenario-management.html 的 seed 保持一致，支持本地覆盖
+      var seed = [
+        { id:'SC-20260610-004', name:'“固废智能撮合服务”场景', field:'生态环境', orgName:'浙江环信环境自动检测有限公司', desc:'固废智能撮合服务场景聚焦废物处置效能不均、资源化利用效能不足、交易信息壁垒等问题，围绕固废交易全链条开展数据赋能，打造交易画像、资质核验、实时风控三大场景核心能力。', onlineTime:'2026-06-10', logoBg:'#10b981', logoText:'环信' },
+        { id:'SC-20260701-005', name:'基于“空天地”一体化的智慧农业', field:'现代农业', orgName:'金华浙农信息技术有限公司', desc:'本场景包含两个子场景：1.农业金融风控与保险理赔场景（B端：低空+产业），面向银行、保险公司及大型农业企业，提供客观可信的数据增信与定损服务；2.农户精准生产与农事服务场景（C端：低空+服务）。', onlineTime:'2026-07-01', logoBg:'#f59e0b', logoText:'浙农' },
+        { id:'SC-20260703-006', name:'速赔保—保险理赔快速通（新）', field:'金融服务', orgName:'浙江织数数字科技有限公司', desc:'保险机构在核保、理赔、产品创新等多个业务中需要医疗数据作为支撑，但由于医疗数据要素流通的壁垒，导致部分保险业务数字化转型缓慢。本项目通过“1条链+2种授权方式+3个数据产品”构建保险理赔快速通道。', onlineTime:'2026-07-03', logoBg:'#3b82f6', logoText:'织数' },
+        { id:'SC-20260703-007', name:'车险人伤理赔快速通（新）', field:'医疗健康', orgName:'浙江织数数字科技有限公司', desc:'为了解决传统车险理赔流程繁琐、伤者医疗资料提交不便导致的理赔周期长、垫付款不及时等问题，使用伤者授权的诊疗数据（含住院信息、诊断记录等医疗核心数据），通过“车险人伤理赔快速通”为投保人及伤者提供快速理赔服务。', onlineTime:'2026-07-03', logoBg:'#ef4444', logoText:'织数' },
+        { id:'SC-20260630-008', name:'城市低空智慧治理场景', field:'城市治理', orgName:'杭州上城区市政工程集团有限公司', desc:'本数据授权运营项目提供1个数据服务产品，以算法的形式呈现，以结果报告的形式输出交付。应用场景描述针对以内河为主的城市河道巡检业务，结合现有公共数据（城市河道基本信息），依托本集团在上城区低空巡检能力。', onlineTime:'2026-06-30', logoBg:'#14b8a6', logoText:'市政' },
+        { id:'SC-20260616-009', name:'车路云一体化智慧交通数据服务', field:'交通运输', orgName:'杭州市智能网联科技有限公司', desc:'本场景围绕红绿灯信号机、可变车道屏、待转屏等关键交通设施的数据，通过统一标准、平台治理和安全跨网机制，实现信号数据从“采集—治理—授权—服务—智能化应用”的全链条能力建设。', onlineTime:'2026-06-16', logoBg:'#8b5cf6', logoText:'网联' }
+      ];
+      try {
+        var custom = JSON.parse(localStorage.getItem('scenarioRecords') || '[]');
+        var online = custom.filter(function(s){ return s.status === 'passed'; });
+        if (!online.length) return seed;
+        var map = new Map(seed.map(function(s){ return [s.id, s]; }));
+        online.forEach(function(s){ map.set(s.id, { logoBg:'var(--primary)', logoText:(s.orgName||'场景').substring(0,2), ...s }); });
+        return Array.from(map.values());
+      } catch (e) { return seed; }
+    }
+
+    function getAuthPeriod(onlineTime) {
+      var start = (onlineTime || '').split(' ')[0];
+      if (!start) return '-';
+      var y = parseInt(start.split('-')[0], 10);
+      var m = start.split('-')[1];
+      var d = start.split('-')[2];
+      return start + ' ~ ' + (y + 3) + '-' + m + '-' + d;
+    }
+
+    function init() {
+      renderScenarioFilter();
+      renderScenarios();
+    }
+
+    function setScenarioField(item) {
+      currentScenarioField = item;
+      renderScenarioFilter();
+      renderScenarios();
+    }
+
+    function handleSearch(e) {
+      keyword = e.target.value.trim();
+      if (e.key === 'Enter') { renderScenarios(); }
+    }
+
+    function searchScenarios() {
+      keyword = document.getElementById('searchInput').value.trim();
+      renderScenarios();
+    }
+
+    function renderScenarioFilter() {
+      var container = document.getElementById('scenarioFilter');
+      container.innerHTML = scenarioFields.map(function(item) {
+        return '<button class="' + (currentScenarioField === item ? 'active' : '') + '" onclick="setScenarioField(\'' + item + '\')">' + item + '</button>';
+      }).join('');
+    }
+
+    function renderScenarios() {
+      var list = getOnlineScenarios().filter(function(s) {
+        var matchField = currentScenarioField === '全部' || s.field === currentScenarioField;
+        var matchKeyword = !keyword || s.name.indexOf(keyword) !== -1 || s.desc.indexOf(keyword) !== -1;
+        return matchField && matchKeyword;
+      });
+      var grid = document.getElementById('scenarioGrid');
+      var empty = document.getElementById('scenarioEmpty');
+      if (list.length === 0) {
+        grid.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      grid.innerHTML = list.map(function(s) {
+        var bg = s.logoBg || 'var(--primary)';
+        var text = s.logoText || (s.orgName || '场景').substring(0, 2);
+        return '<div class="scenario-card">' +
+          '<div class="scenario-card-header">' +
+            '<div class="scenario-logo" style="background:' + bg + '">' + text + '</div>' +
+            '<div class="scenario-info">' +
+              '<div class="scenario-title" title="' + s.name + '">' + s.name + '</div>' +
+              '<div class="scenario-org" title="' + (s.orgName || '-') + '">' + (s.orgName || '-') + '</div>' +
+              '<span class="scenario-field">' + (s.field || '其他') + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="scenario-desc">' + s.desc + '</div>' +
+          '<div class="scenario-card-footer">' +
+            '<div class="scenario-time">授权时间：' + getAuthPeriod(s.onlineTime) + '</div>' +
+            '<a class="scenario-more" href="scenario-detail.html?id=' + s.id + '">查看更多</a>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function toggleUserDropdown() {
+      document.getElementById('userDropdown').classList.toggle('show');
+    }
+
+    function logout(e) {
+      e.stopPropagation();
+      if (confirm('确定退出登录？')) {
+        window.location.href = 'index.html';
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-user')) {
+        document.getElementById('userDropdown').classList.remove('show');
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>

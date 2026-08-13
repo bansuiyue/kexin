@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>账号登录 - 数据跨域流通管控平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--card-bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* 左侧视觉区 */
+    .login-visual {
+      flex: 1;
+      background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 50%, #f8fafc 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-visual::before {
+      content: ''; position: absolute; left: 10%; top: 25%;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%);
+      filter: blur(20px);
+    }
+    .login-visual .brand {
+      display: flex; align-items: center; gap: 12px; font-size: 22px;
+      font-weight: 700; color: #1e3a8a; position: relative; z-index: 1;
+    }
+    .login-visual .brand .logo-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 22px;
+    }
+    .login-visual .visual-center {
+      flex: 1; display: flex; align-items: center; justify-content: center; position: relative;
+    }
+    .visual-illustration {
+      width: 420px; height: 420px; position: relative;
+    }
+    .visual-illustration .ring {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      border-radius: 50%; border: 1px solid rgba(37,99,235,0.15);
+    }
+    .visual-illustration .ring:nth-child(1) { width: 420px; height: 420px; }
+    .visual-illustration .ring:nth-child(2) { width: 320px; height: 320px; }
+    .visual-illustration .ring:nth-child(3) { width: 220px; height: 220px; }
+    .visual-illustration .core {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: 120px; height: 120px; border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      box-shadow: 0 0 60px rgba(37,99,235,0.3);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 48px; font-weight: 800;
+    }
+    .visual-illustration .orbit {
+      position: absolute; left: 50%; top: 50%;
+      width: 320px; height: 320px;
+      animation: rotate 20s linear infinite;
+    }
+    .visual-illustration .orbit .satellite {
+      position: absolute; width: 40px; height: 40px; border-radius: 50%;
+      background: #fff; box-shadow: 0 4px 16px rgba(37,99,235,0.15);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary); font-size: 18px;
+    }
+    .visual-illustration .orbit .satellite:nth-child(1) { left: calc(50% - 20px); top: -20px; }
+    .visual-illustration .orbit .satellite:nth-child(2) { right: -20px; top: calc(50% - 20px); }
+    .visual-illustration .orbit .satellite:nth-child(3) { left: calc(50% - 20px); bottom: -20px; }
+    .visual-illustration .orbit .satellite:nth-child(4) { left: -20px; top: calc(50% - 20px); }
+    @keyframes rotate { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+    .login-visual .visual-footer {
+      position: relative; z-index: 1; font-size: 12px; color: var(--text-tertiary);
+    }
+
+    /* 右侧登录区 */
+    .login-form-wrap {
+      width: 520px; min-width: 420px;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 60px 70px; background: #fff;
+    }
+    .login-box { width: 100%; }
+    .login-title { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 36px; text-align: center; }
+
+    .login-tabs {
+      display: flex; gap: 8px; margin-bottom: 28px;
+      border-bottom: 1px solid var(--border); padding-bottom: 2px;
+    }
+    .login-tab {
+      flex: 1; text-align: center; padding: 10px 0; font-size: 15px;
+      color: var(--text-secondary); cursor: pointer; position: relative;
+      transition: color .15s; border: none; background: transparent; font-family: inherit;
+    }
+    .login-tab.active { color: var(--primary); font-weight: 600; }
+    .login-tab.active::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -3px;
+      height: 2px; background: var(--primary); border-radius: 2px;
+    }
+
+    .login-form { display: none; }
+    .login-form.active { display: block; }
+
+    .form-group {
+      display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;
+    }
+    .form-group label {
+      font-size: 14px; color: var(--text-secondary); font-weight: 500;
+    }
+    .form-group input {
+      height: 48px; padding: 0 16px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 15px; outline: none;
+      transition: all .15s; font-family: inherit; color: var(--text);
+    }
+    .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .form-group.error input { border-color: var(--danger); }
+
+    .login-options {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; font-size: 13px;
+    }
+    .login-options label { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); cursor: pointer; }
+    .login-options input { accent-color: var(--primary); }
+    .login-options a { color: var(--primary); text-decoration: none; }
+    .login-options a:hover { text-decoration: underline; }
+
+    .btn-login {
+      width: 100%; height: 48px; border-radius: 8px; border: none;
+      background: var(--primary); color: #fff; font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: background .15s; font-family: inherit;
+    }
+    .btn-login:hover { background: var(--primary-dark); }
+
+    .login-tips {
+      margin-top: 16px; font-size: 13px; color: var(--text-tertiary);
+      text-align: center; line-height: 1.6;
+    }
+    .login-tips a { color: var(--primary); text-decoration: none; font-weight: 500; }
+    .login-tips a:hover { text-decoration: underline; }
+
+    .register-link {
+      margin-top: 32px; text-align: center; font-size: 14px; color: var(--text-secondary);
+    }
+    .register-link a { color: var(--primary); text-decoration: none; font-weight: 600; margin-left: 4px; }
+    .register-link a:hover { text-decoration: underline; }
+
+    @media (max-width: 900px) {
+      body { flex-direction: column; overflow: auto; }
+      .login-visual { display: none; }
+      .login-form-wrap { width: 100%; min-width: auto; padding: 40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-visual">
+  <div class="brand">
+    <div class="logo-icon">Z</div>
+    <span>数据跨域流通管控平台</span>
+  </div>
+  <div class="visual-center">
+    <div class="visual-illustration">
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="core">Z</div>
+      <div class="orbit">
+        <div class="satellite">◆</div>
+        <div class="satellite">▲</div>
+        <div class="satellite">●</div>
+        <div class="satellite">■</div>
+      </div>
+    </div>
+  </div>
+  <div class="visual-footer">
+    © 2026 数据跨域流通管控平台 · 可信数据空间 · 保障数据安全流通
+  </div>
+</div>
+
+<div class="login-form-wrap">
+  <div class="login-box">
+    <h2 class="login-title">账号登录</h2>
+
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('account', this)">账号密码</button>
+      <button class="login-tab" onclick="switchLoginTab('ca', this)">CA 证书</button>
+    </div>
+
+    <form class="login-form active" id="login-account" onsubmit="event.preventDefault();doLogin();">
+      <div class="form-group" id="group-account">
+        <label>账号</label>
+        <input type="text" id="loginAccount" placeholder="请输入账号" value="admin">
+      </div>
+      <div class="form-group" id="group-password">
+        <label>密码</label>
+        <input type="password" id="loginPassword" placeholder="请输入密码" value="123456">
+      </div>
+      <div class="login-options">
+        <label><input type="checkbox" checked> 记住账号</label>
+        <a href="#" onclick="alert('请联系管理员重置密码')">忘记密码？</a>
+      </div>
+      <button type="submit" class="btn-login">登 录</button>
+    </form>
+
+    <form class="login-form" id="login-ca" onsubmit="event.preventDefault();doCaLogin();">
+      <div class="form-group">
+        <label>CA 证书</label>
+        <input type="text" placeholder="请插入 CA 证书后读取" readonly>
+      </div>
+      <div class="form-group">
+        <label>证书密码</label>
+        <input type="password" placeholder="请输入证书密码">
+      </div>
+      <div class="login-options">
+        <label><input type="checkbox"> 记住证书</label>
+        <a href="#" onclick="alert('请检查 CA 证书驱动是否正确安装')">无法识别证书？</a>
+      </div>
+      <button type="submit" class="btn-login">CA 证书登录</button>
+    </form>
+
+    <div class="register-link">
+      没有账号？<a href="register.html">立即注册</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchLoginTab(type, btn) {
+    document.querySelectorAll('.login-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(type === 'ca' ? 'login-ca' : 'login-account').classList.add('active');
+  }
+
+  function doLogin() {
+    const account = document.getElementById('loginAccount').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    document.getElementById('group-account').classList.remove('error');
+    document.getElementById('group-password').classList.remove('error');
+    if (!account) { document.getElementById('group-account').classList.add('error'); alert('请输入账号'); return; }
+    if (!password) { document.getElementById('group-password').classList.add('error'); alert('请输入密码'); return; }
+    alert('登录成功，即将进入数据产品首页');
+    location.href = 'home.html';
+  }
+
+  function doCaLogin() {
+    alert('CA 证书登录成功，即将进入数据产品首页');
+    location.href = 'home.html';
+  }
+</script>
+</body>
+</html>

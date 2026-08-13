@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>查看入驻信息 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --bg: #f3f6fb;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* 顶部导航 */
+    .top-nav {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 40px; }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e3a8a;
+      text-decoration: none;
+    }
+    .nav-brand .logo-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 8px; list-style: none; }
+    .nav-menu a {
+      display: block;
+      padding: 8px 16px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all .15s;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--bg); }
+    .nav-menu a.active { color: var(--primary); background: #eff6ff; font-weight: 500; }
+
+    /* 页面主体 */
+    .page-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 40px 60px;
+    }
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .page-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 22px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-back:hover { color: var(--primary); border-color: var(--primary); }
+
+    /* 状态卡 */
+    .status-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid #eef2f7;
+    }
+    .status-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .status-label { font-size: 14px; color: var(--text-secondary); }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .status-badge.success { background: #dcfce7; color: #15803d; }
+    .status-badge.warning { background: #fef3c7; color: #b45309; }
+    .status-badge.info { background: #dbeafe; color: #1d4ed8; }
+    .progress-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .progress-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+    .progress-step::after {
+      content: '';
+      position: absolute;
+      top: 14px;
+      right: -50%;
+      width: 100%;
+      height: 2px;
+      background: var(--border);
+      z-index: 0;
+    }
+    .progress-step:last-child::after { display: none; }
+    .progress-step .dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--border);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-size: 13px;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+    }
+    .progress-step.active .dot { background: var(--primary); }
+    .progress-step.done .dot { background: var(--success); }
+    .progress-step span:last-child {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .progress-step.active span:last-child,
+    .progress-step.done span:last-child { color: var(--text); font-weight: 500; }
+
+    /* 信息卡片 */
+    .info-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid #eef2f7;
+    }
+    .info-card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin-bottom: 24px;
+      padding-left: 12px;
+      border-left: 4px solid var(--primary);
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px 32px;
+    }
+    .info-item { display: flex; flex-direction: column; gap: 6px; }
+    .info-item.full-width { grid-column: 1 / -1; }
+    .info-item .label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .info-item .value {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      padding: 10px 14px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    /* 材料列表 */
+    .material-list { display: flex; flex-direction: column; gap: 16px; }
+    .material-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .material-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+    .material-name .file-icon { font-size: 18px; }
+    .material-name a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .material-name a:hover { text-decoration: underline; }
+    .material-meta {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .update-time {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .btn-update {
+      padding: 6px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+      background: #fff;
+      border: 1px solid var(--primary);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-update:hover { background: var(--primary); color: #fff; }
+
+    /* 资质证明 */
+    .qualify-add {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+      background: #fff;
+      border: 1px dashed var(--primary);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .qualify-add:hover { background: #eff6ff; }
+
+    @media (max-width: 768px) {
+      .page-wrapper { padding: 24px 20px 40px; }
+      .info-grid { grid-template-columns: 1fr; }
+      .material-item { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .material-meta { width: 100%; justify-content: space-between; }
+      .top-nav { padding: 0 20px; }
+      .nav-menu { display: none; }
+      .progress-step span:last-child { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <a href="home.html" class="nav-brand">
+        <div class="logo-icon">Z</div>
+        <span>数据跨域流通平台</span>
+      </a>
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="home.html">首页</a></li>
+          <li><a href="data-products.html">数据产品</a></li>
+          <li><a href="data-catalog.html">数据资源目录</a></li>
+          <li><a href="demand-hall.html">需求大厅</a></li>
+          <li><a href="operator-register.html">授权运营商入驻</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="nav-right">
+      <a href="index.html" style="font-size:14px;color:var(--text-secondary);text-decoration:none;">登录</a>
+    </div>
+  </header>
+
+  <!-- 页面主体 -->
+  <main class="page-wrapper">
+    <div class="page-header">
+      <h1>查看入驻信息</h1>
+      <a href="operator-register.html" class="btn-back">返回</a>
+    </div>
+
+    <!-- 入驻审核状态 -->
+    <section class="status-card">
+      <div class="status-header">
+        <span class="status-label">入驻审核状态</span>
+        <span class="status-badge success">✓ 已通过</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-step done">
+          <div class="dot">1</div>
+          <span>提交申请</span>
+        </div>
+        <div class="progress-step done">
+          <div class="dot">2</div>
+          <span>资质审核</span>
+        </div>
+        <div class="progress-step done">
+          <div class="dot">3</div>
+          <span>安全评估</span>
+        </div>
+        <div class="progress-step active">
+          <div class="dot">4</div>
+          <span>入驻开通</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 基本信息 -->
+    <section class="info-card">
+      <h2>基本信息</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">主体名称</span>
+          <span class="value">金华市数据科技有限公司</span>
+        </div>
+        <div class="info-item">
+          <span class="label">统一社会信用代码</span>
+          <span class="value">91330701MAE4YMEW2D</span>
+        </div>
+        <div class="info-item">
+          <span class="label">法定代表人姓名</span>
+          <span class="value">叶凌青</span>
+        </div>
+        <div class="info-item">
+          <span class="label">法定代表人身份证号码</span>
+          <span class="value">330***********116</span>
+        </div>
+        <div class="info-item">
+          <span class="label">经办人姓名</span>
+          <span class="value">杨章霖</span>
+        </div>
+        <div class="info-item">
+          <span class="label">经办人身份证号码</span>
+          <span class="value">411***********020</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 其他证明材料 -->
+    <section class="info-card">
+      <h2>其他证明材料</h2>
+      <div class="material-list">
+        <div class="material-item">
+          <div class="material-name">
+            <span class="file-icon">📄</span>
+            <span>营业执照：</span>
+            <a href="#">营业执照.pdf</a>
+          </div>
+          <div class="material-meta">
+            <span class="update-time">更新时间：2026-07-17 18:55:43</span>
+            <button class="btn-update">更新</button>
+          </div>
+        </div>
+        <div class="material-item">
+          <div class="material-name">
+            <span class="file-icon">📄</span>
+            <span>运营申请表：</span>
+            <a href="#">授权运营申请表.pdf</a>
+          </div>
+          <div class="material-meta">
+            <span class="update-time">更新时间：2026-07-17 18:55:43</span>
+            <button class="btn-update">更新</button>
+          </div>
+        </div>
+        <div class="material-item">
+          <div class="material-name">
+            <span class="file-icon">📄</span>
+            <span>数据安全承诺书：</span>
+            <a href="#">数据安全承诺书.pdf</a>
+          </div>
+          <div class="material-meta">
+            <span class="update-time">更新时间：2026-07-17 18:55:43</span>
+            <button class="btn-update">更新</button>
+          </div>
+        </div>
+        <div class="material-item">
+          <div class="material-name">
+            <span class="file-icon">📄</span>
+            <span>安全风险自评报告：</span>
+            <a href="#">安全风险自评报告.pdf</a>
+          </div>
+          <div class="material-meta">
+            <span class="update-time">更新时间：2026-07-17 18:55:43</span>
+            <button class="btn-update">更新</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 其他资质证明 -->
+    <section class="info-card">
+      <h2>其他资质证明</h2>
+      <button class="qualify-add">+ 添加</button>
+    </section>
+  </main>
+</body>
+</html>

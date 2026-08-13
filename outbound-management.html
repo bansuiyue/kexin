@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>出域管理 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f3f6fb;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-nav {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 40px; }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 700; color: #1e3a8a;
+    }
+    .nav-brand .logo-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 8px; list-style: none; }
+    .nav-menu a {
+      display: block; padding: 8px 16px; font-size: 14px;
+      color: var(--text-secondary); text-decoration: none;
+      border-radius: 6px; transition: all .15s; white-space: nowrap;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--primary-light); }
+    .nav-menu a.active { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+    .nav-user {
+      position: relative; display: flex; align-items: center; gap: 8px;
+      font-size: 14px; color: var(--text-secondary); cursor: pointer;
+      padding: 6px 8px; border-radius: 6px; transition: background .15s;
+    }
+    .nav-user:hover { background: #f3f4f6; }
+    .nav-user .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+    }
+    .user-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 140px; background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      z-index: 300; overflow: hidden;
+    }
+    .user-dropdown.show { display: block; }
+    .user-dropdown a, .user-dropdown button {
+      display: block; width: 100%; padding: 10px 16px; font-size: 14px;
+      color: var(--text); text-decoration: none; background: #fff;
+      border: none; text-align: left; cursor: pointer;
+      transition: background .15s; font-family: inherit;
+    }
+    .user-dropdown a:hover, .user-dropdown button:hover { background: #f3f4f6; }
+
+    .page-header {
+      background: #fff; border-bottom: 1px solid var(--border); padding: 16px 40px;
+    }
+    .breadcrumb { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+    .breadcrumb span { margin: 0 6px; }
+    .page-header h1 {
+      font-size: 20px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .page-header h1::before {
+      content: ''; display: inline-block; width: 4px; height: 18px;
+      background: var(--primary); border-radius: 2px;
+    }
+
+    .page-container { flex: 1; padding: 24px 40px 40px; }
+
+    .card {
+      background: var(--card-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .card-title { font-size: 15px; font-weight: 700; color: var(--text); }
+
+    .filter-bar {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+    }
+    .filter-bar input, .filter-bar select {
+      height: 36px; padding: 0 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; font-family: inherit; outline: none;
+    }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: var(--primary); }
+    .filter-bar input { width: 220px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500;
+      cursor: pointer; border: 1px solid transparent; transition: all .15s;
+      font-family: inherit; line-height: 1;
+    }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+    .btn-default { background: #fff; color: var(--text); border-color: var(--border); }
+    .btn-default:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+    .btn-success:hover { background: #059669; border-color: #059669; }
+    .btn-danger { background: #fff; color: var(--danger); border-color: var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-sm { padding: 5px 12px; font-size: 13px; }
+
+    .record-table-wrap { overflow-x: auto; }
+    .record-table {
+      width: 100%; border-collapse: collapse; font-size: 14px;
+    }
+    .record-table th {
+      padding: 12px 16px; text-align: left;
+      background: #f8fafc; color: var(--text-secondary);
+      font-weight: 600; font-size: 13px; white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+    }
+    .record-table td {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      color: var(--text); vertical-align: middle;
+    }
+    .record-table tbody tr { transition: background .15s; }
+    .record-table tbody tr:hover { background: #f8fafc; }
+    .record-table th:last-child,
+    .record-table td:last-child { text-align: center; white-space: nowrap; }
+
+    .status-tag {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 500; white-space: nowrap;
+    }
+    .status-tag.pending { background: #fef3c7; color: #b45309; }
+    .status-tag.approved { background: #d1fae5; color: #047857; }
+    .status-tag.rejected { background: #fee2e2; color: #b91c1c; }
+
+    .empty-state {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 20px; color: var(--text-secondary);
+    }
+    .empty-state p { font-size: 14px; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 500;
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: var(--radius); width: 800px;
+      max-width: 95vw; max-height: 90vh; overflow: hidden;
+      display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .modal-header {
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none; font-size: 24px;
+      color: var(--text-secondary); cursor: pointer;
+    }
+    .modal-body { padding: 24px; overflow-y: auto; }
+    .modal-footer {
+      padding: 14px 24px; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 12px;
+    }
+
+    .form-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 20px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 13px; color: var(--text); font-weight: 500; }
+    .form-label .required { color: #ef4444; margin-right: 2px; }
+    .form-input, .form-select {
+      height: 38px; padding: 0 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; font-family: inherit; outline: none;
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--primary); }
+    .form-textarea {
+      min-height: 80px; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; font-family: inherit; outline: none; resize: vertical;
+    }
+    .form-textarea:focus { border-color: var(--primary); }
+    .form-group.error .form-input,
+    .form-group.error .form-select,
+    .form-group.error .form-textarea { border-color: var(--danger); }
+    .error-msg { font-size: 12px; color: var(--danger); display: none; }
+    .form-group.error .error-msg { display: block; }
+
+    .upload-box {
+      border: 2px dashed var(--border); border-radius: 8px;
+      padding: 24px; text-align: center; cursor: pointer;
+      transition: all .15s; background: #fafbfc;
+    }
+    .upload-box:hover { border-color: var(--primary); background: var(--primary-light); }
+    .upload-box .upload-title { font-size: 14px; color: var(--primary); font-weight: 500; }
+    .upload-box .upload-hint { font-size: 12px; color: var(--text-tertiary); margin-top: 6px; }
+    .upload-box .file-name { font-size: 13px; color: var(--text); margin-top: 8px; }
+
+    .product-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .product-table th, .product-table td {
+      padding: 10px 12px; border: 1px solid var(--border); text-align: left;
+    }
+    .product-table th { background: #f8fafc; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+    .product-table td input {
+      width: 100%; height: 34px; padding: 0 8px; border: 1px solid var(--border);
+      border-radius: 4px; font-size: 13px; font-family: inherit; outline: none;
+    }
+    .product-table td input:focus { border-color: var(--primary); }
+    .product-table .action-cell { text-align: center; width: 60px; }
+    .product-table .action-cell button {
+      background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px;
+    }
+
+    .detail-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 24px; margin-bottom: 20px;
+    }
+    .detail-item label { display: block; font-size: 13px; color: var(--text-tertiary); margin-bottom: 4px; }
+    .detail-item .value { font-size: 14px; color: var(--text); }
+    .detail-item.full { grid-column: 1 / -1; }
+    .detail-section-title {
+      font-size: 14px; font-weight: 700; color: var(--text);
+      margin: 18px 0 12px; padding-left: 10px; border-left: 3px solid var(--primary);
+    }
+    .material-list { display: flex; flex-wrap: wrap; gap: 12px; }
+    .material-item {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; background: #f8fafc; border-radius: 6px;
+      font-size: 13px; color: var(--text);
+    }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 0 16px; }
+      .nav-menu { display: none; }
+      .page-container { padding: 16px; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-left">
+    <div class="nav-brand">
+      <div class="logo-icon">Z</div>
+      <span>数据跨域流通平台</span>
+    </div>
+    <ul class="nav-menu">
+      <li><a href="dashboard.html">首页</a></li>
+      <li><a href="scenario-management.html">授权场景管理</a></li>
+      <li><a href="apply-records.html">数据资源申请</a></li>
+      <li><a href="data-products.html">数据产品管理</a></li>
+      <li><a href="outbound-management.html" class="active">出域管理</a></li>
+      <li><a href="app-management.html">应用管理</a></li>
+      <li><a href="operators.html">运营人员备案</a></li>
+      <li><a href="account-management.html">账号管理</a></li>
+    </ul>
+  </div>
+  <div class="nav-user" onclick="toggleUserDropdown(event)">
+    <div class="avatar">管</div>
+    <span>超级管理员</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    <div class="user-dropdown" id="userDropdown">
+      <button onclick="logout()">退出登录</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb">工作台 <span>/</span> 出域管理</div>
+  <h1>出域管理</h1>
+</div>
+
+<div class="page-container">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">出域申请记录</div>
+      <div class="filter-bar" style="padding:0;border:none;">
+        <input type="text" id="filterKeyword" placeholder="搜索申请编号 / 关联产品" onkeydown="if(event.key==='Enter')renderRecords()">
+        <select id="filterStatus" onchange="renderRecords()">
+          <option value="">全部状态</option>
+          <option value="pending">待审核</option>
+          <option value="approved">已通过</option>
+          <option value="rejected">已驳回</option>
+        </select>
+        <button class="btn btn-primary" onclick="renderRecords()">查询</button>
+        <button class="btn btn-default" onclick="resetFilters()">重置</button>
+        <button class="btn btn-primary" onclick="openApplyModal()">+ 提交出域申请</button>
+      </div>
+    </div>
+    <div class="record-table-wrap">
+      <table class="record-table">
+        <thead>
+          <tr>
+            <th>申请编号</th>
+            <th>出域场景类型</th>
+            <th>数据敏感类型</th>
+            <th>关联产品</th>
+            <th>申请时间</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="recordBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="emptyState">
+      <p>暂无出域申请记录</p>
+    </div>
+  </div>
+</div>
+
+<!-- 提交出域申请弹窗 -->
+<div class="modal-overlay" id="applyModal" onclick="if(event.target===this)closeApplyModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">提交出域申请</div>
+      <button class="modal-close" onclick="closeApplyModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="applyForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label"><span class="required">*</span>出域场景类型</label>
+            <select class="form-select" id="afOutboundType">
+              <option value="">请选择出域场景类型</option>
+              <option value="数据出域">数据出域</option>
+              <option value="模型出域">模型出域</option>
+              <option value="API出域">API出域</option>
+              <option value="报告出域">报告出域</option>
+            </select>
+            <div class="error-msg">请选择出域场景类型</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span class="required">*</span>数据敏感类型</label>
+            <select class="form-select" id="afSensitivityType">
+              <option value="">请选择数据敏感类型</option>
+              <option value="一般数据">一般数据</option>
+              <option value="重要数据">重要数据</option>
+              <option value="核心数据">核心数据</option>
+              <option value="个人信息">个人信息</option>
+            </select>
+            <div class="error-msg">请选择数据敏感类型</div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">关联数据产品</label>
+            <select class="form-select" id="afProduct">
+              <option value="">请选择关联数据产品（选填）</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">出域产品信息</label>
+            <table class="product-table">
+              <thead>
+                <tr>
+                  <th style="width:40%;">目录名称</th>
+                  <th style="width:50%;">目录描述</th>
+                  <th class="action-cell">操作</th>
+                </tr>
+              </thead>
+              <tbody id="productRows"></tbody>
+            </table>
+            <button type="button" class="btn btn-default btn-sm" onclick="addProductRow()" style="margin-top:8px;">+ 添加产品目录</button>
+          </div>
+          <div class="form-group full">
+            <label class="form-label"><span class="required">*</span>出域申请表</label>
+            <div class="upload-box" onclick="document.getElementById('afFile1').click()">
+              <div class="upload-title">点击上传 / 拖拽到此</div>
+              <div class="upload-hint">支持文件扩展名：.pdf</div>
+              <div class="file-name" id="fileName1" style="display:none;"></div>
+            </div>
+            <input type="file" id="afFile1" accept=".pdf" style="display:none;" onchange="onFileChange(1)">
+            <div class="error-msg">请上传出域申请表</div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label"><span class="required">*</span>加工情况说明</label>
+            <div class="upload-box" onclick="document.getElementById('afFile2').click()">
+              <div class="upload-title">点击上传 / 拖拽到此</div>
+              <div class="upload-hint">支持文件扩展名：.pdf</div>
+              <div class="file-name" id="fileName2" style="display:none;"></div>
+            </div>
+            <input type="file" id="afFile2" accept=".pdf" style="display:none;" onchange="onFileChange(2)">
+            <div class="error-msg">请上传加工情况说明</div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label"><span class="required">*</span>专家评审会意见</label>
+            <div class="upload-box" onclick="document.getElementById('afFile3').click()">
+              <div class="upload-title">点击上传 / 拖拽到此</div>
+              <div class="upload-hint">支持文件扩展名：.pdf</div>
+              <div class="file-name" id="fileName3" style="display:none;"></div>
+            </div>
+            <input type="file" id="afFile3" accept=".pdf" style="display:none;" onchange="onFileChange(3)">
+            <div class="error-msg">请上传专家评审会意见</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeApplyModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitApply()">提交申请</button>
+    </div>
+  </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">出域申请详情</div>
+      <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="detailContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const statusMap = {
+    pending: { text: '待审核', cls: 'pending' },
+    approved: { text: '已通过', cls: 'approved' },
+    rejected: { text: '已驳回', cls: 'rejected' }
+  };
+
+  const seedRecords = [
+    {
+      id: 'CY20260801001',
+      outboundType: '数据出域',
+      sensitivityType: '一般数据',
+      productId: 'DP20260715001',
+      productName: '通勤路线OD数据',
+      products: [
+        { name: '通勤路线OD数据', desc: '通勤居住OD产品，剖析早晚高峰规律性出行特征' },
+        { name: '交通流量预测数据', desc: '包含快速路、主干道交通流量数据，时间粒度1分钟' }
+      ],
+      files: ['出域申请表', '加工情况说明', '专家评审会意见'],
+      applyTime: '2026-08-01 10:30:00',
+      status: 'approved',
+      auditTime: '2026-08-05 14:20:00',
+      auditor: '数据空间审核员',
+      auditOpinion: '数据来源清晰、用途合规，同意出域。'
+    },
+    {
+      id: 'CY20260810002',
+      outboundType: '报告出域',
+      sensitivityType: '重要数据',
+      productId: '',
+      productName: '',
+      products: [
+        { name: '企业信用评估报告', desc: '基于经营许可数据的信用评估分析报告' }
+      ],
+      files: ['出域申请表', '加工情况说明', '专家评审会意见'],
+      applyTime: '2026-08-10 09:15:00',
+      status: 'pending'
+    }
+  ];
+
+  function getOutboundRecords() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('outboundRecords') || '[]');
+      return saved.length ? saved : seedRecords;
+    } catch (e) { return seedRecords; }
+  }
+
+  function saveOutboundRecords(list) {
+    localStorage.setItem('outboundRecords', JSON.stringify(list));
+  }
+
+  function toggleUserDropdown(event) {
+    event.stopPropagation();
+    document.getElementById('userDropdown').classList.toggle('show');
+  }
+  document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown && dropdown.classList.contains('show')) {
+      const userEl = document.querySelector('.nav-user');
+      if (userEl && !userEl.contains(event.target)) dropdown.classList.remove('show');
+    }
+  });
+  function logout() { if (confirm('确定要退出登录吗？')) alert('已退出登录'); }
+
+  function getProducts() {
+    try {
+      return JSON.parse(localStorage.getItem('productRecords') || '[]');
+    } catch (e) { return []; }
+  }
+
+  function renderRecords() {
+    const keyword = document.getElementById('filterKeyword').value.trim().toLowerCase();
+    const status = document.getElementById('filterStatus').value;
+    const records = getOutboundRecords();
+
+    let list = records.filter(function(r) {
+      const matchKeyword = !keyword ||
+        r.id.toLowerCase().indexOf(keyword) !== -1 ||
+        (r.productName || '').toLowerCase().indexOf(keyword) !== -1;
+      const matchStatus = !status || r.status === status;
+      return matchKeyword && matchStatus;
+    });
+
+    list.sort(function(a, b) { return b.id.localeCompare(a.id); });
+
+    const body = document.getElementById('recordBody');
+    const empty = document.getElementById('emptyState');
+    if (list.length === 0) {
+      body.innerHTML = '';
+      empty.style.display = 'flex';
+      return;
+    }
+    empty.style.display = 'none';
+
+    body.innerHTML = list.map(function(r) {
+      const st = statusMap[r.status] || { text: r.status, cls: 'pending' };
+      const productText = r.productName || (r.products && r.products.length ? r.products.map(function(p) { return p.name; }).join('、') : '-');
+      return '<tr>' +
+        '<td>' + r.id + '</td>' +
+        '<td>' + (r.outboundType || '-') + '</td>' +
+        '<td>' + (r.sensitivityType || '-') + '</td>' +
+        '<td>' + productText + '</td>' +
+        '<td>' + r.applyTime + '</td>' +
+        '<td><span class="status-tag ' + st.cls + '">' + st.text + '</span></td>' +
+        '<td>' +
+          '<button class="btn btn-sm btn-default" onclick="viewDetail(\'' + r.id + '\')">查看</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function resetFilters() {
+    document.getElementById('filterKeyword').value = '';
+    document.getElementById('filterStatus').value = '';
+    renderRecords();
+  }
+
+  function openApplyModal() {
+    document.getElementById('applyForm').reset();
+    document.querySelectorAll('.form-group.error').forEach(function(el) { el.classList.remove('error'); });
+    document.querySelectorAll('.file-name').forEach(function(el) { el.style.display = 'none'; el.textContent = ''; });
+    document.getElementById('productRows').innerHTML = '';
+    addProductRow();
+
+    const prodSelect = document.getElementById('afProduct');
+    const products = getProducts();
+    prodSelect.innerHTML = '<option value="">请选择关联数据产品（选填）</option>' +
+      products.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('');
+
+    document.getElementById('applyModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeApplyModal() {
+    document.getElementById('applyModal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  function addProductRow() {
+    const tbody = document.getElementById('productRows');
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td><input type="text" placeholder="请输入目录名称"></td>' +
+      '<td><input type="text" placeholder="请输入目录描述"></td>' +
+      '<td class="action-cell"><button type="button" onclick="this.closest(\'tr\').remove()">&times;</button></td>';
+    tbody.appendChild(tr);
+  }
+
+  function onFileChange(idx) {
+    const input = document.getElementById('afFile' + idx);
+    const nameEl = document.getElementById('fileName' + idx);
+    if (input.files && input.files[0]) {
+      nameEl.textContent = '已选择：' + input.files[0].name;
+      nameEl.style.display = 'block';
+    } else {
+      nameEl.style.display = 'none';
+      nameEl.textContent = '';
+    }
+  }
+
+  function validateForm() {
+    let valid = true;
+    ['afOutboundType', 'afSensitivityType'].forEach(function(id) {
+      const el = document.getElementById(id);
+      const group = el.closest('.form-group');
+      if (!el.value.trim()) { group.classList.add('error'); valid = false; }
+      else group.classList.remove('error');
+    });
+    [1, 2, 3].forEach(function(idx) {
+      const input = document.getElementById('afFile' + idx);
+      const group = input.closest('.form-group');
+      if (!input.files || !input.files[0]) { group.classList.add('error'); valid = false; }
+      else group.classList.remove('error');
+    });
+    return valid;
+  }
+
+  function submitApply() {
+    if (!validateForm()) { alert('请完善必填信息并上传所需文件'); return; }
+    const outboundType = document.getElementById('afOutboundType').value;
+    const sensitivityType = document.getElementById('afSensitivityType').value;
+    const productId = document.getElementById('afProduct').value;
+    const productName = productId ? (function() {
+      const opt = document.querySelector('#afProduct option[value="' + productId + '"]');
+      return opt ? opt.textContent : '';
+    })() : '';
+
+    const products = [];
+    document.querySelectorAll('#productRows tr').forEach(function(tr) {
+      const inputs = tr.querySelectorAll('input');
+      const name = inputs[0].value.trim();
+      if (name) products.push({ name: name, desc: inputs[1].value.trim() });
+    });
+
+    const now = new Date();
+    const pad = function(n) { return String(n).padStart(2, '0'); };
+    const id = 'CY' + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) +
+      pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+
+    const records = getOutboundRecords();
+    records.unshift({
+      id: id,
+      outboundType: outboundType,
+      sensitivityType: sensitivityType,
+      productId: productId,
+      productName: productName,
+      products: products,
+      files: ['出域申请表', '加工情况说明', '专家评审会意见'],
+      applyTime: now.toLocaleString('zh-CN', { hour12: false }),
+      status: 'pending'
+    });
+    saveOutboundRecords(records);
+    closeApplyModal();
+    renderRecords();
+    alert('出域申请已提交，等待独立审批后台审批');
+  }
+
+  function viewDetail(id) {
+    const records = getOutboundRecords();
+    const r = records.find(function(item) { return item.id === id; });
+    if (!r) return;
+    const st = statusMap[r.status] || { text: r.status, cls: 'pending' };
+    const productText = r.productName || (r.products && r.products.length ? r.products.map(function(p) { return p.name; }).join('、') : '-');
+    const productRows = (r.products || []).length ? r.products.map(function(p) {
+      return '<tr><td>' + p.name + '</td><td>' + (p.desc || '-') + '</td></tr>';
+    }).join('') : '<tr><td colspan="2" style="text-align:center;color:var(--text-secondary);">暂无产品信息</td></tr>';
+    const filesHtml = (r.files || []).map(function(f) {
+      return '<span class="material-item">&#128196; ' + f + '.pdf</span>';
+    }).join('');
+
+    document.getElementById('detailContent').innerHTML =
+      '<div class="detail-grid">' +
+        '<div class="detail-item"><label>申请编号</label><div class="value">' + r.id + '</div></div>' +
+        '<div class="detail-item"><label>申请状态</label><div class="value"><span class="status-tag ' + st.cls + '">' + st.text + '</span></div></div>' +
+        '<div class="detail-item"><label>出域场景类型</label><div class="value">' + (r.outboundType || '-') + '</div></div>' +
+        '<div class="detail-item"><label>数据敏感类型</label><div class="value">' + (r.sensitivityType || '-') + '</div></div>' +
+        '<div class="detail-item"><label>关联数据产品</label><div class="value">' + (r.productName || '-') + '</div></div>' +
+        '<div class="detail-item"><label>申请时间</label><div class="value">' + r.applyTime + '</div></div>' +
+        (r.auditTime ? '<div class="detail-item"><label>审核时间</label><div class="value">' + r.auditTime + '</div></div>' : '') +
+        (r.auditor ? '<div class="detail-item"><label>审核人</label><div class="value">' + r.auditor + '</div></div>' : '') +
+      '</div>' +
+      '<div class="detail-section-title">出域产品信息</div>' +
+      '<table class="product-table" style="margin-bottom:12px;">' +
+        '<thead><tr><th>目录名称</th><th>目录描述</th></tr></thead>' +
+        '<tbody>' + productRows + '</tbody>' +
+      '</table>' +
+      '<div class="detail-section-title">出域相关文件</div>' +
+      '<div class="material-list">' + filesHtml + '</div>' +
+      (r.auditOpinion ? '<div class="detail-section-title">审核意见</div><div style="font-size:14px;color:var(--text);line-height:1.8;">' + r.auditOpinion + '</div>' : '');
+
+    document.getElementById('detailModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDetailModal() {
+    document.getElementById('detailModal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  renderRecords();
+</script>
+
+</body>
+</html>

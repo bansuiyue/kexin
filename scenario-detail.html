@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>场景详情 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .top-nav {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 48px; }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 700; color: #1e3a8a;
+      text-decoration: none;
+    }
+    .nav-brand .logo-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 8px; list-style: none; }
+    .nav-menu a {
+      display: block; padding: 8px 18px; font-size: 15px;
+      color: var(--text-secondary); text-decoration: none;
+      border-radius: 6px; transition: all .15s; white-space: nowrap;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--primary-light); }
+    .nav-menu a.active { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+    .nav-user {
+      position: relative; display: flex; align-items: center; gap: 8px;
+      font-size: 14px; color: var(--text-secondary); cursor: pointer;
+      padding: 6px 8px; border-radius: 6px; transition: background .15s;
+    }
+    .nav-user:hover { background: #f3f4f6; }
+    .nav-user .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+    }
+    .user-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 150px; background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      z-index: 300; overflow: hidden;
+    }
+    .user-dropdown.show { display: block; }
+    .user-dropdown a, .user-dropdown button {
+      display: block; width: 100%; padding: 10px 16px; font-size: 14px;
+      color: var(--text); text-decoration: none; background: #fff;
+      border: none; text-align: left; cursor: pointer;
+      transition: background .15s; font-family: inherit;
+    }
+    .user-dropdown a:hover, .user-dropdown button:hover { background: #f3f4f6; }
+
+    .container {
+      max-width: 1080px; margin: 0 auto; padding: 28px 24px 60px;
+    }
+
+    /* 顶部头部 */
+    .detail-header {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 32px; display: flex; gap: 28px; align-items: flex-start; margin-bottom: 24px;
+    }
+    .detail-logo {
+      width: 100px; height: 100px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 38px; font-weight: 800; color: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+    .detail-title-wrap { flex: 1; min-width: 0; padding-top: 6px; }
+    .detail-name { font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 16px; }
+    .detail-meta { display: flex; flex-wrap: wrap; gap: 24px; font-size: 14px; color: var(--text-secondary); }
+    .detail-meta span { display: flex; align-items: center; gap: 6px; }
+    .detail-meta .label { color: var(--text-tertiary); }
+
+    /* 区块标题 */
+    .section-title {
+      font-size: 18px; font-weight: 700; color: var(--text);
+      margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::before {
+      content: ''; display: inline-block; width: 4px; height: 18px;
+      background: var(--primary); border-radius: 2px;
+    }
+
+    .status-building { color: var(--warning); background: #fff7ed; }
+    .status-online { color: var(--success); background: #ecfdf5; }
+
+    /* 场景介绍 */
+    .intro-card {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 24px 28px; margin-bottom: 24px;
+    }
+    .intro-text {
+      font-size: 14px; line-height: 2; color: var(--text-secondary);
+      text-align: justify;
+    }
+
+    /* 使用数据 */
+    .data-card {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 24px 28px; margin-bottom: 24px;
+    }
+    .data-table {
+      width: 100%; border-collapse: collapse; font-size: 14px;
+    }
+    .data-table thead { background: #f8fafc; }
+    .data-table th, .data-table td {
+      padding: 14px 16px; text-align: center; border-bottom: 1px solid var(--border);
+    }
+    .data-table th { color: var(--text-secondary); font-weight: 600; }
+    .data-table td { color: var(--text); }
+    .data-table tbody tr:hover { background: #f8fafc; }
+    .data-table .col-index { width: 80px; color: var(--text-secondary); }
+    .data-table .col-name { text-align: left; }
+    .data-table .col-unit { width: 220px; }
+
+    .table-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 18px; font-size: 13px; color: var(--text-secondary);
+    }
+    .pagination {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .pagination button, .pagination select {
+      padding: 5px 10px; font-size: 13px; border: 1px solid var(--border);
+      background: #fff; color: var(--text); border-radius: 4px; cursor: pointer;
+    }
+    .pagination button:disabled { color: var(--text-tertiary); cursor: not-allowed; }
+    .pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .pagination select { outline: none; }
+
+    .empty-state {
+      text-align: center; padding: 48px; color: var(--text-secondary); font-size: 14px;
+    }
+
+    .not-found {
+      text-align: center; padding: 120px 24px; color: var(--text-secondary);
+    }
+    .not-found h2 { font-size: 20px; color: var(--text); margin-bottom: 12px; }
+    .not-found a { color: var(--primary); text-decoration: none; }
+
+    @media (max-width: 992px) {
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 0 16px; height: 56px; }
+      .nav-menu { display: none; }
+      .container { padding: 16px 16px 40px; }
+      .detail-header { flex-direction: column; align-items: center; text-align: center; padding: 24px; }
+      .detail-meta { justify-content: center; }
+      .info-grid { grid-template-columns: 1fr; }
+      .data-table th, .data-table td { padding: 10px 8px; font-size: 13px; }
+      .table-footer { flex-direction: column; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-left">
+      <a href="home.html" class="nav-brand">
+        <div class="logo-icon">Z</div>
+        <span>数据跨域流通平台</span>
+      </a>
+      <ul class="nav-menu">
+        <li><a href="home.html">首页</a></li>
+        <li><a href="home.html">数据产品</a></li>
+        <li><a href="scenarios.html" class="active">授权场景</a></li>
+        <li><a href="data-catalog.html">数据资源目录</a></li>
+        <li><a href="#">需求大厅</a></li>
+        <li><a href="operator-register.html">授权运营商入驻</a></li>
+      </ul>
+    </div>
+    <div class="nav-user" onclick="toggleUserDropdown()">
+      <div class="avatar">管</div>
+      <span>超级管理员</span>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="dashboard.html">进入后台</a>
+        <button onclick="logout(event)">退出登录</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" id="detailContainer">
+    <div class="not-found" id="notFound" style="display:none;">
+      <h2>场景不存在或已下架</h2>
+      <p>请返回 <a href="scenarios.html">授权场景列表</a> 重新选择</p>
+    </div>
+
+    <div id="detailContent" style="display:none;">
+      <div class="detail-header">
+        <div class="detail-logo" id="detailLogo">场景</div>
+        <div class="detail-title-wrap">
+          <div class="detail-name" id="detailName">-</div>
+          <div class="detail-meta">
+            <span><span class="label">公司名称：</span><span id="detailOrg">-</span></span>
+            <span><span class="label">所属区域：</span><span id="detailRegion">省本级</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="intro-card">
+        <div class="section-title">场景介绍</div>
+        <div class="intro-text" id="detailIntro">-</div>
+      </div>
+
+      <div class="data-card">
+        <div class="section-title">使用数据</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="col-index">序号</th>
+              <th class="col-name">数据名称</th>
+              <th class="col-unit">数源单位</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody"></tbody>
+        </table>
+        <div class="table-footer" id="tableFooter">
+          <span id="pageInfo">共 0 条记录</span>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var scenario = null;
+    var dataList = [];
+    var pageSize = 10;
+    var currentPage = 1;
+
+    function getUrlParam(name) {
+      var search = window.location.search;
+      var reg = new RegExp('[?&]' + name + '=([^&]*)');
+      var match = search.match(reg);
+      return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    function getScenarios() {
+      var seed = [
+        { id:'SC-20260610-004', name:'“固废智能撮合服务”场景', field:'生态环境', orgName:'浙江环信环境自动检测有限公司', desc:'固废智能撮合服务场景聚焦废物处置效能不均、资源化利用效能不足、交易信息壁垒等问题，围绕固废交易全链条开展数据赋能，打造交易画像、资质核验、实时风控三大场景核心能力，开发面向产废企业、利用处置企业、监管部门的数据接口服务，打造企业交易画像接口、企业资质核验接口、转移异常预警接口服务，为固废行业内各类企业提供交易中枢和数据智能服务，全面提升无废宝固废处置交易综合智服平台的服务效能。', onlineTime:'2026-06-10 00:00:00', region:'省本级', attachList:[
+          { dataset:'企业许可证危废类别分组信息', unit:'省生态环境厅' },
+          { dataset:'固废_企业信息', unit:'省生态环境厅' },
+          { dataset:'固废年度计划基本信息', unit:'省生态环境厅' },
+          { dataset:'固废_危废产生计划信息', unit:'省生态环境厅' },
+          { dataset:'固废_计划转移废物信息', unit:'省生态环境厅' },
+          { dataset:'固废企业危废许可信息', unit:'省生态环境厅' },
+          { dataset:'一般工业固废产生计划信息', unit:'省生态环境厅' },
+          { dataset:'一般工业固废联单废物详情信息', unit:'省生态环境厅' },
+          { dataset:'一般工业固废联单处置企业信息', unit:'省生态环境厅' },
+          { dataset:'固废处置台账汇总表', unit:'省生态环境厅' },
+          { dataset:'固废_转移联单信息', unit:'省生态环境厅' },
+          { dataset:'固废_经营许可证信息', unit:'省生态环境厅' },
+          { dataset:'固废_产废企业年度申报', unit:'省生态环境厅' },
+          { dataset:'固废_经营单位年度申报', unit:'省生态环境厅' },
+          { dataset:'固废_跨省转移备案', unit:'省生态环境厅' },
+          { dataset:'固废_自行利用处置信息', unit:'省生态环境厅' }
+        ]},
+        { id:'SC-20260701-005', name:'基于“空天地”一体化的智慧农业', field:'现代农业', orgName:'金华浙农信息技术有限公司', desc:'本场景包含两个子场景：1.农业金融风控与保险理赔场景（B端：低空+产业），面向银行、保险公司及大型农业企业，提供客观可信的数据增信与定损服务；2.农户精准生产与农事服务场景（C端：低空+服务）。', onlineTime:'2026-07-01 00:00:00', region:'省本级' },
+        { id:'SC-20260703-006', name:'速赔保—保险理赔快速通（新）', field:'金融服务', orgName:'浙江织数数字科技有限公司', desc:'保险机构在核保、理赔、产品创新等多个业务中需要医疗数据作为支撑，但由于医疗数据要素流通的壁垒，导致部分保险业务数字化转型缓慢。本项目通过“1条链+2种授权方式+3个数据产品”构建保险理赔快速通道。', onlineTime:'2026-07-03 00:00:00', region:'省本级' },
+        { id:'SC-20260703-007', name:'车险人伤理赔快速通（新）', field:'医疗健康', orgName:'浙江织数数字科技有限公司', desc:'为了解决传统车险理赔流程繁琐、伤者医疗资料提交不便导致的理赔周期长、垫付款不及时等问题，使用伤者授权的诊疗数据（含住院信息、诊断记录等医疗核心数据），通过“车险人伤理赔快速通”为投保人及伤者提供快速理赔服务。', onlineTime:'2026-07-03 00:00:00', region:'省本级' },
+        { id:'SC-20260630-008', name:'城市低空智慧治理场景', field:'城市治理', orgName:'杭州上城区市政工程集团有限公司', desc:'本数据授权运营项目提供1个数据服务产品，以算法的形式呈现，以结果报告的形式输出交付。应用场景描述针对以内河为主的城市河道巡检业务，结合现有公共数据（城市河道基本信息），依托本集团在上城区低空巡检能力。', onlineTime:'2026-06-30 00:00:00', region:'省本级' },
+        { id:'SC-20260616-009', name:'车路云一体化智慧交通数据服务', field:'交通运输', orgName:'杭州市智能网联科技有限公司', desc:'本场景围绕红绿灯信号机、可变车道屏、待转屏等关键交通设施的数据，通过统一标准、平台治理和安全跨网机制，实现信号数据从“采集—治理—授权—服务—智能化应用”的全链条能力建设。', onlineTime:'2026-06-16 00:00:00', region:'省本级' }
+      ];
+      try {
+        var custom = JSON.parse(localStorage.getItem('scenarioRecords') || '[]');
+        var online = custom.filter(function(s){ return s.status === 'passed'; });
+        if (!online.length) return seed;
+        var map = new Map(seed.map(function(s){ return [s.id, s]; }));
+        online.forEach(function(s){ map.set(s.id, s); });
+        return Array.from(map.values());
+      } catch (e) { return seed; }
+    }
+
+    function getInitials(str) {
+      if (!str) return '场景';
+      return str.substring(0, 2);
+    }
+
+    function renderPagination(total) {
+      var totalPages = Math.ceil(total / pageSize) || 1;
+      var start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+      var end = Math.min(currentPage * pageSize, total);
+      document.getElementById('pageInfo').textContent = '共 ' + total + ' 条记录 第 ' + currentPage + '/' + totalPages + ' 页';
+
+      var html = '';
+      html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="changePage(currentPage - 1)">&lt;上一页</button>';
+      for (var i = 1; i <= totalPages; i++) {
+        html += '<button class="' + (i === currentPage ? 'active' : '') + '" onclick="changePage(' + i + ')">' + i + '</button>';
+      }
+      html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="changePage(currentPage + 1)">下一页&gt;</button>';
+      html += '<select onchange="setPageSize(this.value)">' +
+        '<option value="10" ' + (pageSize === 10 ? 'selected' : '') + '>10条/页</option>' +
+        '<option value="20" ' + (pageSize === 20 ? 'selected' : '') + '>20条/页</option>' +
+        '<option value="50" ' + (pageSize === 50 ? 'selected' : '') + '>50条/页</option>' +
+      '</select>';
+      document.getElementById('pagination').innerHTML = html;
+    }
+
+    function renderDataTable() {
+      var tbody = document.getElementById('dataTableBody');
+      if (!dataList.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">暂无使用数据</td></tr>';
+        renderPagination(0);
+        return;
+      }
+      var start = (currentPage - 1) * pageSize;
+      var pageData = dataList.slice(start, start + pageSize);
+      tbody.innerHTML = pageData.map(function(item, idx) {
+        return '<tr>' +
+          '<td class="col-index">' + (start + idx + 1) + '</td>' +
+          '<td class="col-name">' + esc(item.dataset || item.name || '-') + '</td>' +
+          '<td class="col-unit">' + esc(item.unit || '-') + '</td>' +
+        '</tr>';
+      }).join('');
+      renderPagination(dataList.length);
+    }
+
+    function changePage(p) {
+      var totalPages = Math.ceil(dataList.length / pageSize) || 1;
+      if (p < 1 || p > totalPages) return;
+      currentPage = p;
+      renderDataTable();
+    }
+
+    function setPageSize(size) {
+      pageSize = parseInt(size, 10);
+      currentPage = 1;
+      renderDataTable();
+    }
+
+    function esc(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function renderDetail() {
+      var id = getUrlParam('id');
+      var list = getScenarios();
+      scenario = list.find(function(s){ return s.id === id; });
+      if (!scenario) {
+        document.getElementById('notFound').style.display = 'block';
+        return;
+      }
+      document.getElementById('detailContent').style.display = 'block';
+
+      document.getElementById('detailName').textContent = scenario.name;
+      document.getElementById('detailOrg').textContent = scenario.orgName || '-';
+      document.getElementById('detailRegion').textContent = scenario.region || '省本级';
+
+      var logo = document.getElementById('detailLogo');
+      logo.textContent = getInitials(scenario.orgName);
+      logo.style.background = scenario.logoBg || 'var(--primary)';
+
+      document.getElementById('detailIntro').textContent = scenario.desc || scenario.scenarioIntro || '暂无场景介绍';
+
+      dataList = (scenario.attachList || []).map(function(a) {
+        return { dataset: a.dataset || a.items || a.name, unit: a.unit };
+      });
+      currentPage = 1;
+      renderDataTable();
+    }
+
+    function toggleUserDropdown() {
+      document.getElementById('userDropdown').classList.toggle('show');
+    }
+
+    function logout(e) {
+      e.stopPropagation();
+      if (confirm('确定退出登录？')) {
+        window.location.href = 'index.html';
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-user')) {
+        document.getElementById('userDropdown').classList.remove('show');
+      }
+    });
+
+    renderDetail();
+  </script>
+</body>
+</html>

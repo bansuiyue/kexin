@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>授权场景管理 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f3f6fb;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 顶部导航 */
+    .top-nav {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 32px; }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 700;
+      color: #1e3a8a;
+      white-space: nowrap;
+    }
+    .nav-brand .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 17px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 4px; list-style: none; }
+    .nav-menu a {
+      display: block;
+      padding: 8px 14px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--bg); }
+    .nav-menu a.active { color: var(--primary); background: #eff6ff; font-weight: 600; }
+
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      position: relative;
+      font-size: 14px;
+    }
+    .nav-user .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .user-dropdown {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      padding: 6px;
+      min-width: 130px;
+      display: none;
+      z-index: 300;
+    }
+    .user-dropdown.show { display: block; }
+    .user-dropdown a, .user-dropdown button {
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--text);
+      text-decoration: none;
+      background: none;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .user-dropdown a:hover, .user-dropdown button:hover { background: var(--bg); color: var(--primary); }
+
+    /* 页面容器 */
+    .page-header {
+      background: #fff; border-bottom: 1px solid var(--border); padding: 16px 40px;
+    }
+    .breadcrumb { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+    .breadcrumb span { margin: 0 6px; }
+    .page-header h1 {
+      font-size: 20px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .page-header h1::before {
+      content: ''; display: inline-block; width: 4px; height: 18px;
+      background: var(--primary); border-radius: 2px;
+    }
+
+    .page-container { flex: 1; padding: 24px 40px 40px; display: flex; gap: 20px; }
+
+    .sidebar {
+      width: 260px; min-width: 260px; background: #fff;
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    .sidebar-header {
+      padding: 16px; border-bottom: 1px solid var(--border);
+      font-size: 15px; font-weight: 700;
+    }
+    .sidebar-search {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+    }
+    .sidebar-search input {
+      width: 100%; height: 36px; padding: 0 12px;
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 14px; font-family: inherit; outline: none;
+    }
+    .sidebar-search input:focus { border-color: var(--primary); }
+    .category-tree { flex: 1; overflow-y: auto; padding: 8px 0; font-size: 14px; user-select: none; }
+    .tree-node-content {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 36px; padding: 0 16px; cursor: pointer;
+      transition: all .15s; color: var(--text);
+    }
+    .tree-node-content:hover { background: var(--primary-light); color: var(--primary); }
+    .tree-node-content.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .tree-node-content .node-left { display: flex; align-items: center; gap: 6px; overflow: hidden; }
+    .tree-node-content .node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tree-node-content .count { color: var(--text-tertiary); font-size: 13px; flex-shrink: 0; margin-left: 8px; }
+    .tree-node-content.active .count { color: var(--primary); }
+
+    .main-content { flex: 1; min-width: 0; }
+
+    /* 统计卡 */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-icon.blue { background: #eff6ff; color: #2563eb; }
+    .stat-icon.orange { background: #fff7ed; color: #ea580c; }
+    .stat-icon.green { background: #ecfdf5; color: #059669; }
+    .stat-icon.red { background: #fef2f2; color: #dc2626; }
+    .stat-info .stat-value { font-size: 24px; font-weight: 700; }
+    .stat-info .stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+    /* 卡片 */
+    .card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .card-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .filter-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .filter-bar input, .filter-bar select {
+      height: 34px;
+      padding: 0 10px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      outline: none;
+      min-width: 130px;
+    }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: var(--primary); }
+
+    .btn {
+      height: 34px;
+      padding: 0 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all .15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-default { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .btn-default:hover { color: var(--primary); border-color: var(--primary); }
+    .btn-sm { height: 28px; padding: 0 12px; font-size: 12px; }
+
+    /* 表格 */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      background: #f9fafb;
+      color: var(--text-secondary);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9fafb; }
+
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .status-tag.gray { background: #f3f4f6; color: #6b7280; }
+    .status-tag.blue { background: #eff6ff; color: #2563eb; }
+    .status-tag.green { background: #ecfdf5; color: #059669; }
+    .status-tag.red { background: #fef2f2; color: #dc2626; }
+    .status-tag.orange { background: #fff7ed; color: #ea580c; }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      background: #f3f4f6;
+      color: var(--text-secondary);
+      margin: 2px 4px 2px 0;
+    }
+
+    .status-passed { background: #dbeafe; color: #1e40af; }
+
+    .mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .mini-table th, .mini-table td {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      text-align: left;
+    }
+    .mini-table th { background: #f8fafc; font-weight: 600; white-space: nowrap; }
+
+    .table-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 2px 4px;
+      white-space: nowrap;
+    }
+    .link-btn:hover { text-decoration: underline; }
+    .link-btn.danger { color: var(--danger); }
+
+    /* 弹窗 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      width: 680px;
+      max-width: 94vw;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title { font-size: 16px; font-weight: 600; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { padding: 24px; overflow-y: auto; }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 14px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 13px; font-weight: 500; color: var(--text); }
+    .form-label .required { color: var(--danger); margin-right: 2px; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 9px 12px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      outline: none;
+      font-family: inherit;
+      color: var(--text);
+      background: #fff;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.12); }
+    .form-textarea { min-height: 80px; resize: vertical; }
+    .form-tip { font-size: 12px; color: var(--text-tertiary); }
+
+    /* 表单分区（按授权运营应用场景说明章节） */
+    .form-section { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border); }
+    .form-section:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    .form-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e3a8a;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* 动态行（核心功能 / 附件清单） */
+    .dynamic-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .dynamic-row input { flex: 1; }
+    .dynamic-row .row-del {
+      flex: none;
+      width: 30px;
+      height: 30px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: var(--danger);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+    }
+    .dynamic-row .row-del:hover { background: #fee2e2; }
+    .btn-add-row {
+      height: 30px;
+      padding: 0 12px;
+      font-size: 12px;
+      border: 1px dashed var(--primary);
+      color: var(--primary);
+      background: #eff6ff;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-add-row:hover { background: #dbeafe; }
+
+    /* 数据资源多选（左右布局：左侧搜索+可选列表，右侧已选中） */
+    .resource-picker {
+      display: flex;
+      gap: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 280px;
+    }
+    .resource-picker-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+    .resource-picker-left .resource-check-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .resource-picker-right {
+      width: 240px;
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .resource-picker-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .resource-picker-count {
+      background: var(--primary);
+      color: #fff;
+      font-size: 12px;
+      padding: 0 6px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .resource-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .resource-check.hidden { display: none; }
+    .resource-check:hover { border-color: var(--primary); }
+    .resource-check input { accent-color: var(--primary); flex-shrink: 0; }
+    .resource-check span:nth-of-type(1) { color: var(--text-primary); font-size: 13px; }
+    .resource-check .rc-desc {
+      color: var(--text-tertiary);
+      font-size: 12px;
+      margin-left: auto;
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 45%;
+    }
+    .resource-selected-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 280px;
+      padding-right: 2px;
+    }
+    .resource-selected-empty {
+      color: var(--text-tertiary);
+      font-size: 13px;
+      text-align: center;
+      padding: 24px 0;
+    }
+    .resource-selected-item {
+      padding: 8px 10px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .resource-selected-item .rsi-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .resource-selected-item .rsi-name {
+      color: var(--text-primary);
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .resource-selected-item .rsi-remove {
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .resource-selected-item .rsi-remove:hover { color: #b91c1c; }
+    .resource-selected-item .rsi-desc {
+      color: var(--text-tertiary);
+      font-size: 12px;
+      margin-top: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* 详情 */
+    .detail-block { margin-bottom: 20px; }
+    .detail-block h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1e3a8a;
+      margin-bottom: 12px;
+      padding-left: 10px;
+      border-left: 3px solid var(--primary);
+    }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .detail-item { display: flex; flex-direction: column; gap: 4px; }
+    .detail-item .d-label { font-size: 12px; color: var(--text-tertiary); }
+    .detail-item .d-value { font-size: 13px; font-weight: 500; }
+    .detail-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.7;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      white-space: pre-wrap;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-tertiary);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1024px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .flow-banner { flex-direction: column; align-items: flex-start; gap: 10px; }
+    }
+    @media (max-width: 768px) {
+      .top-nav { padding: 0 16px; }
+      .nav-menu { display: none; }
+      .page-container { padding: 16px; }
+      .stats-row { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .resource-picker { flex-direction: column; }
+      .resource-picker-right { width: auto; border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 16px; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-nav">
+  <div class="nav-left">
+    <div class="nav-brand">
+      <div class="logo-icon">Z</div>
+      数据跨域流通平台
+    </div>
+    <ul class="nav-menu">
+      <li><a href="dashboard.html">首页</a></li>
+      <li><a href="scenario-management.html" class="active">授权场景管理</a></li>
+      <li><a href="apply-records.html">数据资源申请</a></li>
+      <li><a href="data-products.html">数据产品管理</a></li>
+      <li><a href="outbound-management.html">出域管理</a></li>
+      <li><a href="app-management.html">应用管理</a></li>
+      <li><a href="operators.html">运营人员备案</a></li>
+      <li><a href="account-management.html">账号管理</a></li>
+    </ul>
+  </div>
+  <div class="nav-user" onclick="toggleUserDropdown(event)">
+    <div class="avatar">管</div>
+    <span>超级管理员</span>
+    <div class="user-dropdown" id="userDropdown">
+      <a href="#">个人中心</a>
+      <a href="index.html">首页</a>
+      <button onclick="logout()">退出登录</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-header">
+  <div class="breadcrumb">工作台 <span>/</span> 授权场景管理</div>
+  <h1>授权场景管理</h1>
+</div>
+
+<div class="page-container">
+  <aside class="sidebar">
+    <div class="sidebar-header">场景领域</div>
+    <div class="sidebar-search">
+      <input type="text" id="fieldKeyword" placeholder="输入关键词搜索" onkeydown="if(event.key==='Enter')renderFieldTree()">
+    </div>
+    <div class="category-tree" id="fieldTree"></div>
+  </aside>
+
+  <main class="main-content">
+    <!-- 统计 -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon blue">📋</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">全部场景</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">⏳</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statAudit">0</div>
+          <div class="stat-label">申报审核中</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">✓</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statPassed">0</div>
+          <div class="stat-label">申报已通过</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red">✕</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statRejected">0</div>
+          <div class="stat-label">申报已驳回</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 场景列表 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">场景列表</div>
+        <div class="filter-bar">
+          <input type="text" id="filterKeyword" placeholder="场景名称 / 编号" onkeydown="if(event.key==='Enter')renderList()">
+          <select id="filterStatus" onchange="renderList()">
+            <option value="">全部状态</option>
+            <option value="audit">审核中</option>
+            <option value="passed">已通过</option>
+            <option value="rejected">已驳回</option>
+          </select>
+          <button class="btn btn-primary" onclick="renderList()">查询</button>
+          <button class="btn btn-default" onclick="resetFilters()">重置</button>
+          <button class="btn btn-primary" onclick="openApplyModal()">+ 新增授权场景</button>
+        </div>
+      </div>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>场景编号</th>
+              <th>场景名称</th>
+              <th>所属领域</th>
+              <th>使用范围</th>
+              <th>所需数据资源</th>
+              <th>申报时间</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="scenarioTbody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display:none;">暂无授权场景记录，点击右上角「新增授权场景」开始</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 新增授权场景弹窗 -->
+<div class="modal-overlay" id="applyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">新增授权场景</div>
+      <button class="modal-close" onclick="closeModal('applyModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section">
+        <div class="form-section-title">场景基本信息</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label"><span class="required">*</span>应用场景名称</label>
+            <input type="text" class="form-input" id="scName" placeholder="如：城市交通精准治理">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span class="required">*</span>场景领域</label>
+            <select class="form-input" id="scField">
+              <option value="">请选择场景领域</option>
+              <option value="交通运输">交通运输</option>
+              <option value="金融服务">金融服务</option>
+              <option value="生态环境">生态环境</option>
+              <option value="现代农业">现代农业</option>
+              <option value="医疗健康">医疗健康</option>
+              <option value="城市治理">城市治理</option>
+              <option value="工业制造">工业制造</option>
+              <option value="商贸流通">商贸流通</option>
+              <option value="文化旅游">文化旅游</option>
+              <option value="应急管理">应急管理</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label class="form-label"><span class="required">*</span>场景概述</label>
+            <textarea class="form-textarea" id="scDesc" placeholder="一句话概述该场景的业务背景、建设目标与预期成效"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">场景概况</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">行业背景</label>
+            <textarea class="form-textarea" id="industryBg" placeholder="描述当前背景下行业的领域现状、发展趋势与新市场机遇，说明该应用场景将发挥的意义和价值"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">申报单位名称</label>
+            <input type="text" class="form-input" id="orgName" placeholder="如：XX科技有限公司">
+          </div>
+          <div class="form-group">
+            <label class="form-label">申报单位联系人</label>
+            <input type="text" class="form-input" id="orgContact" placeholder="姓名 / 电话（选填）">
+          </div>
+          <div class="form-group full">
+            <label class="form-label">申报单位简介</label>
+            <textarea class="form-textarea" id="orgIntro" placeholder="简要介绍申报单位的发展历程、规模、主营业务、技术力量等，重点说明其在该应用场景所服务领域的专长和成就"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">用户需求分析</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">问题分析</label>
+            <textarea class="form-textarea" id="problemAnalysis" placeholder="分析场景所服务领域存在的堵点和痛点问题"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">需求分析</label>
+            <textarea class="form-textarea" id="demandAnalysis" placeholder="说明场景所服务领域不同用户的需求及满足情况、已有应用/竞品的优势和不足等"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">应用场景描述</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">场景介绍</label>
+            <textarea class="form-textarea" id="scenarioIntro" placeholder="明确场景所提供的核心能力、服务对象、解决问题等；介绍场景前期基础（应用系统名称、建设运营情况、覆盖用户情况、商业模式、市场反馈等）"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">总体架构</label>
+            <textarea class="form-textarea" id="architecture" placeholder="介绍应用的总体系统架构、业务架构并整体描述从数据收集到服务提供的全过程业务流程；涉及特定自然人、法人授权同意的，需说明数据授权链路（建议配套架构图）"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">核心功能</label>
+            <div class="form-tip" style="margin-bottom:8px;">填写核心功能点及每个功能点具体的作用，可点击「+ 添加功能」增加</div>
+            <div id="funcRows"></div>
+            <button type="button" class="btn-add-row" onclick="addRow('funcRows')">+ 添加功能</button>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">可实施性（建设计划）</label>
+            <textarea class="form-textarea" id="plan" placeholder="明确授权运营期限内场景建设的阶段目标和计划"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">数据加工说明</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">数据产品形态</label>
+            <textarea class="form-textarea" id="productForms" placeholder="说明各数据产品的形态，如：数据集（统计表格）/ API接口 / 数据报告等"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">数据使用情况</label>
+            <textarea class="form-textarea" id="dataUsage" placeholder="说明各类数据（公共数据、企业自有数据、社会数据）的使用情况"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">数据加工逻辑</label>
+            <textarea class="form-textarea" id="processLogic" placeholder="说明数据加工逻辑（清洗、脱敏、融合、计算等过程）"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">算法模型</label>
+            <textarea class="form-textarea" id="algorithms" placeholder="说明使用的算法模型及用途"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">接口类产品出入参</label>
+            <textarea class="form-textarea" id="apiParams" placeholder="如为数据接口类产品，说明入参、出参结构"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">预期成效</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">社会效益</label>
+            <textarea class="form-textarea" id="socialBenefit" placeholder="说明场景所产生的社会效益（定性、定量）"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">经济效益</label>
+            <textarea class="form-textarea" id="economicBenefit" placeholder="说明场景所产生的经济效益（定性、定量）"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">使用公共数据前后成效对比</label>
+            <textarea class="form-textarea" id="compareEffect" placeholder="突出使用公共数据前后的成效对比，体现个人与企业的获得感"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">数据使用范围</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label"><span class="required">*</span>数据使用范围</label>
+            <textarea class="form-textarea" id="scScope" placeholder="请明确本场景的数据使用范围（仅用于哪些环节、哪些用途，禁止用途等）"></textarea>
+          </div>
+          <div class="form-group full">
+            <label class="form-label"><span class="required">*</span>所需数据资源（数据源）</label>
+            <div class="resource-picker">
+              <div class="resource-picker-left">
+                <input type="text" class="form-input" id="resourceSearch" placeholder="搜索数据资源名称 / 描述" oninput="filterResources()">
+                <div class="resource-check-grid" id="resourceChecks"></div>
+              </div>
+              <div class="resource-picker-right">
+                <div class="resource-picker-title">已选中 <span class="resource-picker-count" id="selectedCount">0</span></div>
+                <div class="resource-selected-list" id="resourceSelected">
+                  <div class="resource-selected-empty">暂无选中数据资源</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-tip" style="margin-top:8px;">选择本场景所需的数据资源（数据源），场景审批通过后可在「场景详情 → 申请数据资源」中按此清单发起数据资源申请。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">其他</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">备注</label>
+            <textarea class="form-textarea" id="scRemark" placeholder="其他需要说明的事项（选填）"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('applyModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveScenario('submit')">提交申报</button>
+    </div>
+  </div>
+</div>
+
+<!-- 授权场景详情弹窗 -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="width:760px;">
+    <div class="modal-header">
+      <div class="modal-title">授权场景详情</div>
+      <button class="modal-close" onclick="closeModal('detailModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('detailModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 数据资源目录（模拟）
+  const RESOURCES = [
+    // 交通运输
+    { code: 'RES-BUS-01', name: '公交IC卡刷卡数据', desc: '公交刷卡交易明细' },
+    { code: 'RES-GPS-02', name: '城市公交GPS轨迹数据', desc: '公交车辆实时定位' },
+    { code: 'RES-TAXI-03', name: '出租车运行数据', desc: '出租车轨迹与订单' },
+    { code: 'RES-ROAD-04', name: '道路信息数据', desc: '道路基础与事件信息' },
+    { code: 'RES-FLOW-05', name: '交通流量数据', desc: '断面车流量统计' },
+    { code: 'RES-VEH-06', name: '车辆GPS轨迹数据', desc: '车辆运行轨迹' },
+    { code: 'RES-SIG-09', name: '交通信号机数据', desc: '路口信号灯状态与配时' },
+    // 金融服务
+    { code: 'RES-MER-07', name: '企业信用数据', desc: '企业工商与信用' },
+    { code: 'RES-FIN-10', name: '企业经营数据', desc: '企业纳税、营收等经营数据' },
+    { code: 'RES-INS-11', name: '医保结算数据', desc: '医保结算明细（脱敏）' },
+    // 生态环境
+    { code: 'RES-ENV-08', name: '环境监测数据', desc: '空气质量监测' },
+    { code: 'RES-WASTE-12', name: '固废产生与处置数据', desc: '固废流向与处置台账' },
+    // 现代农业
+    { code: 'RES-AGRI-13', name: '农业遥感影像数据', desc: '无人机/卫星遥感影像' },
+    { code: 'RES-AGRI-14', name: '气象观测数据', desc: '区域气象观测数据' },
+    { code: 'RES-AGRI-15', name: '土地确权数据', desc: '农村土地确权登记数据' },
+    // 医疗健康
+    { code: 'RES-MED-16', name: '诊疗记录数据', desc: '门诊/住院诊疗记录（脱敏）' },
+    { code: 'RES-MED-17', name: '住院信息数据', desc: '住院诊疗信息（脱敏）' },
+    { code: 'RES-TRAF-18', name: '交通事故数据', desc: '交通事故处理数据' },
+    // 城市治理
+    { code: 'RES-URB-19', name: '城市河道基础数据', desc: '河道基础信息与地理数据' },
+    { code: 'RES-URB-20', name: '城市地理信息数据', desc: '城市GIS地理信息' },
+    { code: 'RES-URB-21', name: '无人机巡检影像', desc: '低空巡检影像数据' },
+    // 工业制造
+    { code: 'RES-IND-22', name: '工业生产运行数据', desc: '工业生产设备运行数据' },
+    { code: 'RES-IND-23', name: '产业链供需数据', desc: '产业链上下游供需数据' },
+    // 商贸流通
+    { code: 'RES-COM-24', name: '电商交易数据', desc: '电商平台交易明细' },
+    { code: 'RES-COM-25', name: '物流配送数据', desc: '物流配送轨迹与时效数据' },
+    // 文化旅游
+    { code: 'RES-TRAV-26', name: '景区客流数据', desc: '景区实时客流与客源数据' },
+    { code: 'RES-TRAV-27', name: '文化场馆数据', desc: '博物馆/图书馆场馆数据' },
+    // 应急管理
+    { code: 'RES-EMG-28', name: '应急事件数据', desc: '突发事件处置数据' },
+    { code: 'RES-EMG-29', name: '应急物资储备数据', desc: '应急物资储备与调度数据' },
+  ];
+
+  const STATUS_MAP = {
+    audit:    { text: '申报审核中',   cls: 'blue' },
+    passed:   { text: '申报已通过',   cls: 'green' },
+    rejected: { text: '申报已驳回',   cls: 'red' },
+  };
+
+  const fieldCategories = [
+    { id: 'all', name: '全部', count: 0 },
+    { id: '交通运输', name: '交通运输', count: 0 },
+    { id: '金融服务', name: '金融服务', count: 0 },
+    { id: '生态环境', name: '生态环境', count: 0 },
+    { id: '现代农业', name: '现代农业', count: 0 },
+    { id: '医疗健康', name: '医疗健康', count: 0 },
+    { id: '城市治理', name: '城市治理', count: 0 },
+    { id: '工业制造', name: '工业制造', count: 0 },
+    { id: '商贸流通', name: '商贸流通', count: 0 },
+    { id: '文化旅游', name: '文化旅游', count: 0 },
+    { id: '应急管理', name: '应急管理', count: 0 },
+  ];
+
+  let currentField = 'all';
+
+  function renderFieldTree() {
+    const keyword = (document.getElementById('fieldKeyword').value || '').trim();
+    const tree = document.getElementById('fieldTree');
+    const list = getScenarios();
+    fieldCategories.forEach(f => {
+      f.count = f.id === 'all' ? list.length : list.filter(s => s.field === f.id).length;
+    });
+    const filtered = keyword ? fieldCategories.filter(f => f.name.includes(keyword)) : fieldCategories;
+    tree.innerHTML = filtered.map(f => {
+      const active = currentField === f.id;
+      return `<div class="tree-node-content ${active ? 'active' : ''}" onclick="selectField('${f.id}')">
+        <div class="node-left"><span class="node-name">${f.name}</span></div>
+        <span class="count">${f.count}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function selectField(id) {
+    currentField = id;
+    renderFieldTree();
+    renderList();
+  }
+
+  // 模拟授权场景数据（存 localStorage，跨页面共享给资源申请/产品上架使用）
+  function getScenarios() {
+    const seed = [
+      {
+        id: 'SC-20260717-001',
+        name: '城市交通精准治理场景',
+        field: '交通运输',
+        desc: '基于公交、出租车及道路流量数据，构建城市交通拥堵预测与线路优化能力，支撑交通部门精准治理决策.',
+        scope: '仅用于城市交通拥堵分析、公交线网优化、出行需求研判，不得用于个体轨迹画像与营销推送。',
+        resources: ['RES-BUS-01', 'RES-GPS-02', 'RES-TAXI-03', 'RES-FLOW-05'],
+        industryBg: '义乌市机动车保有量持续增长，高峰期道路拥堵突出、公交线网效率有待提升；智慧交通已成为行业发展趋势，公共数据开放为精细化治理提供了新的市场机遇与数据支撑。',
+        orgName: '义乌市智慧城市建设发展有限公司',
+        orgContact: '张经理 138-0000-0001',
+        orgIntro: '公司成立于2018年，员工120余人，主营智慧城市基础设施运营与大数据服务，深耕交通数据领域，拥有多项数据分析专利及成熟落地案例。',
+        problemAnalysis: '交通管理部门缺乏拥堵趋势预判工具，治理依赖经验判断；公交企业线网优化缺少客流数据支撑；多方数据分散，难以形成整体研判。',
+        demandAnalysis: '交通管理部门需要拥堵预警与治理决策支持；公交企业需要客流分析与运力调配依据；市民需要更高效的出行服务。现有竞品多依赖自有数据，覆盖范围有限、实时性不足。',
+        scenarioIntro: '面向交通管理部门与公交企业，提供拥堵预测、线网优化、出行需求研判三大核心能力。前期已建设“义城出行”应用，覆盖用户30万+，累计服务调用超千万次，市场反馈良好。',
+        architecture: '数据采集层（公交刷卡、GPS轨迹、道路流量）→ 数据治理层（数据中台清洗、脱敏、标准化）→ 算法模型层（拥堵预测、客流OD分析）→ 应用服务层（预警、优化、研判）。涉及个人位置数据均经脱敏处理并纳入授权链路管理。',
+        functionItems: [
+          { name: '交通拥堵预测', desc: '融合多源交通数据构建拥堵指数与预测模型，提前30分钟发布拥堵预警。' },
+          { name: '公交线网优化', desc: '基于客流OD分析，输出线路、班次优化建议。' },
+          { name: '出行需求研判', desc: '输出区域出行需求热力分析，支撑运力调度与设施规划。' }
+        ],
+        plan: '授权运营期内分三阶段推进：第1-3个月完成数据接入与治理；第4-6个月完成算法模型建设；第7-12个月完成应用上线并投入试运行。',
+        productForms: '数据集：交通流量统计数据集、公交客流OD数据集；API：拥堵指数查询接口。',
+        dataUsage: '公共数据：公交IC卡刷卡、公交GPS轨迹、道路信息、交通流量；企业自有数据：公交运营台账；社会数据：互联网地图OD数据。',
+        processLogic: '多源数据清洗去重 → 空间网格化 → 指标计算 → 模型训练 → 结果脱敏 → 对外发布，全流程留痕可审计。',
+        algorithms: '拥堵指数采用时空图卷积网络（ST-GCN）；客流OD分析采用轨迹匹配与贝叶斯推断。',
+        apiParams: '拥堵指数查询：入参 city_code、road_id、time_range；出参 congestion_index、level、speed_avg。',
+        socialBenefit: '提升公共交通分担率、缩短市民通勤时间，预计高峰拥堵指数下降8%。',
+        economicBenefit: '支撑公交运力精准投放，预计年节省运营成本约500万元，带动智能交通产业生态发展。',
+        compareEffect: '使用公共数据前：治理决策依赖人工经验、数据碎片化；使用后：全量数据支撑量化研判，预测准确率提升至92%，交通部门与公交企业获得感显著增强。',
+        attachList: [
+          { unit: '义乌市交通运输局', dataset: '公交IC卡刷卡数据', items: '卡号（脱敏）、线路号、站点、交易时间' },
+          { unit: '义乌市交通运输局', dataset: '城市公交GPS轨迹数据', items: '车辆编号、经纬度、方向、速度、时间' },
+          { unit: '义乌市交通运输局', dataset: '出租车运行数据', items: '车牌（脱敏）、轨迹点、载客状态、订单时间' },
+          { unit: '义乌市交通警察大队', dataset: '交通流量数据', items: '断面编号、流量、平均车速、统计时段' }
+        ],
+        remark: '数据最小化原则，仅取聚合脱敏结果。',
+        status: 'audit',
+        applyTime: '2026-07-17 09:20:33',
+      },
+      {
+        id: 'SC-20260720-002',
+        name: '中小企业信用评估场景',
+        field: '金融服务',
+        desc: '融合企业信用与经营数据，为金融机构提供中小企业贷前评估与风险监测服务。',
+        scope: '仅用于信贷风险评估场景，不用于消费贷与催收用途。',
+        resources: ['RES-MER-07'],
+        industryBg: '中小企业融资难、融资贵问题突出，金融机构缺乏可靠的贷前评估数据支撑，企业信用公共数据开放应用需求旺盛。',
+        orgName: '义乌市金信数据服务有限公司',
+        orgContact: '李经理 138-0000-0002',
+        orgIntro: '公司专注企业征信与大数据风控服务，服务金融机构20余家，具备成熟的企业信用评估模型与合规数据运营经验。',
+        problemAnalysis: '银行对中小企业授信审批周期长、依赖抵押物；银企信息不对称导致风控成本高。',
+        demandAnalysis: '银行需要低成本、高效率的贷前评估工具；中小企业希望凭借经营数据获得更便捷的融资。',
+        scenarioIntro: '面向商业银行提供中小企业信用评分与贷后风险监测服务，前期已上线“信易贷”服务，覆盖企业1.2万家。',
+        architecture: '企业信用数据接入 → 数据清洗与指标计算 → 信用评分模型 → 评分报告/风险预警输出，全程符合数据授权与合规要求。',
+        functionItems: [
+          { name: '贷前信用评分', desc: '基于企业信用数据输出综合信用评分与授信建议。' },
+          { name: '贷后风险监测', desc: '对企业经营异常进行实时监测并预警。' }
+        ],
+        plan: '第1-3个月完成数据接入与模型调优；第4-6个月试运行；第7-12个月规模化推广。',
+        productForms: '数据报告：企业信用评分报告；API：信用评分查询接口。',
+        dataUsage: '公共数据：企业信用数据；企业自有数据：企业经营台账。',
+        processLogic: '数据接入校验 → 指标加工 → 模型评分 → 人工复核 → 报告输出。',
+        algorithms: '信用评分采用逻辑回归与XGBoost融合模型。',
+        apiParams: '信用评分查询：入参 unified_code、query_type；出参 score、level、risk_hints。',
+        socialBenefit: '缓解中小企业融资难，优化区域营商环境。',
+        economicBenefit: '预计年服务贷款规模超50亿元，降低银行坏账率。',
+        compareEffect: '使用公共数据前：审批周期5-7个工作日；使用后：最快1个工作日完成评分，融资获得感明显提升。',
+        attachList: [
+          { unit: '义乌市市场监督管理局', dataset: '企业信用数据', items: '企业名称、统一社会信用代码、经营异常、行政处罚' }
+        ],
+        remark: '',
+        status: 'audit',
+        applyTime: '2026-07-20 11:08:45',
+      },
+      {
+        id: 'SC-20260610-003',
+        name: '固废智能撮合服务场景',
+        field: '生态环境',
+        desc: '固废智能撮合服务场景聚焦废物处置效能不均、资源化利用效能不足、交易信息壁垒等问题，围绕固废交易全链条开展数据赋能。',
+        scope: '仅用于固废交易撮合、资质核验与风控管理。',
+        resources: ['RES-ENV-08'],
+        industryBg: '随着“无废城市”建设推进，固废产生、运输、处置各环节数据孤岛问题突出，亟需通过数据授权运营提升交易撮合效率与监管能力。',
+        orgName: '浙江环信环境自动检测有限公司',
+        orgContact: '陈经理 0571-8888-0001',
+        orgIntro: '公司专注于生态环境监测与固废信息化服务，具备省级危废监管平台建设经验。',
+        problemAnalysis: '固废处置产能分布不均、交易信息不透明、资质核验成本高。',
+        demandAnalysis: '产废企业需要快速匹配处置单位；监管部门需要实时掌握固废流向；处置单位需要提升产能利用率。',
+        scenarioIntro: '面向产废企业、处置单位与监管部门，提供交易撮合、资质核验与实时风控服务。',
+        architecture: '固废产生数据、运输轨迹、处置数据接入 → 数据治理与标签画像 → 撮合匹配与风控模型 → 服务输出。',
+        functionItems: [
+          { name: '交易画像', desc: '构建供需双方画像，实现智能匹配推荐。' },
+          { name: '资质核验', desc: '对接许可证数据，自动核验处置单位资质。' },
+          { name: '实时风控', desc: '监测异常运输与处置行为并预警。' }
+        ],
+        plan: '第1-3个月完成数据接入；第4-6个月完成撮合与风控模型；第7-12个月全面运营推广。',
+        productForms: 'API：固废处置能力查询、资质核验接口；数据报告：交易撮合分析报告。',
+        dataUsage: '公共数据：环境监测数据、企业许可数据；社会数据：运输轨迹数据。',
+        processLogic: '多源数据接入 → 数据清洗与关联 → 标签画像 → 匹配推荐 → 风控预警。',
+        algorithms: '撮合推荐采用协同过滤；风控采用规则引擎与异常检测模型。',
+        apiParams: '处置能力查询：入参 waste_type、region；出参 provider_list、capacity、price_range。',
+        socialBenefit: '提升固废资源化利用率，降低环境违法风险。',
+        economicBenefit: '预计年撮合交易额突破10亿元，降低产废企业处置成本约15%。',
+        compareEffect: '使用公共数据前：信息不对称导致处置成本高昂；使用后：平均匹配时间从7天缩短至1天，企业获得感显著提升。',
+        attachList: [
+          { unit: '义乌市生态环境局', dataset: '环境监测数据', items: '监测站点、污染物浓度' },
+          { unit: '义乌市市场监督管理局', dataset: '企业经营许可数据', items: '许可证编号、有效期、经营范围' }
+        ],
+        remark: '',
+        status: 'passed',
+        applyTime: '2026-06-01 09:00:00',
+        auditTime: '2026-06-05 15:00:00',
+        auditOpinion: '符合授权运营要求，同意申报。',
+      },
+      {
+        id: 'SC-20260722-004',
+        name: '城市空气质量分析场景',
+        field: '生态环境',
+        desc: '结合环境监测数据与交通流量数据，分析空气污染成因并支撑预警发布。',
+        scope: '仅用于环境治理与公共预警。',
+        resources: ['RES-ENV-08', 'RES-FLOW-05'],
+        industryBg: '大气污染防治进入精细化治理阶段，需要融合环境监测与城市运行数据开展污染溯源。',
+        orgName: '义乌市绿境环保科技有限公司',
+        orgContact: '王经理 138-0000-0003',
+        orgIntro: '公司主营环境监测与数据分析服务，承担多项地方政府环境治理信息化项目。',
+        problemAnalysis: '污染成因分析依赖站点监测，缺少多源数据交叉验证，溯源能力不足。',
+        demandAnalysis: '生态环境部门需要污染溯源与趋势预测工具；公众需要及时准确的空气质量预警。',
+        scenarioIntro: '面向生态环境部门提供污染成因分析与预警发布服务。',
+        architecture: '环境监测数据与交通流量数据接入 → 关联分析 → 污染溯源模型 → 预警发布。',
+        functionItems: [
+          { name: '污染溯源分析', desc: '结合气象与流量数据分析污染来源。' }
+        ],
+        plan: '第1-6个月完成数据分析平台建设并试运行。',
+        productForms: '数据报告：污染成因分析报告。',
+        dataUsage: '公共数据：环境监测数据、交通流量数据。',
+        processLogic: '多源数据对齐 → 相关性分析 → 溯源建模 → 报告输出。',
+        algorithms: '溯源分析采用因子分析与源解析模型（PMF）。',
+        apiParams: '',
+        socialBenefit: '提升大气污染治理的精准性与公众健康保障水平。',
+        economicBenefit: '支撑污染防控措施优化，降低治理成本。',
+        compareEffect: '使用公共数据前：预警依赖人工研判；使用后：实现污染趋势自动预测与提前预警。',
+        attachList: [
+          { unit: '义乌市生态环境局', dataset: '环境监测数据', items: '监测站点、污染物浓度、气象要素' }
+        ],
+        remark: '',
+        status: 'rejected',
+        applyTime: '2026-07-22 16:40:12',
+        auditTime: '2026-07-23 10:15:30',
+        auditOpinion: '所需数据资源与场景目标不匹配，请补充数据项说明后重新申报。',
+      },
+    ];
+    try {
+      const custom = JSON.parse(localStorage.getItem('scenarioRecords') || '[]');
+      if (!custom.length) return seed;
+      const seedMap = new Map(seed.map(s => [s.id, s]));
+      const customIds = new Set(custom.map(c => c.id));
+      const merged = custom.map(c => {
+        const s = seedMap.get(c.id);
+        if (!s) return c;
+        return { ...s, ...c, field: c.field || s.field };
+      });
+      return merged;
+    } catch (e) {
+      return seed;
+    }
+  }
+
+  function saveScenarios(list) {
+    localStorage.setItem('scenarioRecords', JSON.stringify(list));
+  }
+
+  let selectedResourceCodes = [];
+
+  // 渲染资源复选框（左侧列表 + 右侧已选中）
+  function renderResourceChecks(preselected) {
+    selectedResourceCodes = (preselected || []).slice();
+    const searchBox = document.getElementById('resourceSearch');
+    if (searchBox) searchBox.value = '';
+    const box = document.getElementById('resourceChecks');
+    box.innerHTML = RESOURCES.map(r => `
+      <label class="resource-check" data-name="${esc(r.name.toLowerCase())}" data-desc="${esc(r.desc.toLowerCase())}">
+        <input type="checkbox" value="${r.code}" onchange="toggleResource('${r.code}', this.checked)" ${selectedResourceCodes.includes(r.code) ? 'checked' : ''}>
+        <span>${esc(r.name)}</span>
+        <span class="rc-desc">${esc(r.desc)}</span>
+      </label>
+    `).join('');
+    renderSelectedResources();
+  }
+
+  function toggleResource(code, checked) {
+    if (checked) {
+      if (!selectedResourceCodes.includes(code)) selectedResourceCodes.push(code);
+    } else {
+      selectedResourceCodes = selectedResourceCodes.filter(c => c !== code);
+    }
+    renderSelectedResources();
+  }
+
+  function renderSelectedResources() {
+    const box = document.getElementById('resourceSelected');
+    const count = document.getElementById('selectedCount');
+    count.textContent = selectedResourceCodes.length;
+    if (!selectedResourceCodes.length) {
+      box.innerHTML = '<div class="resource-selected-empty">暂无选中数据资源</div>';
+      return;
+    }
+    box.innerHTML = selectedResourceCodes.map(code => {
+      const r = RESOURCES.find(x => x.code === code);
+      if (!r) return '';
+      return `
+        <div class="resource-selected-item">
+          <div class="rsi-head">
+            <span class="rsi-name" title="${esc(r.name)}">${esc(r.name)}</span>
+            <span class="rsi-remove" onclick="removeSelectedResource('${r.code}')" title="移除">&times;</span>
+          </div>
+          <div class="rsi-desc" title="${esc(r.desc)}">${esc(r.desc)}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function removeSelectedResource(code) {
+    selectedResourceCodes = selectedResourceCodes.filter(c => c !== code);
+    const cb = document.querySelector(`#resourceChecks input[value="${code}"]`);
+    if (cb) cb.checked = false;
+    renderSelectedResources();
+  }
+
+  function filterResources() {
+    const kw = (document.getElementById('resourceSearch').value || '').trim().toLowerCase();
+    document.querySelectorAll('#resourceChecks .resource-check').forEach(el => {
+      const name = el.getAttribute('data-name') || '';
+      const desc = el.getAttribute('data-desc') || '';
+      el.classList.toggle('hidden', kw && !name.includes(kw) && !desc.includes(kw));
+    });
+  }
+
+  // 核心功能动态行
+  function renderFuncRows(list) {
+    const box = document.getElementById('funcRows');
+    box.innerHTML = '';
+    (list && list.length ? list : [{ name: '', desc: '' }]).forEach(f => {
+      box.insertAdjacentHTML('beforeend', `
+        <div class="dynamic-row">
+          <input type="text" class="form-input func-name" placeholder="功能名称，如：交通拥堵预测" value="${esc(f.name)}">
+          <input type="text" class="form-input func-desc" placeholder="功能作用描述" style="flex:2;" value="${esc(f.desc)}">
+          <button type="button" class="row-del" onclick="delRow(this)" title="删除">&times;</button>
+        </div>`);
+    });
+  }
+
+  // 附件清单动态行
+  function renderAttachRows(list) {
+    const box = document.getElementById('attachRows');
+    box.innerHTML = '';
+    (list && list.length ? list : [{ unit: '', dataset: '', items: '' }]).forEach(a => {
+      box.insertAdjacentHTML('beforeend', `
+        <div class="dynamic-row">
+          <input type="text" class="form-input att-unit" placeholder="数据提供单位" value="${esc(a.unit)}">
+          <input type="text" class="form-input att-dataset" placeholder="数据集名称" value="${esc(a.dataset)}">
+          <input type="text" class="form-input att-items" placeholder="数据项" style="flex:1.5;" value="${esc(a.items)}">
+          <button type="button" class="row-del" onclick="delRow(this)" title="删除">&times;</button>
+        </div>`);
+    });
+  }
+
+  function addRow(containerId) {
+    const box = document.getElementById(containerId);
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    if (containerId === 'funcRows') {
+      row.innerHTML = `<input type="text" class="form-input func-name" placeholder="功能名称">
+        <input type="text" class="form-input func-desc" placeholder="功能作用描述" style="flex:2;">
+        <button type="button" class="row-del" onclick="delRow(this)" title="删除">&times;</button>`;
+    } else {
+      row.innerHTML = `<input type="text" class="form-input att-unit" placeholder="数据提供单位">
+        <input type="text" class="form-input att-dataset" placeholder="数据集名称">
+        <input type="text" class="form-input att-items" placeholder="数据项" style="flex:1.5;">
+        <button type="button" class="row-del" onclick="delRow(this)" title="删除">&times;</button>`;
+    }
+    box.appendChild(row);
+  }
+
+  function delRow(btn) { btn.closest('.dynamic-row').remove(); }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // 渲染列表
+  let currentList = [];
+  function renderList() {
+    const kw = (document.getElementById('filterKeyword').value || '').trim().toLowerCase();
+    const st = document.getElementById('filterStatus').value;
+    currentList = getScenarios().filter(s =>
+      (currentField === 'all' || s.field === currentField) &&
+      (!kw || s.name.toLowerCase().includes(kw) || s.id.toLowerCase().includes(kw)) &&
+      (!st || s.status === st)
+    );
+
+    const tbody = document.getElementById('scenarioTbody');
+    tbody.innerHTML = currentList.map(s => {
+      const sts = STATUS_MAP[s.status] || { text: '未知', cls: 'gray' };
+      const resNames = (s.resources || []).map(c => {
+        const r = RESOURCES.find(x => x.code === c);
+        return r ? r.name : c;
+      });
+      return `
+        <tr>
+          <td style="color:var(--text-secondary);">${s.id}</td>
+          <td style="font-weight:500;">${s.name}</td>
+          <td><span class="tag">${s.field || '-'}</span></td>
+          <td style="max-width:200px;">${s.scope || '-'}</td>
+          <td style="max-width:200px;">
+            ${resNames.length ? resNames.map(n => `<span class="tag">${n}</span>`).join('') : '<span style="color:var(--text-secondary);">待数据资源申请</span>'}
+          </td>
+          <td style="color:var(--text-secondary);">${s.applyTime || '-'}</td>
+          <td><span class="status-tag ${sts.cls}">${sts.text}</span></td>
+          <td>
+            <div class="table-actions">
+              <button class="link-btn" onclick="showDetail('${s.id}')">查看详情</button>
+              ${s.status === 'passed' ? `<button class="link-btn" onclick="location.href='apply-records.html?scenario=${s.id}'">申请数据资源</button>` : ''}
+              ${s.status === 'rejected' ? `<button class="link-btn" onclick="reapply('${s.id}')">重新申报</button>` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('emptyState').style.display = currentList.length ? 'none' : 'block';
+    updateStats();
+  }
+
+  function updateStats() {
+    const all = getScenarios();
+    document.getElementById('statTotal').textContent = all.length;
+    document.getElementById('statAudit').textContent = all.filter(s => s.status === 'audit').length;
+    document.getElementById('statPassed').textContent = all.filter(s => s.status === 'passed').length;
+    document.getElementById('statRejected').textContent = all.filter(s => s.status === 'rejected').length;
+  }
+
+
+  // 已通过的数据资源申请（来自数据资源申请页 localStorage）
+  function getLinkedApplies(scenarioId) {
+    const seed = [
+      { id: 'SQ20260625002', resourceName: '高德地图通勤数据', providerUnit: '高德软件有限公司', scenario: 'SC-20260717-001', applyTime: '2026-06-25 14:12:05', status: 'approved' },
+      { id: 'SQ20260605005', resourceName: '出租车运行数据', providerUnit: '义乌市交通运输局', scenario: 'SC-20260717-001', applyTime: '2026-06-05 09:08:47', status: 'approved' }
+    ];
+    try {
+      const custom = JSON.parse(localStorage.getItem('dataApplyRecords') || '[]');
+      const filtered = custom.filter(a => a.scenario === scenarioId && a.status === 'approved');
+      return filtered.length ? filtered : seed.filter(a => a.scenario === scenarioId && a.status === 'approved');
+    } catch (e) { return seed.filter(a => a.scenario === scenarioId && a.status === 'approved'); }
+  }
+
+  function resetFilters() {
+    document.getElementById('filterKeyword').value = '';
+    document.getElementById('filterStatus').value = '';
+    renderList();
+  }
+
+  // 新增申报
+  function openApplyModal() {
+    ['scName','scField','scDesc','scScope','scRemark','industryBg','orgName','orgContact','orgIntro','problemAnalysis','demandAnalysis','scenarioIntro','architecture','plan','productForms','dataUsage','processLogic','algorithms','apiParams','socialBenefit','economicBenefit','compareEffect'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    renderFuncRows();
+    renderResourceChecks([]);
+    openModal('applyModal');
+  }
+
+  function saveScenario(action) {
+    const name = document.getElementById('scName').value.trim();
+    const field = document.getElementById('scField').value;
+    const desc = document.getElementById('scDesc').value.trim();
+    const scope = document.getElementById('scScope').value.trim();
+    if (!name || !field || !desc || !scope) {
+      alert('请完整填写应用场景名称、场景领域、场景概述、数据使用范围');
+      return;
+    }
+    if (action === 'submit' && !selectedResourceCodes.length) {
+      alert('请选择所需的数据资源（数据源）');
+      return;
+    }
+    const funcItems = [...document.querySelectorAll('#funcRows .dynamic-row')].map(r => ({
+      name: r.querySelector('.func-name').value.trim(),
+      desc: r.querySelector('.func-desc').value.trim()
+    })).filter(f => f.name || f.desc);
+    const attachList = [];
+    const val = id => document.getElementById(id).value.trim();
+    const list = getScenarios();
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const id = 'SC-' + now.getFullYear() +
+      pad(now.getMonth() + 1) + pad(now.getDate()) + '-' +
+      String(1000 + list.length + 1);
+    list.unshift({
+      id,
+      name,
+      field,
+      desc,
+      scope,
+      resources: selectedResourceCodes.slice(),
+      industryBg: val('industryBg'),
+      orgName: val('orgName'),
+      orgContact: val('orgContact'),
+      orgIntro: val('orgIntro'),
+      problemAnalysis: val('problemAnalysis'),
+      demandAnalysis: val('demandAnalysis'),
+      scenarioIntro: val('scenarioIntro'),
+      architecture: val('architecture'),
+      functionItems: funcItems,
+      plan: val('plan'),
+      productForms: val('productForms'),
+      dataUsage: val('dataUsage'),
+      processLogic: val('processLogic'),
+      algorithms: val('algorithms'),
+      apiParams: val('apiParams'),
+      socialBenefit: val('socialBenefit'),
+      economicBenefit: val('economicBenefit'),
+      compareEffect: val('compareEffect'),
+      attachList,
+      remark: val('scRemark'),
+      status: action === 'submit' ? 'audit' : 'audit',
+      applyTime: now.toLocaleString('zh-CN', { hour12: false }),
+      ...(action === 'submit'
+        ? { auditTime: '', auditOpinion: '' }
+        : {}),
+    });
+    saveScenarios(list);
+    closeModal('applyModal');
+    renderList();
+    alert(action === 'submit' ? '授权场景已提交，等待独立审批后台审批' : '授权场景草稿已保存');
+  }
+
+  // 详情（按《授权运营应用场景说明》章节展示）
+  function showDetail(id) {
+    const s = getScenarios().find(x => x.id === id);
+    if (!s) return;
+    const sts = STATUS_MAP[s.status] || { text: '未知', cls: 'gray' };
+    const resNames = (s.resources || []).map(c => {
+      const r = RESOURCES.find(x => x.code === c);
+      return r ? r.name : c;
+    });
+    const auditBlock = s.status === 'audit' ? '' : `
+      <div class="detail-item">
+        <span class="d-label">审核时间</span>
+        <span class="d-value">${s.auditTime || '-'}</span>
+      </div>
+      <div class="detail-item">
+        <span class="d-label">审核意见</span>
+        <span class="d-value">${s.auditOpinion || '-'}</span>
+      </div>
+    `;
+    const actionBar = s.status === 'audit' ? `
+      <div class="detail-item">
+        <span class="d-label">审批进度</span>
+        <div class="detail-text" style="color:var(--text-secondary);">申报已提交至独立审批后台，审批通过后即可发起数据资源申请。</div>
+      </div>` :
+      s.status === 'passed' ? `
+      <div class="detail-item">
+        <span class="d-label">下一步</span>
+        <div>
+          <button class="link-btn" onclick="location.href='apply-records.html?scenario=${s.id}'">申请数据资源</button>
+          <div class="detail-text" style="color:var(--text-secondary);">场景已申报通过，下一步请提交授权数据资源申请。</div>
+        </div>
+      </div>` :
+      s.status === 'rejected' ? `
+      <div class="detail-item">
+        <span class="d-label">下一步</span>
+        <div>
+          <button class="link-btn" onclick="reapply('${s.id}')">重新申报</button>
+          <div class="detail-text" style="color:var(--text-secondary);">申报被驳回，请根据审核意见修改后重新申报。</div>
+        </div>
+      </div>` : '';
+    const t = v => v ? `<div class="detail-text">${esc(v)}</div>` : '<div class="detail-text" style="color:var(--text-secondary);">未填写</div>';
+    const kv = (label, v) => v ? `<div class="detail-item"><span class="d-label">${label}</span><span class="d-value">${esc(v)}</span></div>` : '';
+    const funcTable = (s.functionItems || []).length ? `
+      <table class="mini-table"><thead><tr><th>功能名称</th><th>功能作用</th></tr></thead><tbody>
+        ${s.functionItems.map(f => `<tr><td>${esc(f.name)}</td><td>${esc(f.desc)}</td></tr>`).join('')}
+      </tbody></table>` : '<div class="detail-text" style="color:var(--text-secondary);">未填写</div>';
+    const attachTable = (s.attachList || []).length ? `
+      <table class="mini-table"><thead><tr><th>序号</th><th>数据提供单位</th><th>数据集名称</th><th>数据项</th></tr></thead><tbody>
+        ${s.attachList.map((a, i) => `<tr><td>${i + 1}</td><td>${esc(a.unit)}</td><td>${esc(a.dataset)}</td><td>${esc(a.items)}</td></tr>`).join('')}
+      </tbody></table>` : '<div class="detail-text" style="color:var(--text-secondary);">未填写</div>';
+    document.getElementById('detailBody').innerHTML = `
+      <div class="detail-block">
+        <h3>场景基本信息</h3>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="d-label">场景编号</span><span class="d-value">${s.id}</span></div>
+          <div class="detail-item"><span class="d-label">申报状态</span><span class="d-value"><span class="status-tag ${sts.cls}">${sts.text}</span></span></div>
+          <div class="detail-item"><span class="d-label">应用场景名称</span><span class="d-value">${esc(s.name)}</span></div>
+          <div class="detail-item"><span class="d-label">所属领域</span><span class="d-value">${esc(s.field)}</span></div>
+          <div class="detail-item"><span class="d-label">申报时间</span><span class="d-value">${s.applyTime || '-'}</span></div>
+          ${auditBlock}
+        </div>
+        <div class="detail-item" style="margin-top:12px;"><span class="d-label">场景概述</span>${t(s.desc)}</div>
+      </div>
+      <div class="detail-block">
+        <h3>场景概况</h3>
+        <div class="detail-grid">
+          ${kv('行业背景', s.industryBg)}
+          ${kv('申报单位名称', s.orgName)}
+          ${kv('申报单位联系人', s.orgContact)}
+        </div>
+        <div class="detail-item" style="margin-top:12px;"><span class="d-label">申报单位简介</span>${t(s.orgIntro)}</div>
+      </div>
+      <div class="detail-block">
+        <h3>用户需求分析</h3>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">问题分析</span>${t(s.problemAnalysis)}</div>
+        <div class="detail-item"><span class="d-label">需求分析</span>${t(s.demandAnalysis)}</div>
+      </div>
+      <div class="detail-block">
+        <h3>应用场景描述</h3>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">场景介绍</span>${t(s.scenarioIntro)}</div>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">总体架构</span>${t(s.architecture)}</div>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">核心功能</span><div style="margin-top:6px;">${funcTable}</div></div>
+        <div class="detail-item"><span class="d-label">可实施性（建设计划）</span>${t(s.plan)}</div>
+      </div>
+      <div class="detail-block">
+        <h3>数据加工说明</h3>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">数据产品形态</span>${t(s.productForms)}</div>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">数据使用情况</span>${t(s.dataUsage)}</div>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">数据加工逻辑</span>${t(s.processLogic)}</div>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">算法模型</span>${t(s.algorithms)}</div>
+        <div class="detail-item"><span class="d-label">接口类产品出入参</span>${t(s.apiParams)}</div>
+      </div>
+      <div class="detail-block">
+        <h3>预期成效</h3>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">社会效益</span>${t(s.socialBenefit)}</div>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">经济效益</span>${t(s.economicBenefit)}</div>
+        <div class="detail-item"><span class="d-label">使用公共数据前后成效对比</span>${t(s.compareEffect)}</div>
+      </div>
+      <div class="detail-block">
+        <h3>数据使用范围</h3>
+        <div class="detail-item" style="margin-bottom:12px;"><span class="d-label">数据使用范围</span>${t(s.scope)}</div>
+        <div class="detail-item"><span class="d-label">所需数据资源（数据源）</span><div style="margin-top:6px;">${resNames.map(n => `<span class="tag">${n}</span>`).join('')}</div></div>
+      </div>
+      <div class="detail-block">
+        <h3>其他</h3>
+        <div class="detail-item"><span class="d-label">备注</span>${s.remark ? `<div class="detail-text">${esc(s.remark)}</div>` : '<div class="detail-text" style="color:var(--text-secondary);">未填写</div>'}</div>
+      </div>
+      ${actionBar ? `<div class="detail-block">${actionBar}</div>` : ''}
+    `;
+    openModal('detailModal');
+  }
+
+  // 重新申报
+  function reapply(id) {
+    const list = getScenarios();
+    const s = list.find(x => x.id === id);
+    if (!s) return;
+    const idx = list.findIndex(x => x.id === id);
+    const nowTxt = new Date().toLocaleString('zh-CN', { hour12: false });
+    list[idx] = { ...s, status: 'audit', applyTime: nowTxt, auditTime: '', auditOpinion: '' };
+    saveScenarios(list);
+    renderList();
+    alert('已重新提交申报，等待独立审批后台审批');
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('show'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+  function toggleUserDropdown(e) {
+    e.stopPropagation();
+    document.getElementById('userDropdown').classList.toggle('show');
+  }
+  document.addEventListener('click', () => document.getElementById('userDropdown').classList.remove('show'));
+  function logout() { location.href = 'index.html'; }
+
+  // 初始化
+  renderFieldTree();
+  renderList();
+</script>
+</body>
+</html>

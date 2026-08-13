@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>授权数据申请记录 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f3f6fb;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 顶部导航 */
+    .top-nav {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+
+    .nav-brand .logo-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      list-style: none;
+    }
+
+    .nav-menu a {
+      display: block;
+      padding: 8px 16px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .nav-menu a:hover {
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .nav-menu a.active {
+      color: var(--primary);
+      background: var(--primary-light);
+      font-weight: 600;
+    }
+
+    .nav-user {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+
+    .nav-user:hover { background: #f3f4f6; }
+
+    .nav-user .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .user-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      min-width: 140px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      z-index: 300;
+      overflow: hidden;
+    }
+
+    .user-dropdown.show { display: block; }
+
+    .user-dropdown a,
+    .user-dropdown button {
+      display: block;
+      width: 100%;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: var(--text);
+      text-decoration: none;
+      background: #fff;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      transition: background .15s;
+      font-family: inherit;
+    }
+
+    .user-dropdown a:hover,
+    .user-dropdown button:hover { background: #f3f4f6; }
+
+    /* 页面容器 */
+    .page-container {
+      flex: 1;
+      padding: 24px 40px 40px;
+    }
+
+    .breadcrumb {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    .breadcrumb a {
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+    .breadcrumb a:hover { color: var(--primary); }
+    .breadcrumb span { margin: 0 6px; }
+
+    /* 卡片 */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 查询区 */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .filter-bar input[type="text"] {
+      height: 36px;
+      width: 260px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color .15s;
+    }
+    .filter-bar input[type="text"]:focus { border-color: var(--primary); }
+    .filter-bar select {
+      height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      background: #fff;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .filter-bar .btn-search {
+      height: 36px;
+      padding: 0 20px;
+      border: none;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .15s;
+    }
+    .filter-bar .btn-search:hover { background: var(--primary-dark); }
+    .filter-bar .btn-reset {
+      height: 36px;
+      padding: 0 20px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s;
+    }
+    .filter-bar .btn-reset:hover { border-color: var(--primary); color: var(--primary); }
+
+    .record-table-wrap { overflow-x: auto; }
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .record-table th {
+      padding: 12px 16px;
+      text-align: left;
+      background: #f8fafc;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+    }
+    .record-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    .record-table tbody tr { transition: background .15s; }
+    .record-table tbody tr:hover { background: #f8fafc; }
+    .record-table th:last-child,
+    .record-table td:last-child {
+      width: 200px;
+      min-width: 200px;
+      max-width: 200px;
+      text-align: center;
+    }
+
+    .record-table .actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .15s;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+    .btn-default {
+      background: #fff;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-default:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-success {
+      background: #10b981;
+      color: #fff;
+      border-color: #10b981;
+    }
+    .btn-success:hover { background: #059669; border-color: #059669; }
+    .btn-danger {
+      background: #ef4444;
+      color: #fff;
+      border-color: #ef4444;
+    }
+    .btn-danger:hover { background: #dc2626; border-color: #dc2626; }
+    .record-table .record-empty td {
+      text-align: center;
+      color: var(--text-tertiary);
+      padding: 40px 16px;
+    }
+
+    .status-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .status-tag.pending { background: #fef3c7; color: #b45309; }
+    .status-tag.approved { background: #d1fae5; color: #047857; }
+    .status-tag.rejected { background: #fee2e2; color: #b91c1c; }
+
+    /* 弹窗 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 400;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.18);
+      width: 100%;
+      max-width: 760px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      line-height: 1;
+      font-family: inherit;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { padding: 24px; overflow-y: auto; }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px 24px;
+      margin-bottom: 20px;
+    }
+    .detail-item label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-tertiary);
+      margin-bottom: 4px;
+    }
+    .detail-item .value {
+      font-size: 14px;
+      color: var(--text);
+    }
+    .detail-item.full { grid-column: 1 / -1; }
+    .detail-item.reject-reason {
+      grid-column: 1 / -1;
+      background: #fff2f0;
+      border: 1px solid #ffccc7;
+      border-radius: 6px;
+      padding: 12px 14px;
+    }
+    .detail-item.reject-reason label { color: #cf1322; }
+    .detail-item.reject-reason .value { color: #a8071a; line-height: 1.7; }
+    .detail-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 18px 0 12px;
+      padding-left: 10px;
+      border-left: 3px solid var(--primary);
+    }
+    .material-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .material-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: #f8fafc;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .material-item .file-icon { color: var(--primary); font-weight: 600; }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 0 16px; }
+      .nav-menu { display: none; }
+      .page-container { padding: 16px; }
+      .filter-bar input[type="text"] { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-nav">
+  <div class="nav-left">
+    <div class="nav-brand">
+      <div class="logo-icon">Z</div>
+      数据跨域流通平台
+    </div>
+    <ul class="nav-menu">
+      <li><a href="dashboard.html">首页</a></li>
+      <li><a href="scenario-management.html">授权场景管理</a></li>
+      <li><a href="apply-records.html" class="active">数据资源申请</a></li>
+      <li><a href="data-products.html">数据产品管理</a></li>
+      <li><a href="outbound-management.html">出域管理</a></li>
+      <li><a href="app-management.html">应用管理</a></li>
+      <li><a href="operators.html">运营人员备案</a></li>
+      <li><a href="account-management.html">账号管理</a></li>
+      </ul>
+  </div>
+  <div class="nav-user" onclick="toggleUserDropdown(event)">
+    <div class="avatar">管</div>
+    <span>超级管理员</span>
+    <div class="user-dropdown" id="userDropdown">
+      <a href="#">个人中心</a>
+      <a href="index.html">门户首页</a>
+      <button onclick="logout()">退出登录</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-container">
+  <div class="breadcrumb">
+    <a href="dashboard.html">工作台</a><span>/</span><span>授权数据申请记录查询</span>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="justify-content: space-between; align-items: center;">
+      <span>授权数据申请记录查询</span>
+      <button class="btn btn-primary" onclick="openApplyForm()" id="btnNewApply">+ 发起数据资源申请</button>
+    </div>
+    <div class="filter-bar">
+      <input type="text" id="recordKeyword" placeholder="搜索申请编号 / 数据资源名称" onkeydown="if(event.key==='Enter')searchRecords()">
+      <select id="recordStatus">
+        <option value="">全部状态</option>
+        <option value="pending">待审核</option>
+        <option value="approved">已通过</option>
+        <option value="rejected">已驳回</option>
+      </select>
+      <button class="btn-search" onclick="searchRecords()">查询</button>
+      <button class="btn-reset" onclick="resetRecords()">重置</button>
+    </div>
+    <div class="record-table-wrap">
+      <table class="record-table">
+        <thead>
+          <tr>
+            <th>申请编号</th>
+            <th>数据资源名称</th>
+            <th>数据提供单位</th>
+            <th>授权运营场景</th>
+            <th>申请时间</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="recordBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 发起数据资源申请弹窗 -->
+<div class="modal-overlay" id="applyFormModal" onclick="if(event.target===this)closeApplyForm()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>发起数据资源申请</h3>
+      <button class="modal-close" onclick="closeApplyForm()" type="button">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section-title">关联场景申报</div>
+      <div class="detail-grid">
+        <div class="detail-item full">
+          <label>授权运营场景（仅展示已通过场景）</label>
+          <select id="applyScenario" onchange="showScenarioHint()" style="width:100%;height:36px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;outline:none;">
+            <option value="">请选择场景</option>
+          </select>
+        </div>
+        <div class="detail-item full" id="scenarioHint" style="display:none;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:10px 14px;font-size:13px;color:#0369a1;"></div>
+        <div class="detail-item full" id="scenarioResourceList" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <label style="font-weight:600;color:var(--text);font-size:14px;">场景关联数据资源</label>
+            <label style="font-size:13px;color:var(--primary);cursor:pointer;user-select:none;">
+              <input type="checkbox" id="resSelectAll" onchange="toggleAllResources()" checked style="margin-right:4px;vertical-align:middle;">全选
+            </label>
+          </div>
+          <div id="scenarioResourceCards" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </div>
+      <div class="detail-section-title">申请数据资源（共用信息）</div>
+      <div class="detail-grid">
+        <div class="detail-item full">
+          <label>申请数据范围</label>
+          <input type="text" id="afDataRange" placeholder="如：2026-01-01 至 2026-12-31，义乌市全部公交线路" style="width:100%;height:36px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;outline:none;">
+        </div>
+        <div class="detail-item full">
+          <label>待开发数据产品内容</label>
+          <textarea id="afProductContent" rows="2" placeholder="基于该数据资源拟开发的产品内容" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+        </div>
+        <div class="detail-item full">
+          <label>服务范围</label>
+          <textarea id="afServiceScope" rows="2" placeholder="请准确描述服务范围" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+        </div>
+        <div class="detail-item full">
+          <label>社会效益</label>
+          <textarea id="afSocialBenefit" rows="2" placeholder="请描述社会效益" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;outline:none;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="detail-section-title">数据安全责任</div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>数据安全责任单位</label>
+          <input type="text" id="afSecurityOrg" placeholder="请输入数据安全责任单位" value="浙江义乌数据运营有限公司" style="width:100%;height:36px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;outline:none;">
+        </div>
+        <div class="detail-item">
+          <label>数据安全责任人</label>
+          <input type="text" id="afSecurityPerson" placeholder="请输入数据安全责任人" style="width:100%;height:36px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;outline:none;">
+        </div>
+        <div class="detail-item">
+          <label>联系方式</label>
+          <input type="text" id="afContact" placeholder="请输入联系方式" style="width:100%;height:36px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;outline:none;">
+        </div>
+      </div>
+      <div class="detail-section-title">所需提交材料</div>
+      <div class="detail-grid">
+        <div class="detail-item full">
+          <label>《授权运营协议》</label>
+          <input type="file" id="afMaterial1" style="width:100%;height:36px;padding:6px 0;font-size:14px;font-family:inherit;">
+        </div>
+        <div class="detail-item full">
+          <label>《授权运营业务场景说明》</label>
+          <input type="file" id="afMaterial2" style="width:100%;height:36px;padding:6px 0;font-size:14px;font-family:inherit;">
+        </div>
+        <div class="detail-item full">
+          <label>《授权运营数据清单》</label>
+          <input type="file" id="afMaterial3" style="width:100%;height:36px;padding:6px 0;font-size:14px;font-family:inherit;">
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--border);">
+      <button class="btn btn-default" onclick="closeApplyForm()">取消</button>
+      <button class="btn btn-primary" onclick="submitApply()">提交申请</button>
+    </div>
+  </div>
+</div>
+
+<!-- 申请记录详情弹窗 -->
+<div class="modal-overlay" id="recordModal" onclick="if(event.target===this)closeRecordModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>授权数据申请详情</h3>
+      <button class="modal-close" onclick="closeRecordModal()" type="button">&times;</button>
+    </div>
+    <div class="modal-body" id="recordDetailBody"></div>
+  </div>
+</div>
+
+<script>
+  function toggleUserDropdown(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.classList.toggle('show');
+  }
+
+  document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown && dropdown.classList.contains('show')) {
+      const userEl = document.querySelector('.nav-user');
+      if (userEl && !userEl.contains(event.target)) {
+        dropdown.classList.remove('show');
+      }
+    }
+  });
+
+  function logout() {
+    if (confirm('确定要退出登录吗？')) {
+      alert('已退出登录');
+    }
+  }
+
+  /* ========== 授权数据申请记录查询 ========== */
+  const statusMap = {
+    pending: { text: '待审核', cls: 'pending' },
+    approved: { text: '已通过', cls: 'approved' },
+    rejected: { text: '已驳回', cls: 'rejected' }
+  };
+
+  /* ========== 场景申报数据联动（来自场景申报管理页） ========== */
+  function getPassedScenarios() {
+    const custom = JSON.parse(localStorage.getItem('scenarioRecords') || '[]');
+    const seed = [
+      { id: 'SC-20260717-001', name: '城市交通精准治理场景', scope: '仅用于城市交通拥堵分析、公交线网优化、出行需求研判，不得用于个体轨迹画像与营销推送。', attachList: [{ unit: '义乌市交通运输局', dataset: '公交GPS轨迹数据', items: '车辆编号、位置、速度、方向、采集时间' }, { unit: '义乌市交通运输局', dataset: 'BUS站牌信息', items: '站牌编号、站点名称、经度、纬度、所属线路' }], status: 'passed' },
+      { id: 'SC-20260720-002', name: '中小企业信用评估场景', scope: '仅用于信贷风险评估场景，不用于消费贷与催收用途。', attachList: [{ unit: '义乌市市场监督管理局', dataset: '企业经营许可数据', items: '许可证编号、有效期、经营范围' }], status: 'passed' },
+      { id: 'SC-20260801-003', name: '生态环境监测预警场景', scope: '仅用于空气质量监测、污染源溯源分析、环境风险预警，不得用于企业环保处罚关联营销。', attachList: [{ unit: '义乌市生态环境局', dataset: '空气质量监测数据', items: '监测站点、PM2.5、PM10、SO2、NO2、O3、CO、监测时间' }, { unit: '义乌市生态环境局', dataset: '重点排污企业在线监测数据', items: '企业编号、排放口、污染物种类、排放浓度、流量、监测时间' }], status: 'passed' },
+      { id: 'SC-20260805-004', name: '智慧医疗资源共享场景', scope: '仅用于医疗资源分布分析、就诊流量预测、分级诊疗评估，严格保护患者隐私，不得用于保险营销。', attachList: [{ unit: '义乌市卫生健康委员会', dataset: '医疗机构执业登记数据', items: '机构名称、执业许可证号、诊疗科目、床位数、地址' }, { unit: '义乌市卫生健康委员会', dataset: '区域就诊流量数据', items: '日期、科室、就诊人次、预约率、平均候诊时长' }], status: 'passed' },
+      { id: 'SC-20260810-005', name: '教育资源均衡配置场景', scope: '仅用于学区学位供需分析、教师资源配置评估、教育公平监测，不得用于房产学区营销。', attachList: [{ unit: '义乌市教育局', dataset: '中小学基础信息数据', items: '学校名称、办学类型、年级班级数、在校生人数、专任教师数' }, { unit: '义乌市教育局', dataset: '学区划分与学位数据', items: '学区名称、覆盖社区、计划招生数、实际入学数、空余学位' }], status: 'passed' }
+    ];
+    if (custom.length) {
+      return custom.filter(s => s.status === 'passed');
+    }
+    return seed;
+  }
+
+  function getScenarioName(id) {
+    const all = getPassedScenarios();
+    const s = all.find(x => x.id === id);
+    return s ? s.name : id;
+  }
+
+  function getScenarioScope(id) {
+    const all = getPassedScenarios();
+    const s = all.find(x => x.id === id);
+    return s ? (s.scope || '') : '';
+  }
+
+  function getCustomApplies() {
+    try {
+      return JSON.parse(localStorage.getItem('dataApplyRecords') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveCustomApplies(list) {
+    localStorage.setItem('dataApplyRecords', JSON.stringify(list));
+  }
+
+  const applyRecords = [
+    {
+      id: 'SQ20260701001',
+      resourceName: 'BUS站牌信息',
+      providerUnit: '义乌市交通运输局',
+      scenario: 'SC-20260717-001',
+      applicant: '浙江义乌数据运营有限公司',
+      securityOrg: '浙江义乌数据运营有限公司',
+      securityPerson: '李伟明',
+      contact: '138****6688',
+      applyTime: '2026-07-01 09:30:22',
+      status: 'pending',
+      dataItems: '站牌编号、站点名称、经度、纬度、所属线路',
+      dataRange: '2026-01-01 至 2026-12-31，覆盖义乌市全部公交线路',
+      productContent: '开发公交实时到站信息查询数据产品，为市民出行提供实时到站预测服务',
+      serviceScope: '面向义乌市市民及公共交通出行用户',
+      socialBenefit: '提升公共交通出行效率，改善市民出行体验',
+      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+    },
+    {
+      id: 'SQ20260625002',
+      resourceName: '高德地图通勤数据',
+      providerUnit: '高德软件有限公司',
+      scenario: 'SC-20260717-001',
+      applicant: '浙江义乌数据运营有限公司',
+      securityOrg: '浙江义乌数据运营有限公司',
+      securityPerson: '王芳',
+      contact: '138****3355',
+      applyTime: '2026-06-25 14:12:05',
+      status: 'approved',
+      dataItems: '起终点、出行方式、出行时段、路径距离',
+      dataRange: '2026-03-01 至 2026-09-30，义乌市城区范围',
+      productContent: '开发城市通勤交通态势分析产品，输出高峰时段拥堵分布报告',
+      serviceScope: '面向义乌市城市管理部门及交通规划机构',
+      socialBenefit: '辅助城市交通规划，缓解高峰拥堵',
+      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+    },
+    {
+      id: 'SQ20260618003',
+      resourceName: '公交IC卡刷卡数据',
+      providerUnit: '义乌市公共交通集团有限公司',
+      scenario: 'SC-20260717-001',
+      applicant: '浙江义乌数据运营有限公司',
+      securityOrg: '浙江义乌数据运营有限公司',
+      securityPerson: '张明',
+      contact: '139****1122',
+      applyTime: '2026-06-18 10:45:33',
+      status: 'rejected',
+      rejectReason: '申请材料中数据用途说明不够具体，请补充公交客流数据的使用场景、数据安全保障措施及脱敏处理方案后重新提交。',
+      dataItems: '卡号（脱敏）、刷卡线路、刷卡站点、刷卡时间',
+      dataRange: '2026-01-01 至 2026-06-30',
+      productContent: '开发公交客流分析产品，输出线路客流热力图',
+      serviceScope: '面向公交运营企业',
+      socialBenefit: '优化公交运力配置',
+      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+    },
+    {
+      id: 'SQ20260612004',
+      resourceName: '城市公交GPS轨迹数据',
+      providerUnit: '义乌市交通运输局',
+      scenario: 'SC-20260717-001',
+      applicant: '浙江义乌数据运营有限公司',
+      securityOrg: '浙江义乌数据运营有限公司',
+      securityPerson: '陈静',
+      contact: '135****8899',
+      applyTime: '2026-06-12 16:20:11',
+      status: 'pending',
+      dataItems: '车辆编号、位置、速度、方向、采集时间',
+      dataRange: '2026-06-01 起持续更新，义乌市全域',
+      productContent: '开发公交运行监测与调度优化数据产品，支持实时监控与调度建议',
+      serviceScope: '面向公交运营企业与交通管理部门',
+      socialBenefit: '提升公交准点率与运行效率',
+      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+    },
+    {
+      id: 'SQ20260605005',
+      resourceName: '出租车运行数据',
+      providerUnit: '义乌市交通运输局',
+      scenario: 'SC-20260717-001',
+      applicant: '浙江义乌数据运营有限公司',
+      securityOrg: '浙江义乌数据运营有限公司',
+      securityPerson: '赵磊',
+      contact: '137****5566',
+      applyTime: '2026-06-05 09:08:47',
+      status: 'approved',
+      dataItems: '上车点、下车点、行驶里程、计费金额（脱敏）',
+      dataRange: '2026-01-01 至 2026-05-31，义乌市城区',
+      productContent: '开发城市出行需求分析产品，输出打车热点区域分布',
+      serviceScope: '面向城市管理部门',
+      socialBenefit: '辅助城市公共交通规划',
+      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+    }
+  ];
+
+  function getStatusTag(status) {
+    const info = statusMap[status] || { text: status, cls: 'pending' };
+    return '<span class="status-tag ' + info.cls + '">' + info.text + '</span>';
+  }
+
+  function getAllRecords() {
+    return getCustomApplies().concat(applyRecords);
+  }
+
+  function getFilteredRecords() {
+    const keyword = document.getElementById('recordKeyword').value.trim().toLowerCase();
+    const status = document.getElementById('recordStatus').value;
+    return getAllRecords().filter(function(r) {
+      const matchKeyword = !keyword ||
+        r.id.toLowerCase().indexOf(keyword) !== -1 ||
+        (r.resourceName || '').toLowerCase().indexOf(keyword) !== -1 ||
+        (r.applicant || '').toLowerCase().indexOf(keyword) !== -1 ||
+        (r.providerUnit || '').toLowerCase().indexOf(keyword) !== -1;
+      const matchStatus = !status || r.status === status;
+      return matchKeyword && matchStatus;
+    });
+  }
+
+  function renderRecords() {
+    const list = getFilteredRecords();
+    const body = document.getElementById('recordBody');
+    if (list.length === 0) {
+      body.innerHTML = '<tr class="record-empty"><td colspan="7">暂无符合条件的申请记录</td></tr>';
+      return;
+    }
+    body.innerHTML = list.map(function(r) {
+      const scenarioName = r.scenario && r.scenario.indexOf('SC-') === 0 ? getScenarioName(r.scenario) : (r.scenario || '-');
+      return '<tr>' +
+        '<td>' + r.id + '</td>' +
+        '<td>' + r.resourceName + '</td>' +
+        '<td>' + r.providerUnit + '</td>' +
+        '<td>' + scenarioName +
+          (r.scenario && r.scenario.indexOf('SC-') === 0 ? '<div style="font-size:12px;color:var(--text-secondary);">' + r.scenario + '</div>' : '') +
+        '</td>' +
+        '<td>' + r.applyTime + '</td>' +
+        '<td>' + getStatusTag(r.status) + '</td>' +
+        '<td>' +
+          '<div class="actions">' +
+          '<button class="btn btn-default" onclick="showRecordDetail(\'' + r.id + '\')">查看</button>' +
+          (r.status === 'approved' ?
+              '<button class="btn btn-primary" onclick="downloadRecord(\'' + r.id + '\')">下载</button>' +
+              '<button class="btn btn-success" onclick="goDevelop(\'' + r.id + '\')">去开发</button>' : '') +
+          '</div>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function searchRecords() {
+    renderRecords();
+  }
+
+  function resetRecords() {
+    document.getElementById('recordKeyword').value = '';
+    document.getElementById('recordStatus').value = '';
+    renderRecords();
+  }
+
+  function showRecordDetail(id) {
+    const r = getAllRecords().find(function(item) { return item.id === id; });
+    if (!r) return;
+    const materialsHtml = r.materials.map(function(m) {
+      return '<span class="material-item"><span class="file-icon">&#128196;</span>' + m + '</span>';
+    }).join('');
+    document.getElementById('recordDetailBody').innerHTML =
+      '<div class="detail-grid">' +
+        '<div class="detail-item"><label>申请编号</label><div class="value">' + r.id + '</div></div>' +
+        '<div class="detail-item"><label>申请状态</label><div class="value">' + getStatusTag(r.status) + '</div></div>' +
+        '<div class="detail-item"><label>数据资源名称</label><div class="value">' + r.resourceName + '</div></div>' +
+        '<div class="detail-item"><label>数据提供单位</label><div class="value">' + r.providerUnit + '</div></div>' +
+        '<div class="detail-item"><label>授权运营场景</label><div class="value">' + (r.scenario && r.scenario.indexOf('SC-') === 0 ? getScenarioName(r.scenario) : (r.scenario || '-')) + '</div></div>' +
+        (r.applyCycle ? '<div class="detail-item"><label>申请数据周期</label><div class="value">' + r.applyCycle + '</div></div>' : '') +
+        (r.useMode ? '<div class="detail-item"><label>数据使用方式</label><div class="value">' + r.useMode + '</div></div>' : '') +
+        '<div class="detail-item"><label>申请单位</label><div class="value">' + r.applicant + '</div></div>' +
+        '<div class="detail-item"><label>申请时间</label><div class="value">' + r.applyTime + '</div></div>' +
+        '<div class="detail-item"><label>责任人</label><div class="value">' + r.securityPerson + '</div></div>' +
+        '<div class="detail-item"><label>联系方式</label><div class="value">' + r.contact + '</div></div>' +
+        '<div class="detail-item full"><label>数据资源数据项</label><div class="value">' + r.dataItems + '</div></div>' +
+        '<div class="detail-item full"><label>申请数据范围</label><div class="value">' + r.dataRange + '</div></div>' +
+        '<div class="detail-item full"><label>待开发数据产品内容</label><div class="value">' + (r.productContent || '-') + '</div></div>' +
+        '<div class="detail-item full"><label>服务范围</label><div class="value">' + (r.serviceScope || '-') + '</div></div>' +
+        '<div class="detail-item full"><label>社会效益</label><div class="value">' + (r.socialBenefit || '-') + '</div></div>' +
+        (r.status === 'rejected' && r.rejectReason ? '<div class="detail-item full reject-reason"><label>驳回原因</label><div class="value">' + r.rejectReason + '</div></div>' : '') +
+      '</div>' +
+      '<div class="detail-section-title">数据安全责任</div>' +
+      '<div class="detail-grid">' +
+        '<div class="detail-item"><label>数据安全责任单位</label><div class="value">' + r.securityOrg + '</div></div>' +
+        '<div class="detail-item"><label>数据安全责任人</label><div class="value">' + r.securityPerson + '</div></div>' +
+      '</div>' +
+      '<div class="detail-section-title">所需提交材料</div>' +
+      '<div class="material-list">' + materialsHtml + '</div>';
+    document.getElementById('recordModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeRecordModal() {
+    document.getElementById('recordModal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  function goDevelop(id) {
+    const r = getAllRecords().find(function(item) { return item.id === id; });
+    if (!r) return;
+    if (r.status !== 'approved') {
+      alert('仅已通过状态的申请支持去开发');
+      return;
+    }
+    if (confirm('即将跳转到数据产品管理页面，基于“' + r.resourceName + '”创建新的数据产品。')) {
+      const scenario = r.scenario || '';
+      window.open('data-products.html?sourceApply=' + encodeURIComponent(r.id) + (scenario ? '&scenario=' + encodeURIComponent(scenario) : ''), '_blank');
+    }
+  }
+
+  function downloadRecord(id) {
+    const r = getAllRecords().find(function(item) { return item.id === id; });
+    if (!r) return;
+    if (r.status !== 'approved') {
+      alert('仅已通过状态的申请支持下载');
+      return;
+    }
+    const content = '授权数据申请回执\n' +
+      '================================\n' +
+      '申请编号：' + r.id + '\n' +
+      '数据资源名称：' + r.resourceName + '\n' +
+      '数据提供单位：' + r.providerUnit + '\n' +
+      '授权运营场景：' + (r.scenario && r.scenario.indexOf('SC-') === 0 ? getScenarioName(r.scenario) : (r.scenario || '-')) + '\n' +
+      '申请单位：' + r.applicant + '\n' +
+      '责任人：' + r.securityPerson + '\n' +
+      '联系方式：' + r.contact + '\n' +
+      '申请时间：' + r.applyTime + '\n' +
+      '申请状态：' + statusMap[r.status].text + '\n\n' +
+      '数据资源数据项：' + r.dataItems + '\n' +
+      '申请数据范围：' + r.dataRange + '\n' +
+      '待开发数据产品内容：' + r.productContent + '\n' +
+      '服务范围：' + r.serviceScope + '\n' +
+      '社会效益：' + r.socialBenefit + '\n\n' +
+      '数据安全责任单位：' + r.securityOrg + '\n' +
+      '所需提交材料：' + r.materials.join('、') + '\n';
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = r.id + '_授权数据申请回执.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ========== 发起数据资源申请 ========== */
+  function openApplyForm() {
+    const passed = getPassedScenarios();
+    const select = document.getElementById('applyScenario');
+    select.innerHTML = '<option value="">请选择场景</option>';
+    passed.forEach(function(s) {
+      select.innerHTML += '<option value="' + s.id + '">' + s.name + '（' + s.id + '）</option>';
+    });
+    if (passed.length === 0) {
+      select.innerHTML = '<option value="">暂无已通过场景，请先完成场景申报</option>';
+    }
+    document.getElementById('afDataRange').value = '';
+    document.getElementById('afProductContent').value = '';
+    document.getElementById('afServiceScope').value = '';
+    document.getElementById('afSocialBenefit').value = '';
+    document.getElementById('afSecurityOrg').value = '浙江义乌数据运营有限公司';
+    document.getElementById('afSecurityPerson').value = '';
+    document.getElementById('afContact').value = '';
+    document.getElementById('scenarioHint').style.display = 'none';
+    const resList = document.getElementById('scenarioResourceList');
+    if (resList) resList.style.display = 'none';
+    const resCards = document.getElementById('scenarioResourceCards');
+    if (resCards) resCards.innerHTML = '';
+    document.getElementById('resSelectAll').checked = true;
+    // 从场景申报页跳转带入场景
+    const params = new URLSearchParams(location.search);
+    const sc = params.get('scenario');
+    if (sc) {
+      select.value = sc;
+      showScenarioHint();
+    }
+    document.getElementById('applyFormModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function showScenarioHint() {
+    const id = document.getElementById('applyScenario').value;
+    const hint = document.getElementById('scenarioHint');
+    const resList = document.getElementById('scenarioResourceList');
+    const resCards = document.getElementById('scenarioResourceCards');
+    if (!id) {
+      hint.style.display = 'none';
+      if (resList) resList.style.display = 'none';
+      return;
+    }
+    const all = getPassedScenarios();
+    const s = all.find(x => x.id === id);
+    const scope = s ? (s.scope || '') : '';
+    hint.innerHTML = '<strong>场景使用范围：</strong>' + (scope || '（无）');
+    hint.style.display = 'block';
+
+    if (s && s.attachList && s.attachList.length > 0) {
+      if (resList) resList.style.display = 'block';
+      if (resCards) {
+        resCards.innerHTML = s.attachList.map(function(item, idx) {
+          return '<label class="res-card" style="display:flex;align-items:flex-start;gap:10px;border:1px solid #e5e7eb;border-radius:8px;padding:12px;cursor:pointer;transition:all .2s;background:transparent;" onmouseenter="this.style.borderColor=\'#3b82f6\';" onmouseleave="this.style.borderColor=\'#e5e7eb\';">' +
+            '<input type="checkbox" class="res-check" data-idx="' + idx + '" checked style="margin-top:2px;flex-shrink:0;" onchange="updateResSelectAll()">' +
+            '<div style="flex:1;">' +
+              '<div style="font-weight:600;color:var(--text);font-size:14px;">' + (item.dataset || '-') + '</div>' +
+              '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">' + (item.unit || '-') + ' · ' + (item.items || '-') + '</div>' +
+            '</div>' +
+          '</label>';
+        }).join('');
+      }
+      document.getElementById('resSelectAll').checked = true;
+    } else {
+      if (resList) resList.style.display = 'none';
+      if (resCards) resCards.innerHTML = '';
+    }
+  }
+
+  function toggleAllResources() {
+    const checked = document.getElementById('resSelectAll').checked;
+    document.querySelectorAll('.res-check').forEach(function(c) { c.checked = checked; });
+  }
+
+  function updateResSelectAll() {
+    const all = document.querySelectorAll('.res-check');
+    const checked = document.querySelectorAll('.res-check:checked');
+    document.getElementById('resSelectAll').checked = all.length > 0 && all.length === checked.length;
+  }
+
+  function closeApplyForm() {
+    document.getElementById('applyFormModal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  function submitApply() {
+    const scenarioId = document.getElementById('applyScenario').value;
+    const dataRange = document.getElementById('afDataRange').value.trim();
+    const productContent = document.getElementById('afProductContent').value.trim();
+    const serviceScope = document.getElementById('afServiceScope').value.trim();
+    const socialBenefit = document.getElementById('afSocialBenefit').value.trim();
+    const securityOrg = document.getElementById('afSecurityOrg').value.trim();
+    const securityPerson = document.getElementById('afSecurityPerson').value.trim();
+    const contact = document.getElementById('afContact').value.trim();
+    if (!scenarioId) { alert('请选择授权运营场景'); return; }
+    if (!securityPerson) { alert('请输入数据安全责任人'); return; }
+    if (!contact) { alert('请输入联系方式'); return; }
+
+    const all = getPassedScenarios();
+    const s = all.find(x => x.id === scenarioId);
+    if (!s || !s.attachList || s.attachList.length === 0) {
+      alert('该场景未关联数据资源，无法提交申请'); return;
+    }
+
+    const checkedIdx = [];
+    document.querySelectorAll('.res-check:checked').forEach(function(c) {
+      checkedIdx.push(parseInt(c.getAttribute('data-idx')));
+    });
+    if (checkedIdx.length === 0) {
+      alert('请至少选择一个数据资源'); return;
+    }
+
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const list = getCustomApplies();
+    const batchTime = now.toLocaleString('zh-CN', { hour12: false });
+    const baseId = 'SQ' + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+
+    checkedIdx.forEach(function(idx, i) {
+      const item = s.attachList[idx];
+      const record = {
+        id: baseId + '-' + (i + 1),
+        resourceName: item.dataset || '',
+        providerUnit: item.unit || '',
+        scenario: scenarioId,
+        applicant: '浙江义乌数据运营有限公司',
+        securityOrg: securityOrg || '浙江义乌数据运营有限公司',
+        securityPerson: securityPerson,
+        contact: contact,
+        applyTime: batchTime,
+        status: 'pending',
+        dataItems: item.items || '',
+        dataRange: dataRange,
+        productContent: productContent,
+        serviceScope: serviceScope,
+        socialBenefit: socialBenefit,
+        materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+      };
+      list.unshift(record);
+    });
+    saveCustomApplies(list);
+    closeApplyForm();
+    renderRecords();
+    alert('数据资源申请已提交 ' + checkedIdx.length + ' 条，等待独立审批后台审批');
+  }
+
+  // 初始化：从 URL 带出场景申报
+  (function init() {
+    const params = new URLSearchParams(location.search);
+    const sc = params.get('scenario');
+    if (sc) {
+      setTimeout(function() {
+        openApplyForm();
+      }, 100);
+    }
+    renderRecords();
+  })();
+</script>
+
+</body>
+</html>

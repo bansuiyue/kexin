@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>应用管理 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f3f6fb;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 顶部导航 */
+    .top-nav {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 40px; }
+    .nav-brand { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: #1e3a8a; }
+    .nav-brand .logo-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 8px; list-style: none; }
+    .nav-menu a {
+      display: block; padding: 8px 16px; font-size: 14px;
+      color: var(--text-secondary); text-decoration: none;
+      border-radius: 6px; transition: all .15s; white-space: nowrap;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--primary-light); }
+    .nav-menu a.active { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+    .nav-user {
+      position: relative; display: flex; align-items: center; gap: 8px;
+      font-size: 14px; color: var(--text-secondary); cursor: pointer;
+      padding: 6px 8px; border-radius: 6px; transition: background .15s;
+    }
+    .nav-user:hover { background: #f3f4f6; }
+    .nav-user .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+    }
+    .user-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 140px; background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      z-index: 300; overflow: hidden;
+    }
+    .user-dropdown.show { display: block; }
+    .user-dropdown a, .user-dropdown button {
+      display: block; width: 100%; padding: 10px 16px; font-size: 14px;
+      color: var(--text); text-decoration: none; background: #fff;
+      border: none; text-align: left; cursor: pointer;
+      transition: background .15s; font-family: inherit;
+    }
+    .user-dropdown a:hover, .user-dropdown button:hover { background: #f3f4f6; }
+
+    /* 页面头部 */
+    .page-header {
+      background: #fff; border-bottom: 1px solid var(--border); padding: 16px 40px;
+      display: flex; align-items: flex-end; justify-content: space-between;
+    }
+    .breadcrumb { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+    .breadcrumb span { margin: 0 6px; }
+    .page-header h1 {
+      font-size: 20px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .page-header h1::before {
+      content: ''; display: inline-block; width: 4px; height: 18px;
+      background: var(--primary); border-radius: 2px;
+    }
+    .header-actions { display: flex; gap: 10px; }
+
+    .page-container { flex: 1; padding: 24px 40px 40px; }
+
+    /* Tab 切换 */
+    .tabs {
+      display: flex; gap: 4px; background: #fff; border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 6px; margin-bottom: 20px;
+      width: fit-content;
+    }
+    .tab-btn {
+      padding: 9px 28px; font-size: 14px; border: none; border-radius: 6px;
+      background: transparent; color: var(--text-secondary); cursor: pointer;
+      font-family: inherit; font-weight: 500; transition: all .15s;
+    }
+    .tab-btn:hover { color: var(--primary); }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* 卡片 */
+    .card {
+      background: var(--card-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .card-title { font-size: 15px; font-weight: 700; color: var(--text); }
+
+    /* 统计卡片 */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 18px 20px; display: flex; align-items: center; gap: 14px;
+    }
+    .stat-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .stat-icon.blue { background: var(--primary-light); color: var(--primary); }
+    .stat-icon.green { background: #d1fae5; color: var(--success); }
+    .stat-icon.orange { background: #fef3c7; color: var(--warning); }
+    .stat-icon.red { background: #fee2e2; color: var(--danger); }
+    .stat-info .stat-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+    .stat-info .stat-value { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .stat-info .stat-value small { font-size: 12px; font-weight: 400; color: var(--text-tertiary); margin-left: 4px; }
+
+    /* 查询区 */
+    .filter-bar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+    }
+    .filter-bar input[type="text"] {
+      height: 36px; width: 240px; padding: 0 12px;
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 14px; outline: none; font-family: inherit;
+      transition: border-color .15s;
+    }
+    .filter-bar input[type="text"]:focus { border-color: var(--primary); }
+    .filter-bar select {
+      height: 36px; padding: 0 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; color: var(--text);
+      outline: none; background: #fff; font-family: inherit; cursor: pointer;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 0 18px; height: 36px; border-radius: 6px; font-size: 14px;
+      font-weight: 500; cursor: pointer; border: 1px solid transparent;
+      transition: all .15s; font-family: inherit; white-space: nowrap;
+    }
+    .btn-sm { height: 30px; padding: 0 12px; font-size: 13px; }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+    .btn-default { background: #fff; color: var(--text); border-color: var(--border); }
+    .btn-default:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+    .btn-success:hover { background: #059669; border-color: #059669; }
+    .btn-danger { background: #fff; color: var(--danger); border-color: #fecaca; }
+    .btn-danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+    /* 表格 */
+    .table-wrap { overflow-x: auto; }
+    .data-table {
+      width: 100%; border-collapse: collapse; font-size: 14px;
+    }
+    .data-table th {
+      padding: 12px 16px; text-align: left; background: #f8fafc;
+      color: var(--text-secondary); font-weight: 600; font-size: 13px;
+      white-space: nowrap; border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      color: var(--text); vertical-align: middle;
+    }
+    .data-table tbody tr { transition: background .15s; }
+    .data-table tbody tr:hover { background: #f8fafc; }
+    .data-table .table-empty td {
+      text-align: center; color: var(--text-tertiary); padding: 48px 16px;
+    }
+    .data-table .actions {
+      display: flex; align-items: center; gap: 8px; white-space: nowrap;
+    }
+
+    /* 状态标签 */
+    .status-tag {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 500; white-space: nowrap;
+    }
+    .status-tag.pending { background: #fef3c7; color: #b45309; }
+    .status-tag.approved { background: #d1fae5; color: #047857; }
+    .status-tag.rejected { background: #fee2e2; color: #b91c1c; }
+    .status-tag.running { background: #d1fae5; color: #047857; }
+    .status-tag.stopped { background: #f3f4f6; color: #6b7280; }
+    .status-tag.error { background: #fee2e2; color: #b91c1c; }
+    .status-tag.dataset { background: #dbeafe; color: #1d4ed8; }
+    .status-tag.api { background: #fef3c7; color: #b45309; }
+    .status-tag.report { background: #d1fae5; color: #047857; }
+
+    /* 密钥展示 */
+    .secret-box {
+      display: flex; align-items: center; gap: 10px;
+      background: #f8fafc; border: 1px dashed #bfdbfe; border-radius: 6px;
+      padding: 10px 14px; font-size: 13px; color: var(--text);
+    }
+    .secret-box .secret-text {
+      flex: 1; font-family: Consolas, Menlo, monospace; color: var(--primary-dark);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .secret-box .btn { flex-shrink: 0; }
+
+    /* 弹窗 */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+      z-index: 400; align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 10px; box-shadow: 0 20px 50px rgba(0,0,0,.18);
+      width: 100%; max-width: 780px; max-height: 90vh;
+      display: flex; flex-direction: column;
+    }
+    .modal.modal-sm { max-width: 520px; }
+    .modal.modal-lg { max-width: 900px; }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px; border-bottom: 1px solid var(--border);
+    }
+    .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--text); }
+    .modal-close {
+      background: none; border: none; font-size: 24px; color: var(--text-tertiary);
+      cursor: pointer; line-height: 1; font-family: inherit;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { padding: 24px; overflow-y: auto; }
+    .modal-footer {
+      padding: 16px 24px; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
+
+    /* 表单 */
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 13px; color: var(--text-secondary); }
+    .form-label .required { color: var(--danger); margin-right: 2px; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; color: var(--text);
+      outline: none; background: #fff; font-family: inherit;
+      transition: border-color .15s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+    .form-textarea { min-height: 84px; resize: vertical; }
+    .form-group.error .form-input, .form-group.error .form-select { border-color: var(--danger); }
+    .form-hint { font-size: 12px; color: var(--text-tertiary); }
+
+    /* 复选框组 */
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; }
+    .checkbox-item {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 12px; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 13px; color: var(--text); cursor: pointer;
+      transition: all .15s; background: #fff;
+    }
+    .checkbox-item:hover { border-color: var(--primary); color: var(--primary); }
+    .checkbox-item.checked { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+    .checkbox-item input { accent-color: var(--primary); }
+
+    /* 详情网格 */
+    .detail-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 24px; margin-bottom: 16px;
+    }
+    .detail-item label {
+      display: block; font-size: 13px; color: var(--text-tertiary); margin-bottom: 4px;
+    }
+    .detail-item .value { font-size: 14px; color: var(--text); }
+    .detail-item.full { grid-column: 1 / -1; }
+    .detail-item.reject-reason {
+      grid-column: 1 / -1; background: #fff2f0; border: 1px solid #ffccc7;
+      border-radius: 6px; padding: 12px 14px;
+    }
+    .detail-item.reject-reason label { color: #cf1322; }
+    .detail-item.reject-reason .value { color: #a8071a; line-height: 1.7; }
+    .detail-section-title {
+      font-size: 14px; font-weight: 700; color: var(--text);
+      margin: 18px 0 12px; padding-left: 10px; border-left: 3px solid var(--primary);
+    }
+
+    /* 错误日志列表 */
+    .error-list { display: flex; flex-direction: column; gap: 10px; }
+    .error-item {
+      border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px;
+      background: #fffbfb;
+    }
+    .error-item .error-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 6px; font-size: 13px;
+    }
+    .error-item .error-head .error-time { color: var(--text-tertiary); font-size: 12px; }
+    .error-item .error-code {
+      font-size: 12px; color: var(--danger); font-weight: 600;
+      background: #fee2e2; padding: 2px 8px; border-radius: 4px;
+    }
+    .error-item .error-msg { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+    .progress-bar {
+      width: 120px; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden;
+    }
+    .progress-bar .fill { height: 100%; border-radius: 999px; }
+    .progress-bar .fill.success { background: var(--success); }
+    .progress-bar .fill.warning { background: var(--warning); }
+    .progress-bar .fill.danger { background: var(--danger); }
+    .rate-text { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 0 16px; }
+      .nav-menu { display: none; }
+      .page-container { padding: 16px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .form-grid { grid-template-columns: 1fr; }
+      .filter-bar input[type="text"] { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-left">
+    <div class="nav-brand">
+      <div class="logo-icon">Z</div>
+      <span>数据跨域流通平台</span>
+    </div>
+    <ul class="nav-menu">
+      <li><a href="dashboard.html">首页</a></li>
+      <li><a href="scenario-management.html">授权场景管理</a></li>
+      <li><a href="apply-records.html">数据资源申请</a></li>
+      <li><a href="data-products.html">数据产品管理</a></li>
+      <li><a href="outbound-management.html">出域管理</a></li>
+      <li><a href="app-management.html" class="active">应用管理</a></li>
+      <li><a href="operators.html">运营人员备案</a></li>
+      <li><a href="account-management.html">账号管理</a></li>
+    </ul>
+  </div>
+  <div class="nav-user" onclick="toggleUserDropdown(event)">
+    <div class="avatar">管</div>
+    <span>超级管理员</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    <div class="user-dropdown" id="userDropdown">
+      <a href="#">个人中心</a>
+      <a href="index.html">门户首页</a>
+      <button onclick="logout()">退出登录</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div>
+    <div class="breadcrumb">工作台 <span>/</span> 应用管理</div>
+    <h1>应用管理</h1>
+  </div>
+</div>
+
+<div class="page-container">
+  <!-- Tab 切换 -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="apply" onclick="switchTab('apply', this)">应用接入申请</button>
+    <button class="tab-btn" data-tab="sceneApply" onclick="switchTab('sceneApply', this)">数据产品调用申请</button>
+    <button class="tab-btn" data-tab="logs" onclick="switchTab('logs', this)">应用调用日志</button>
+  </div>
+
+  <!-- ============ Tab1: 应用接入申请 ============ -->
+  <div class="tab-panel active" id="panel-apply">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">社会应用接入申请</div>
+        <button class="btn btn-primary" onclick="openApplyModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          提交应用接入申请
+        </button>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="appKeyword" placeholder="搜索应用名称 / 应用编码 / 对接单位" onkeydown="if(event.key==='Enter')renderApps()">
+        <select id="appStatus" onchange="renderApps()">
+          <option value="">全部状态</option>
+          <option value="pending">待审核</option>
+          <option value="approved">已通过</option>
+          <option value="rejected">已驳回</option>
+        </select>
+        <button class="btn btn-primary" onclick="renderApps()">查询</button>
+        <button class="btn btn-default" onclick="resetAppFilter()">重置</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>应用名称</th>
+              <th>应用编码</th>
+              <th>应用类型</th>
+              <th>对接单位</th>
+              <th>使用场景</th>
+              <th>申请时间</th>
+              <th>审批状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="appBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Tab2: 数据产品调用申请 ============ -->
+  <div class="tab-panel" id="panel-sceneApply">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">数据产品调用申请（数据产品通过出域审核并上架后，应用申请调用，通过后生成密钥）</div>
+        <button class="btn btn-primary" onclick="openSceneApplyModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          提交产品调用申请
+        </button>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="sceneApplyKeyword" placeholder="搜索申请编号 / 数据产品 / 应用名称" onkeydown="if(event.key==='Enter')renderSceneApplies()">
+        <select id="sceneApplyStatus" onchange="renderSceneApplies()">
+          <option value="">全部状态</option>
+          <option value="pending">待审核</option>
+          <option value="approved">已通过</option>
+          <option value="rejected">已驳回</option>
+        </select>
+        <button class="btn btn-primary" onclick="renderSceneApplies()">查询</button>
+        <button class="btn btn-default" onclick="resetSceneApplyFilter()">重置</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>申请编号</th>
+              <th>数据产品</th>
+              <th>申请应用</th>
+              <th>对接单位</th>
+              <th>使用用途</th>
+              <th>申请时间</th>
+              <th>审批状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="sceneApplyBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Tab3: 应用调用日志 ============ -->
+  <div class="tab-panel" id="panel-logs">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-6"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">累计调用总量</div>
+          <div class="stat-value">1,285,600<small>次</small></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">今日调用量</div>
+          <div class="stat-value">32,650<small>次</small></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M12 11v4M9 13h6"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">今日调用应用</div>
+          <div class="stat-value">8<small>个</small></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-label">今日错误次数</div>
+          <div class="stat-value">156<small>次</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">应用调用数据产品日志</div>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="logKeyword" placeholder="搜索应用名称 / 数据产品名称" onkeydown="if(event.key==='Enter')renderLogs()">
+        <select id="logType" onchange="renderLogs()">
+          <option value="">全部类型</option>
+          <option value="API接口">API接口</option>
+          <option value="数据集">数据集</option>
+          <option value="数据报告">数据报告</option>
+        </select>
+        <select id="logOnlyError" onchange="renderLogs()">
+          <option value="">全部日志</option>
+          <option value="1">仅看错误日志</option>
+        </select>
+        <button class="btn btn-primary" onclick="renderLogs()">查询</button>
+        <button class="btn btn-default" onclick="resetLogFilter()">重置</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>调用应用</th>
+              <th>数据产品名称</th>
+              <th>类型</th>
+              <th>累计调用</th>
+              <th>当日调用</th>
+              <th>调用成功率</th>
+              <th>错误次数</th>
+              <th>最近调用时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 提交应用接入申请弹窗 ============ -->
+<div class="modal-overlay" id="applyModal" onclick="if(event.target===this)closeApplyModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>提交应用接入申请</h3>
+      <button class="modal-close" onclick="closeApplyModal()" type="button">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label"><span class="required">*</span>应用名称</label>
+          <input class="form-input" id="appName" placeholder="请输入应用名称">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="required">*</span>应用类型</label>
+          <select class="form-select" id="appType">
+            <option value="">请选择应用类型</option>
+            <option value="小程序">小程序</option>
+            <option value="网页应用">网页应用</option>
+            <option value="移动App">移动App</option>
+            <option value="桌面应用">桌面应用</option>
+            <option value="系统对接">系统对接</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label"><span class="required">*</span>应用描述</label>
+          <textarea class="form-textarea" id="appDesc" placeholder="请描述应用功能、服务对象、数据使用场景等"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="required">*</span>申请单位</label>
+          <input class="form-input" id="appUnit" value="浙江义乌数据运营有限公司">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="required">*</span>统一社会信用代码</label>
+          <input class="form-input" id="appCreditCode" placeholder="请输入统一社会信用代码">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="required">*</span>联系人</label>
+          <input class="form-input" id="appContact" placeholder="请输入联系人姓名">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="required">*</span>联系电话</label>
+          <input class="form-input" id="appPhone" placeholder="请输入联系电话">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">备注说明</label>
+          <textarea class="form-textarea" id="appRemark" placeholder="其他需要说明的事项（选填）"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeApplyModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitApply()">提交申请</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 数据产品调用申请弹窗 ============ -->
+<div class="modal-overlay" id="sceneApplyModal" onclick="if(event.target===this)closeSceneApplyModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>提交数据产品调用申请</h3>
+      <button class="modal-close" onclick="closeSceneApplyModal()" type="button">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label"><span class="required">*</span>申请调用数据产品（已通过出域审核并上架）</label>
+          <select class="form-select" id="saScenario">
+            <option value="">请选择数据产品</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="required">*</span>申请应用</label>
+          <select class="form-select" id="saApp">
+            <option value="">请选择应用</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span class="required">*</span>对接单位</label>
+          <input class="form-input" id="saUnit" value="浙江义乌数据运营有限公司">
+        </div>
+        <div class="form-group full">
+          <label class="form-label"><span class="required">*</span>使用用途</label>
+          <textarea class="form-textarea" id="saPurpose" placeholder="请描述应用将如何调用该数据产品，调用数据产品接口的目的与方式"></textarea>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">备注说明</label>
+          <textarea class="form-textarea" id="saRemark" placeholder="其他需要说明的事项（选填）"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeSceneApplyModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitSceneApply()">提交申请</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 数据产品调用申请详情弹窗 ============ -->
+<div class="modal-overlay" id="sceneDetailModal" onclick="if(event.target===this)closeSceneDetailModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>数据产品调用申请详情</h3>
+      <button class="modal-close" onclick="closeSceneDetailModal()" type="button">&times;</button>
+    </div>
+    <div class="modal-body" id="sceneDetailBody"></div>
+  </div>
+</div>
+
+<!-- ============ 数据产品调用密钥弹窗 ============ -->
+<div class="modal-overlay" id="sceneSecretModal" onclick="if(event.target===this)closeSceneSecretModal()">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>产品调用密钥</h3>
+      <button class="modal-close" onclick="closeSceneSecretModal()" type="button">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section-title">授权信息</div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>数据产品</label>
+          <div class="value" id="sceneSecretName"></div>
+        </div>
+        <div class="detail-item">
+          <label>应用名称</label>
+          <div class="value" id="sceneSecretApp"></div>
+        </div>
+      </div>
+      <div class="detail-section-title">调用密钥（AccessKey / SecretKey）</div>
+      <div class="secret-box">
+        <span class="secret-text" id="sceneSecretValue"></span>
+        <button class="btn btn-sm btn-primary" onclick="copySceneSecret()">复制</button>
+        <button class="btn btn-sm btn-default" onclick="toggleSceneSecretVisible()">显示</button>
+      </div>
+      <div class="form-hint" style="margin-top:12px;line-height:1.8;">
+        说明：该密钥用于应用调用数据产品接口时的身份认证，请妥善保管，请勿泄露给无关人员。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeSceneSecretModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 应用详情 / 审批结果弹窗 ============ -->
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>应用接入详情</h3>
+      <button class="modal-close" onclick="closeDetailModal()" type="button">&times;</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- ============ 日志详情 / 错误日志弹窗 ============ -->
+<div class="modal-overlay" id="logModal" onclick="if(event.target===this)closeLogModal()">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>调用日志详情</h3>
+      <button class="modal-close" onclick="closeLogModal()" type="button">&times;</button>
+    </div>
+    <div class="modal-body" id="logBodyDetail"></div>
+  </div>
+</div>
+
+<script>
+  /* ========== 公共函数 ========== */
+  function toggleUserDropdown(event) {
+    event.stopPropagation();
+    document.getElementById('userDropdown').classList.toggle('show');
+  }
+  document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown && dropdown.classList.contains('show')) {
+      const userEl = document.querySelector('.nav-user');
+      if (userEl && !userEl.contains(event.target)) dropdown.classList.remove('show');
+    }
+  });
+  function logout() { if (confirm('确定要退出登录吗？')) alert('已退出登录'); }
+
+  /* ========== Tab 切换 ========== */
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+    if (tab === 'logs') renderLogs();
+    if (tab === 'apply') renderApps();
+    if (tab === 'sceneApply') renderSceneApplies();
+  }
+
+  /* ========== 数据定义 ========== */
+  const appStatusMap = {
+    pending: { text: '待审核', cls: 'pending' },
+    approved: { text: '已通过', cls: 'approved' },
+    rejected: { text: '已驳回', cls: 'rejected' }
+  };
+
+  const productOptions = [
+    { id: 'p1', name: 'BUS站牌信息', type: 'api' },
+    { id: 'p2', name: '公交线路数据', type: 'dataset' },
+    { id: 'p3', name: '交通流量预测', type: 'dataset' },
+    { id: 'p4', name: '高德地图通勤路线 OD', type: 'dataset' },
+    { id: 'p5', name: '车辆GPS轨迹', type: 'dataset' },
+    { id: 'p6', name: '电力行业城乡居民用电情况', type: 'report' },
+    { id: 'p7', name: '电商用户数据', type: 'dataset' },
+    { id: 'p8', name: '福建省道路信息数据', type: 'dataset' }
+  ];
+
+  let apps = [
+    {
+      id: 'APP20260701001',
+      name: '义出行-实时公交查询',
+      code: 'YWJY-2026-0001',
+      type: '小程序',
+      unit: '浙江义乌数据运营有限公司',
+      creditCode: '91330782MA2XXXXX01',
+      contact: '李伟明', phone: '138****6688',
+      products: ['BUS站牌信息', '公交线路数据'],
+      applyTime: '2026-07-01 09:30:22',
+      status: 'approved',
+      auditTime: '2026-07-02 10:15:00',
+      auditor: '系统管理员',
+      reason: '',
+      runStatus: 'running',
+      desc: '面向义乌市民提供实时公交到站信息查询服务的小程序应用，可查询公交线路、站点位置、到站时间等。',
+      remark: '',
+      onlineTime: '2026-07-03 00:00:00'
+    },
+    {
+      id: 'APP20260705002',
+      name: '交通态势感知平台',
+      code: 'YWJY-2026-0002',
+      type: '系统对接',
+      unit: '义乌市智慧城市建设有限公司',
+      creditCode: '91330782MA2XXXXX02',
+      contact: '王海峰', phone: '139****2211',
+      products: ['交通流量预测', '高德地图通勤路线 OD'],
+      applyTime: '2026-07-05 14:20:11',
+      status: 'approved',
+      auditTime: '2026-07-06 09:00:00',
+      auditor: '系统管理员',
+      reason: '',
+      runStatus: 'running',
+      desc: '面向交通管理部门提供城市交通运行态势监测与预测分析，接入交通流量及通勤OD数据。',
+      remark: '',
+      onlineTime: '2026-07-07 00:00:00'
+    },
+    {
+      id: 'APP20260710003',
+      name: '义乌电力服务助手',
+      code: 'YWJY-2026-0003',
+      type: '移动App',
+      unit: '义乌市电力有限公司',
+      creditCode: '91330782MA2XXXXX03',
+      contact: '陈丽华', phone: '137****9908',
+      products: ['电力行业城乡居民用电情况'],
+      applyTime: '2026-07-10 10:05:47',
+      status: 'pending',
+      reason: '',
+      desc: '面向电力用户提供城乡居民用电情况查询、用电分析服务的移动应用。',
+      remark: ''
+    },
+    {
+      id: 'APP20260712004',
+      name: '电商经营数据助手',
+      code: 'YWJY-2026-0004',
+      type: '网页应用',
+      unit: '义乌小商品城数字科技有限公司',
+      creditCode: '91330782MA2XXXXX04',
+      contact: '赵倩', phone: '150****3322',
+      products: ['电商用户数据'],
+      applyTime: '2026-07-12 16:42:03',
+      status: 'rejected',
+      auditTime: '2026-07-13 09:30:00',
+      auditor: '系统管理员',
+      reason: '申请对接的数据产品用途描述不明确，请补充应用数据使用场景、数据安全防护措施及必要的证明材料后重新提交申请。',
+      desc: '面向电商经营者提供用户行为数据分析服务的网页应用。',
+      remark: ''
+    },
+    {
+      id: 'APP20260625005',
+      name: '交通产品上架管理端',
+      code: 'YWJY-2026-0005',
+      type: '系统对接',
+      unit: '浙江义乌数据运营有限公司',
+      creditCode: '91330782MA2XXXXX01',
+      contact: '李伟明', phone: '138****6688',
+      products: ['车辆GPS轨迹', '福建省道路信息数据'],
+      applyTime: '2026-06-25 08:12:39',
+      status: 'approved',
+      auditTime: '2026-06-26 11:00:00',
+      auditor: '系统管理员',
+      reason: '',
+      runStatus: 'error',
+      desc: '交通产品上架流程管理系统，用于交通数据产品接入、管理及质量监控。',
+      remark: '',
+      onlineTime: '2026-06-27 00:00:00'
+    },
+    {
+      id: 'APP20260620006',
+      name: '公交司机信息管理端',
+      code: 'YWJY-2026-0006',
+      type: '系统对接',
+      unit: '义乌市公共交通集团',
+      creditCode: '91330782MA2XXXXX05',
+      contact: '孙立群', phone: '136****5588',
+      products: ['BUS站牌信息'],
+      applyTime: '2026-06-20 13:36:55',
+      status: 'approved',
+      auditTime: '2026-06-21 10:20:00',
+      auditor: '系统管理员',
+      reason: '',
+      runStatus: 'stopped',
+      desc: '公交集团内部使用的司机人员信息与站牌信息管理系统。',
+      remark: '',
+      onlineTime: '2026-06-22 00:00:00'
+    }
+  ];
+
+  const callLogs = [
+    {
+      id: 1, appName: '义出行-实时公交查询', productName: 'BUS站牌信息', type: 'API接口',
+      totalCalls: 865200, todayCalls: 23100, successRate: 99.2, errorCount: 68,
+      lastCallTime: '2026-07-12 15:32:18',
+      errors: [
+        { time: '2026-07-12 15:30:45', code: '40001', msg: '接口鉴权失败：AccessKey 过期，请刷新对接密钥后重试。' },
+        { time: '2026-07-12 14:12:03', code: '50003', msg: '数据源连接超时，服务端已自动重试 3 次。' },
+        { time: '2026-07-12 11:47:29', code: '40002', msg: '请求参数错误：stationId 不能为空。' }
+      ]
+    },
+    {
+      id: 2, appName: '义出行-实时公交查询', productName: '公交线路数据', type: '数据集',
+      totalCalls: 320500, todayCalls: 10200, successRate: 99.8, errorCount: 7,
+      lastCallTime: '2026-07-12 15:29:55',
+      errors: [
+        { time: '2026-07-12 09:15:20', code: '50002', msg: '数据更新任务执行失败，数据版本已回滚。' }
+      ]
+    },
+    {
+      id: 3, appName: '交通态势感知平台', productName: '交通流量预测', type: 'API接口',
+      totalCalls: 78500, todayCalls: 3200, successRate: 96.5, errorCount: 275,
+      lastCallTime: '2026-07-12 15:31:02',
+      errors: [
+        { time: '2026-07-12 15:28:11', code: '50001', msg: '数据计算引擎异常：预测模型加载失败。' },
+        { time: '2026-07-12 14:50:40', code: '40003', msg: '请求频率超限：单接口 QPS 上限为 50。' },
+        { time: '2026-07-12 10:05:22', code: '50003', msg: '数据源连接超时，服务端已自动重试 3 次。' }
+      ]
+    },
+    {
+      id: 4, appName: '交通态势感知平台', productName: '高德地图通勤路线 OD', type: '数据集',
+      totalCalls: 10400, todayCalls: 650, successRate: 99.9, errorCount: 2,
+      lastCallTime: '2026-07-12 15:20:44',
+      errors: []
+    },
+    {
+      id: 5, appName: '交通产品上架管理端', productName: '车辆GPS轨迹', type: '数据集',
+      totalCalls: 7800, todayCalls: 0, successRate: 91.2, errorCount: 96,
+      lastCallTime: '2026-07-11 22:47:10',
+      errors: [
+        { time: '2026-07-11 22:47:10', code: '50004', msg: '接口响应超时（30000ms），调用方已断开连接。' },
+        { time: '2026-07-11 20:33:08', code: '40001', msg: '接口鉴权失败：AccessKey 已失效。' }
+      ]
+    },
+    {
+      id: 6, appName: '交通产品上架管理端', productName: '福建省道路信息数据', type: '数据集',
+      totalCalls: 15200, todayCalls: 0, successRate: 88.6, errorCount: 173,
+      lastCallTime: '2026-07-10 18:12:33',
+      errors: [
+        { time: '2026-07-10 18:12:33', code: '50005', msg: '数据源不可用：数据库连接池已满。' },
+        { time: '2026-07-10 16:44:01', code: '40003', msg: '请求频率超限：单接口 QPS 上限为 50。' }
+      ]
+    },
+    {
+      id: 7, appName: '公交司机信息管理端', productName: 'BUS站牌信息', type: 'API接口',
+      totalCalls: 42100, todayCalls: 0, successRate: 99.5, errorCount: 21,
+      lastCallTime: '2026-07-08 09:12:46',
+      errors: [
+        { time: '2026-07-08 09:12:46', code: '50002', msg: '数据更新任务执行失败，数据版本已回滚。' }
+      ]
+    }
+  ];
+
+  /* ========== Tab1: 应用接入申请 ========== */
+  function renderApps() {
+    const keyword = document.getElementById('appKeyword').value.trim();
+    const status = document.getElementById('appStatus').value;
+    let list = apps.filter(a => {
+      if (status && a.status !== status) return false;
+      if (keyword && !(a.name.includes(keyword) || a.code.includes(keyword) || a.unit.includes(keyword))) return false;
+      return true;
+    });
+    const body = document.getElementById('appBody');
+    if (!list.length) {
+      body.innerHTML = '<tr class="table-empty"><td colspan="8">暂无符合条件的应用，点击右上角“提交应用接入申请”</td></tr>';
+      return;
+    }
+    body.innerHTML = list.map(a => {
+      const st = appStatusMap[a.status];
+      return `
+        <tr>
+          <td style="font-weight:600;">${a.name}</td>
+          <td style="font-family:Consolas,Menlo,monospace;font-size:13px;color:var(--text-secondary);">${a.code}</td>
+          <td>${a.type}</td>
+          <td>${a.unit}</td>
+          <td>${a.products.map(p => `<span class="status-tag api" style="margin-right:4px;">${p}</span>`).join('')}</td>
+          <td style="color:var(--text-secondary);">${a.applyTime}</td>
+          <td><span class="status-tag ${st.cls}">${st.text}</span></td>
+          <td>
+            <div class="actions">
+              <button class="btn btn-sm btn-default" onclick="viewAppDetail('${a.id}')">查看</button>
+              ${a.status === 'pending' ? `<button class="btn btn-sm btn-default" onclick="viewApproval('${a.id}')">审批结果</button>` : ''}
+              ${a.status === 'rejected' ? `
+                <button class="btn btn-sm btn-default" onclick="viewApproval('${a.id}')">审批结果</button>
+                <button class="btn btn-sm btn-success" onclick="reApply('${a.id}')">重新申请</button>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function resetAppFilter() {
+    document.getElementById('appKeyword').value = '';
+    document.getElementById('appStatus').value = '';
+    renderApps();
+  }
+
+  /* 提交申请 */
+  function openApplyModal() {
+    document.getElementById('applyModal').classList.add('show');
+    document.getElementById('appName').value = '';
+    document.getElementById('appType').value = '';
+    document.getElementById('appDesc').value = '';
+    document.getElementById('appCreditCode').value = '';
+    document.getElementById('appContact').value = '';
+    document.getElementById('appPhone').value = '';
+    document.getElementById('appRemark').value = '';
+    document.querySelectorAll('#applyModal .form-group').forEach(el => el.classList.remove('error'));
+  }
+
+  function closeApplyModal() { document.getElementById('applyModal').classList.remove('show'); }
+
+  function submitApply() {
+    const fields = [
+      ['appName', '请输入应用名称'],
+      ['appType', '请选择应用类型'],
+      ['appDesc', '请输入应用描述'],
+      ['appCreditCode', '请输入统一社会信用代码'],
+      ['appContact', '请输入联系人姓名'],
+      ['appPhone', '请输入联系电话']
+    ];
+    let valid = true;
+    fields.forEach(([id, msg]) => {
+      const el = document.getElementById(id);
+      const group = el.closest('.form-group');
+      if (!el.value.trim()) { group.classList.add('error'); valid = false; }
+      else group.classList.remove('error');
+    });
+    if (!valid) { alert('请完善必填项'); return; }
+
+    const appCode = 'YWJY-2026-' + String(apps.length + 1).padStart(4, '0');
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const timeStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    apps.unshift({
+      id: 'APP' + now.getTime(),
+      name: document.getElementById('appName').value.trim(),
+      code: appCode,
+      type: document.getElementById('appType').value,
+      unit: document.getElementById('appUnit').value.trim(),
+      creditCode: document.getElementById('appCreditCode').value.trim(),
+      contact: document.getElementById('appContact').value.trim(),
+      phone: document.getElementById('appPhone').value.trim(),
+      products: [],
+      scenarios: [],
+      applyTime: timeStr,
+      status: 'pending',
+      desc: document.getElementById('appDesc').value.trim(),
+      remark: document.getElementById('appRemark').value.trim()
+    });
+    closeApplyModal();
+    renderApps();
+    alert('应用接入申请已提交，等待独立审批后台审批。');
+  }
+
+  /* 查看详情 */
+  function viewAppDetail(id) {
+    const a = apps.find(x => x.id === id);
+    if (!a) return;
+    const st = appStatusMap[a.status];
+    const auditInfo = a.auditTime ? `
+      <div class="detail-section-title">审批信息</div>
+      <div class="detail-grid">
+        <div class="detail-item"><label>审批时间</label><div class="value">${a.auditTime || '--'}</div></div>
+        <div class="detail-item"><label>审批人</label><div class="value">${a.auditor || '--'}</div></div>
+        ${a.onlineTime ? `<div class="detail-item"><label>上线时间</label><div class="value">${a.onlineTime}</div></div>` : ''}
+        ${a.status === 'rejected' ? `
+        <div class="detail-item reject-reason"><label>驳回原因</label><div class="value">${a.reason}</div></div>
+        ` : ''}
+      </div>
+    ` : '';
+    document.getElementById('detailBody').innerHTML = `
+      <div class="detail-section-title">应用信息</div>
+      <div class="detail-grid">
+        <div class="detail-item"><label>应用名称</label><div class="value">${a.name}</div></div>
+        <div class="detail-item"><label>应用编码</label><div class="value">${a.code}</div></div>
+        <div class="detail-item"><label>应用类型</label><div class="value">${a.type}</div></div>
+        <div class="detail-item"><label>申请编号</label><div class="value">${a.id}</div></div>
+        <div class="detail-item"><label>申请单位</label><div class="value">${a.unit}</div></div>
+        <div class="detail-item"><label>统一社会信用代码</label><div class="value">${a.creditCode || '--'}</div></div>
+        <div class="detail-item"><label>联系人</label><div class="value">${a.contact}</div></div>
+        <div class="detail-item"><label>联系电话</label><div class="value">${a.phone}</div></div>
+        <div class="detail-item"><label>申请时间</label><div class="value">${a.applyTime}</div></div>
+        <div class="detail-item"><label>审批状态</label><div class="value"><span class="status-tag ${st.cls}">${st.text}</span></div></div>
+        <div class="detail-item full"><label>使用场景</label><div class="value">${a.products.map(p => `<span class="status-tag api" style="margin-right:6px;">${p}</span>`).join('')}</div></div>
+        <div class="detail-item full"><label>应用描述</label><div class="value" style="line-height:1.7;">${a.desc}</div></div>
+        ${a.remark ? `<div class="detail-item full"><label>备注说明</label><div class="value" style="line-height:1.7;">${a.remark}</div></div>` : ''}
+      </div>
+      ${auditInfo}
+    `;
+    document.getElementById('detailModal').classList.add('show');
+  }
+
+  function closeDetailModal() { document.getElementById('detailModal').classList.remove('show'); }
+
+  /* 查看审批结果 */
+  function viewApproval(id) {
+    const a = apps.find(x => x.id === id);
+    if (!a) return;
+    const st = appStatusMap[a.status];
+    const pendingTip = a.status === 'pending' ? `
+      <div class="detail-section-title">审批进度</div>
+      <div class="detail-item full" style="margin-bottom:12px;">
+        <div class="value" style="line-height:1.8;">
+          您的应用接入申请已提交，正在等待独立审批后台审批。<br>
+          提交时间：${a.applyTime}　|　预计审批时限：3 个工作日
+        </div>
+      </div>
+    ` : '';
+    document.getElementById('detailBody').innerHTML = `
+      <div class="detail-section-title">审批结果</div>
+      <div class="detail-grid">
+        <div class="detail-item"><label>应用名称</label><div class="value">${a.name}</div></div>
+        <div class="detail-item"><label>审批状态</label><div class="value"><span class="status-tag ${st.cls}">${st.text}</span></div></div>
+        <div class="detail-item"><label>申请时间</label><div class="value">${a.applyTime}</div></div>
+        <div class="detail-item"><label>审批时间</label><div class="value">${a.auditTime || '--'}</div></div>
+        <div class="detail-item"><label>审批人</label><div class="value">${a.auditor || '--'}</div></div>
+        <div class="detail-item"><label>使用场景</label><div class="value">${a.products.map(p => `<span class="status-tag api" style="margin-right:6px;">${p}</span>`).join('')}</div></div>
+        ${a.status === 'rejected' ? `
+        <div class="detail-item reject-reason"><label>驳回原因</label><div class="value">${a.reason}</div></div>
+        ` : ''}
+        ${a.status === 'approved' && a.onlineTime ? `
+        <div class="detail-item full"><label>上线时间</label><div class="value">${a.onlineTime}（审核通过后应用已自动接入授权运营域）</div></div>
+        ` : ''}
+      </div>
+      ${pendingTip}
+    `;
+    document.getElementById('detailModal').classList.add('show');
+  }
+
+  /* 重新申请 */
+  function reApply(id) {
+    if (!confirm('重新提交后将以新的申请单进入待审核状态，确认重新申请？')) return;
+    const a = apps.find(x => x.id === id);
+    if (a) {
+      a.status = 'pending';
+      a.auditTime = '';
+      a.auditor = '';
+      a.reason = '';
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      a.applyTime = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    }
+    renderApps();
+    alert('已重新提交申请，等待独立审批后台审批。');
+  }
+
+  /* ========== Tab2: 应用调用日志 ========== */
+  function renderLogs() {
+    const keyword = document.getElementById('logKeyword').value.trim();
+    const type = document.getElementById('logType').value;
+    const onlyError = document.getElementById('logOnlyError').value;
+    let list = callLogs.filter(l => {
+      if (type && l.type !== type) return false;
+      if (onlyError === '1' && !l.errorCount) return false;
+      if (keyword && !(l.appName.includes(keyword) || l.productName.includes(keyword))) return false;
+      return true;
+    });
+    const body = document.getElementById('logBody');
+    if (!list.length) {
+      body.innerHTML = '<tr class="table-empty"><td colspan="9">暂无调用日志记录</td></tr>';
+      return;
+    }
+    body.innerHTML = list.map(l => {
+      const rateCls = l.successRate >= 99 ? 'success' : (l.successRate >= 95 ? 'warning' : 'danger');
+      const typeCls = l.type === 'API接口' ? 'api' : (l.type === '数据报告' ? 'report' : 'dataset');
+      return `
+        <tr>
+          <td style="font-weight:600;">${l.appName}</td>
+          <td>${l.productName}</td>
+          <td><span class="status-tag ${typeCls}">${l.type}</span></td>
+          <td style="font-weight:600;">${l.totalCalls.toLocaleString()}</td>
+          <td>${l.todayCalls.toLocaleString()}</td>
+          <td>
+            <div class="progress-bar"><div class="fill ${rateCls}" style="width:${l.successRate}%"></div></div>
+            <div class="rate-text">${l.successRate}%</div>
+          </td>
+          <td>${l.errorCount ? `<span style="color:var(--danger);font-weight:600;">${l.errorCount}</span>` : '<span style="color:var(--text-tertiary);">0</span>'}</td>
+          <td style="color:var(--text-secondary);">${l.lastCallTime}</td>
+          <td>
+            <div class="actions">
+              <button class="btn btn-sm btn-default" onclick="viewLogDetail(${l.id})">查看详情</button>
+              ${l.errorCount ? `<button class="btn btn-sm btn-danger" onclick="viewErrorLog(${l.id})">错误日志</button>` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function resetLogFilter() {
+    document.getElementById('logKeyword').value = '';
+    document.getElementById('logType').value = '';
+    document.getElementById('logOnlyError').value = '';
+    renderLogs();
+  }
+
+  /* 日志详情 */
+  function viewLogDetail(id) {
+    const l = callLogs.find(x => x.id === id);
+    if (!l) return;
+    const rateCls = l.successRate >= 99 ? 'success' : (l.successRate >= 95 ? 'warning' : 'danger');
+    const typeCls = l.type === 'API接口' ? 'api' : (l.type === '数据报告' ? 'report' : 'dataset');
+    const errorItems = l.errors && l.errors.length ? l.errors.map(e => `
+      <div class="error-item">
+        <div class="error-head">
+          <span class="error-code">错误码 ${e.code}</span>
+          <span class="error-time">${e.time}</span>
+        </div>
+        <div class="error-msg">${e.msg}</div>
+      </div>
+    `).join('') : '<div class="form-hint" style="line-height:2;">该数据产品近 7 天无错误日志。</div>';
+    document.getElementById('logBodyDetail').innerHTML = `
+      <div class="detail-section-title">调用概况</div>
+      <div class="detail-grid">
+        <div class="detail-item"><label>调用应用</label><div class="value">${l.appName}</div></div>
+        <div class="detail-item"><label>数据产品名称</label><div class="value">${l.productName}</div></div>
+        <div class="detail-item"><label>产品类型</label><div class="value"><span class="status-tag ${typeCls}">${l.type}</span></div></div>
+        <div class="detail-item"><label>最近调用时间</label><div class="value">${l.lastCallTime}</div></div>
+        <div class="detail-item"><label>累计调用</label><div class="value" style="font-weight:600;">${l.totalCalls.toLocaleString()} 次</div></div>
+        <div class="detail-item"><label>当日调用</label><div class="value" style="font-weight:600;">${l.todayCalls.toLocaleString()} 次</div></div>
+        <div class="detail-item"><label>调用成功率</label><div class="value"><span class="status-tag ${rateCls === 'success' ? 'approved' : (rateCls === 'warning' ? 'pending' : 'rejected')}">${l.successRate}%</span></div></div>
+        <div class="detail-item"><label>累计错误次数</label><div class="value" style="color:${l.errorCount ? 'var(--danger)' : 'var(--text)'};font-weight:600;">${l.errorCount} 次</div></div>
+      </div>
+      <div class="detail-section-title">错误日志</div>
+      <div class="error-list">${errorItems}</div>
+    `;
+    document.getElementById('logModal').classList.add('show');
+  }
+
+  /* 错误日志 */
+  function viewErrorLog(id) {
+    viewLogDetail(id);
+  }
+
+  function closeLogModal() { document.getElementById('logModal').classList.remove('show'); }
+
+  /* ========== Tab2: 数据产品调用申请 ========== */
+  // 已上架数据产品（跨页面共享自数据产品管理）
+  function getOnlineProducts() {
+    try {
+      const custom = JSON.parse(localStorage.getItem('productRecords') || '[]');
+      const online = custom.filter(p => p.status === 'online');
+      if (online.length) return online;
+    } catch (e) {}
+    return productOptions;
+  }
+  function getProductName(id) {
+    const p = getOnlineProducts().find(x => String(x.id) === String(id));
+    if (p) return p.name;
+    const po = productOptions.find(x => String(x.id) === String(id));
+    return po ? po.name : id;
+  }
+  // 已审核通过的应用
+  function getApprovedApps() {
+    return apps.filter(a => a.status === 'approved');
+  }
+
+  let sceneApplies = [
+    {
+      id: 'DPUSE-20260718-001',
+      product: 'p3',
+      appName: '交通态势感知平台',
+      unit: '浙江义乌数据运营有限公司',
+      purpose: '调用交通流量预测数据产品，用于城市交通态势分析与指挥调度。',
+      applyTime: '2026-07-18 10:22:15',
+      status: 'approved',
+      auditTime: '2026-07-18 16:40:00',
+      auditor: '系统管理员',
+      secret: 'dp-3f9a7c2e-1b4d-4e8f-9a2c-5d7b0f3e6a91',
+      remark: ''
+    },
+    {
+      id: 'DPUSE-20260721-002',
+      product: 'p1',
+      appName: '义出行-实时公交查询',
+      unit: '浙江义乌数据运营有限公司',
+      purpose: '调用BUS站牌信息数据产品，为市民提供实时公交查询与出行规划服务。',
+      applyTime: '2026-07-21 14:05:42',
+      status: 'pending',
+      remark: '请求增加数据服务调用配额。'
+    },
+    {
+      id: 'DPUSE-20260723-003',
+      product: 'p8',
+      appName: '电商经营数据助手',
+      unit: '义乌小商品城数字科技有限公司',
+      purpose: '调用福建省道路信息数据产品，用于电商经营者周边经营环境分析。',
+      applyTime: '2026-07-23 09:48:31',
+      status: 'rejected',
+      auditTime: '2026-07-24 11:20:00',
+      auditor: '系统管理员',
+      reason: '申请调用数据产品与主体经营范围不符，且未提供数据安全承诺，请补充后重新申请。',
+      remark: ''
+    }
+  ];
+
+  function getSceneApplies() {
+    let custom = [];
+    try { custom = JSON.parse(localStorage.getItem('productApplyRecords') || '[]'); } catch (e) {}
+    return custom.length ? custom : sceneApplies;
+  }
+  function saveSceneApplies(list) {
+    localStorage.setItem('productApplyRecords', JSON.stringify(list));
+  }
+
+  function renderSceneApplies() {
+    const keyword = document.getElementById('sceneApplyKeyword').value.trim();
+    const status = document.getElementById('sceneApplyStatus').value;
+    let list = getSceneApplies().filter(a => {
+      if (status && a.status !== status) return false;
+      if (keyword && !(a.id.includes(keyword) || a.appName.includes(keyword) || getProductName(a.product).includes(keyword))) return false;
+      return true;
+    });
+    const body = document.getElementById('sceneApplyBody');
+    if (!list.length) {
+      body.innerHTML = '<tr class="table-empty"><td colspan="8">暂无数据产品调用申请，点击右上角“提交产品调用申请”</td></tr>';
+      return;
+    }
+    body.innerHTML = list.map(a => {
+      const st = appStatusMap[a.status] || { text: a.status, cls: 'pending' };
+      const canGenKey = a.status === 'approved' && !a.secret;
+      return `
+        <tr>
+          <td style="font-family:Consolas,Menlo,monospace;font-size:13px;color:var(--text-secondary);">${a.id}</td>
+          <td style="font-weight:500;">${getProductName(a.product)}</td>
+          <td>${a.appName}</td>
+          <td>${a.unit}</td>
+          <td style="max-width:220px;">${a.purpose}</td>
+          <td style="color:var(--text-secondary);">${a.applyTime}</td>
+          <td><span class="status-tag ${st.cls}">${st.text}</span></td>
+          <td>
+            <div class="actions">
+              <button class="btn btn-sm btn-default" onclick="viewSceneDetail('${a.id}')">查看</button>
+              ${a.status === 'approved' ? (a.secret ?
+                `<button class="btn btn-sm btn-primary" onclick="openSceneSecret('${a.id}')">密钥</button>` :
+                `<button class="btn btn-sm btn-primary" onclick="generateSceneSecret('${a.id}')">生成密钥</button>`) : ''}
+              ${a.status === 'pending' ? `<button class="btn btn-sm btn-default" onclick="viewSceneApproval('${a.id}')">审批结果</button>` : ''}
+              ${a.status === 'rejected' ? `
+                <button class="btn btn-sm btn-default" onclick="viewSceneApproval('${a.id}')">审批结果</button>
+                <button class="btn btn-sm btn-success" onclick="reSceneApply('${a.id}')">重新申请</button>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function resetSceneApplyFilter() {
+    document.getElementById('sceneApplyKeyword').value = '';
+    document.getElementById('sceneApplyStatus').value = '';
+    renderSceneApplies();
+  }
+
+  function openSceneApplyModal() {
+    const scSelect = document.getElementById('saScenario');
+    const products = getOnlineProducts();
+    scSelect.innerHTML = '<option value="">请选择数据产品</option>' +
+      products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    if (products.length === 0) scSelect.innerHTML = '<option value="">暂无已上架数据产品</option>';
+
+    const appSelect = document.getElementById('saApp');
+    const approvedApps = getApprovedApps();
+    appSelect.innerHTML = '<option value="">请选择应用</option>' +
+      approvedApps.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    if (approvedApps.length === 0) appSelect.innerHTML = '<option value="">暂无已通过应用</option>';
+
+    document.getElementById('saPurpose').value = '';
+    document.getElementById('saRemark').value = '';
+    document.getElementById('sceneApplyModal').classList.add('show');
+  }
+
+  function closeSceneApplyModal() { document.getElementById('sceneApplyModal').classList.remove('show'); }
+
+  function submitSceneApply() {
+    const sc = document.getElementById('saScenario').value;
+    const appId = document.getElementById('saApp').value;
+    const unit = document.getElementById('saUnit').value.trim();
+    const purpose = document.getElementById('saPurpose').value.trim();
+    if (!sc) { alert('请选择申请调用的数据产品'); return; }
+    if (!appId) { alert('请选择申请应用'); return; }
+    if (!unit) { alert('请输入对接单位'); return; }
+    if (!purpose) { alert('请输入使用用途'); return; }
+    const app = apps.find(x => x.id === appId);
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const id = 'DPUSE-' + now.getFullYear() + '-' +
+      pad(now.getMonth() + 1) + pad(now.getDate()) + '-' +
+      String(getSceneApplies().length + 1).padStart(3, '0');
+    const list = getSceneApplies();
+    list.unshift({
+      id,
+      product: sc,
+      appName: app ? app.name : appId,
+      unit,
+      purpose,
+      applyTime: now.toLocaleString('zh-CN', { hour12: false }),
+      status: 'pending',
+      remark: document.getElementById('saRemark').value.trim()
+    });
+    saveSceneApplies(list);
+    closeSceneApplyModal();
+    renderSceneApplies();
+    alert('数据产品调用申请已提交，等待独立审批后台审批');
+  }
+
+  function viewSceneDetail(id) {
+    const a = getSceneApplies().find(x => x.id === id);
+    if (!a) return;
+    const st = appStatusMap[a.status] || { text: a.status, cls: 'pending' };
+    const auditInfo = a.auditTime ? `
+      <div class="detail-section-title">审批信息</div>
+      <div class="detail-grid">
+        <div class="detail-item"><label>审批时间</label><div class="value">${a.auditTime || '--'}</div></div>
+        <div class="detail-item"><label>审批人</label><div class="value">${a.auditor || '--'}</div></div>
+        ${a.status === 'rejected' ? `<div class="detail-item reject-reason"><label>驳回原因</label><div class="value">${a.reason || '--'}</div></div>` : ''}
+      </div>
+    ` : '';
+    document.getElementById('sceneDetailBody').innerHTML = `
+      <div class="detail-section-title">申请信息</div>
+      <div class="detail-grid">
+        <div class="detail-item"><label>申请编号</label><div class="value">${a.id}</div></div>
+        <div class="detail-item"><label>审批状态</label><div class="value"><span class="status-tag ${st.cls}">${st.text}</span></div></div>
+        <div class="detail-item"><label>数据产品</label><div class="value">${getProductName(a.product)}</div></div>
+        <div class="detail-item"><label>申请应用</label><div class="value">${a.appName}</div></div>
+        <div class="detail-item"><label>对接单位</label><div class="value">${a.unit}</div></div>
+        <div class="detail-item"><label>申请时间</label><div class="value">${a.applyTime}</div></div>
+        <div class="detail-item full"><label>使用用途</label><div class="value" style="line-height:1.7;">${a.purpose}</div></div>
+        ${a.remark ? `<div class="detail-item full"><label>备注说明</label><div class="value" style="line-height:1.7;">${a.remark}</div></div>` : ''}
+      </div>
+      ${auditInfo}
+    `;
+    document.getElementById('sceneDetailModal').classList.add('show');
+  }
+  function closeSceneDetailModal() { document.getElementById('sceneDetailModal').classList.remove('show'); }
+
+  function viewSceneApproval(id) {
+    const a = getSceneApplies().find(x => x.id === id);
+    if (!a) return;
+    const st = appStatusMap[a.status] || { text: a.status, cls: 'pending' };
+    const pendingTip = a.status === 'pending' ? `
+      <div class="detail-item full" style="margin-bottom:12px;">
+        <div class="value" style="line-height:1.8;">
+          您的数据产品调用申请已提交，正在等待独立审批后台审批。<br>
+          提交时间：${a.applyTime}　|　预计审批时限：3 个工作日
+        </div>
+      </div>
+    ` : '';
+    document.getElementById('sceneDetailBody').innerHTML = `
+      <div class="detail-section-title">审批结果</div>
+      <div class="detail-grid">
+        <div class="detail-item"><label>申请编号</label><div class="value">${a.id}</div></div>
+        <div class="detail-item"><label>审批状态</label><div class="value"><span class="status-tag ${st.cls}">${st.text}</span></div></div>
+        <div class="detail-item"><label>数据产品</label><div class="value">${getProductName(a.product)}</div></div>
+        <div class="detail-item"><label>申请应用</label><div class="value">${a.appName}</div></div>
+        <div class="detail-item"><label>申请时间</label><div class="value">${a.applyTime}</div></div>
+        <div class="detail-item"><label>审批时间</label><div class="value">${a.auditTime || '--'}</div></div>
+        ${a.status === 'rejected' ? `<div class="detail-item reject-reason"><label>驳回原因</label><div class="value">${a.reason || '--'}</div></div>` : ''}
+        ${a.status === 'approved' ? `<div class="detail-item full"><label>提示</label><div class="value">审核通过后请生成产品调用密钥，应用凭密钥调用数据产品接口。</div></div>` : ''}
+      </div>
+      ${pendingTip}
+    `;
+    document.getElementById('sceneDetailModal').classList.add('show');
+  }
+
+  function reSceneApply(id) {
+    if (!confirm('重新提交后将以新的申请单进入待审核状态，确认重新申请？')) return;
+    const list = getSceneApplies();
+    const a = list.find(x => x.id === id);
+    if (a) {
+      a.status = 'pending';
+      a.auditTime = '';
+      a.auditor = '';
+      a.reason = '';
+      a.secret = '';
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      a.applyTime = now.toLocaleString('zh-CN', { hour12: false });
+    }
+    saveSceneApplies(list);
+    renderSceneApplies();
+    alert('已重新提交申请，等待独立审批后台审批');
+  }
+
+  /* 产品调用密钥 */
+  let currentSceneSecretId = null;
+  let sceneSecretMasked = true;
+  function openSceneSecret(id) {
+    const a = getSceneApplies().find(x => x.id === id);
+    if (!a || !a.secret) return;
+    currentSceneSecretId = id;
+    sceneSecretMasked = true;
+    document.getElementById('sceneSecretName').textContent = getProductName(a.product);
+    document.getElementById('sceneSecretApp').textContent = a.appName;
+    document.getElementById('sceneSecretValue').textContent = a.secret.replace(/.(?=.{6})/g, '*');
+    document.getElementById('sceneSecretModal').classList.add('show');
+  }
+  function toggleSceneSecretVisible() {
+    const a = getSceneApplies().find(x => x.id === currentSceneSecretId);
+    if (!a || !a.secret) return;
+    sceneSecretMasked = !sceneSecretMasked;
+    document.getElementById('sceneSecretValue').textContent = sceneSecretMasked ? a.secret.replace(/.(?=.{6})/g, '*') : a.secret;
+  }
+  function copySceneSecret() {
+    const a = getSceneApplies().find(x => x.id === currentSceneSecretId);
+    if (!a || !a.secret) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(a.secret).then(() => alert('调用密钥已复制到剪贴板')).catch(() => fallbackCopy(a.secret));
+    } else fallbackCopy(a.secret);
+  }
+  function closeSceneSecretModal() { document.getElementById('sceneSecretModal').classList.remove('show'); }
+
+  function generateSceneSecret(id) {
+    const list = getSceneApplies();
+    const a = list.find(x => x.id === id);
+    if (!a) return;
+    if (!confirm('审核已通过，确认生成产品调用密钥？')) return;
+    const hex = () => [...Array(8)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+    a.secret = 'dp-' + hex() + '-' + hex() + '-' + hex() + '-' + hex() + '-' + hex();
+    a.genTime = new Date().toLocaleString('zh-CN', { hour12: false });
+    saveSceneApplies(list);
+    renderSceneApplies();
+    openSceneSecret(id);
+  }
+
+  /* 初始化 */
+  renderApps();
+  renderSceneApplies();
+</script>
+</body>
+</html>

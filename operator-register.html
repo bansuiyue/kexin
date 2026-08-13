@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>授权运营商入驻 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --bg: #f3f6fb;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* 顶部导航 */
+    .top-nav {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 40px; }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e3a8a;
+      text-decoration: none;
+    }
+    .nav-brand .logo-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 8px; list-style: none; }
+    .nav-menu a {
+      display: block;
+      padding: 8px 16px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all .15s;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--bg); }
+    .nav-menu a.active { color: var(--primary); background: #eff6ff; font-weight: 500; }
+
+    /* Hero 区域 */
+    .hero {
+      position: relative;
+      min-height: 420px;
+      background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 50%, #e8f1ff 100%);
+      display: flex;
+      align-items: center;
+      padding: 80px 40px;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      right: -80px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 60px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-content { flex: 1; }
+    .hero-title {
+      font-size: 42px;
+      font-weight: 800;
+      color: #1e3a8a;
+      line-height: 1.25;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+    }
+    .btn-apply {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 36px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: none;
+      border-radius: var(--radius);
+      text-decoration: none;
+      box-shadow: 0 8px 20px rgba(37,99,235,0.28);
+      transition: all .2s;
+      cursor: pointer;
+    }
+    .btn-apply:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(37,99,235,0.32);
+    }
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 36px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary);
+      background: #fff;
+      border: 1px solid var(--primary);
+      border-radius: var(--radius);
+      text-decoration: none;
+      transition: all .2s;
+      cursor: pointer;
+    }
+    .btn-outline:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+    }
+    .hero-visual {
+      flex: 0 0 420px;
+      height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-visual .illustration {
+      width: 100%;
+      height: 100%;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='g1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%233b82f6'/%3E%3Cstop offset='100%25' stop-color='%231d4ed8'/%3E%3C/linearGradient%3E%3ClinearGradient id='g2' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2360a5fa'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cellipse cx='200' cy='240' rx='140' ry='18' fill='%23e5e7eb' opacity='0.6'/%3E%3Cpath d='M120 220 L120 120 Q120 100 140 100 L260 100 Q280 100 280 120 L280 220 Z' fill='url(%23g1)' opacity='0.9'/%3E%3Cpath d='M150 220 L150 150 Q150 135 165 135 L235 135 Q250 135 250 150 L250 220 Z' fill='%23ffffff' opacity='0.2'/%3E%3Crect x='165' y='155' width='70' height='6' rx='3' fill='%23ffffff' opacity='0.6'/%3E%3Crect x='165' y='170' width='50' height='6' rx='3' fill='%23ffffff' opacity='0.4'/%3E%3Crect x='165' y='185' width='60' height='6' rx='3' fill='%23ffffff' opacity='0.4'/%3E%3Ccircle cx='260' cy='80' r='28' fill='url(%23g2)'/%3E%3Cpath d='M248 80 L258 90 L276 70' stroke='%23ffffff' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M100 180 Q90 160 110 150' stroke='%2360a5fa' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M300 160 Q315 145 300 130' stroke='%2360a5fa' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/contain;
+      filter: drop-shadow(0 20px 40px rgba(37,99,235,0.18));
+    }
+
+    /* 价值区域 */
+    .benefits {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 40px 100px;
+    }
+    .section-title {
+      font-size: 30px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 48px;
+      color: #1e3a8a;
+    }
+    .benefit-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .benefit-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      border: 1px solid #eef2f7;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .benefit-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    }
+    .benefit-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 20px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .benefit-card:nth-child(1) .benefit-icon { background: #eff6ff; }
+    .benefit-card:nth-child(2) .benefit-icon { background: #f0fdf4; }
+    .benefit-card:nth-child(3) .benefit-icon { background: #fef3c7; }
+    .benefit-card:nth-child(4) .benefit-icon { background: #f5f3ff; }
+    .benefit-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .benefit-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.75;
+    }
+
+    /* 底部入口 */
+    .cta-section {
+      background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 100%);
+      padding: 60px 40px;
+      text-align: center;
+      color: #fff;
+    }
+    .cta-section h2 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+    .btn-white {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 40px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary);
+      background: #fff;
+      border: none;
+      border-radius: var(--radius);
+      text-decoration: none;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      transition: all .2s;
+    }
+    .btn-white:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.2); }
+    .btn-ghost-white {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 40px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: var(--radius);
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .btn-ghost-white:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+    .cta-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    @media (max-width: 1024px) {
+      .benefit-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero-visual { flex: 0 0 320px; }
+    }
+    @media (max-width: 768px) {
+      .hero { padding: 60px 24px; }
+      .hero-inner { flex-direction: column; text-align: center; }
+      .hero-title { font-size: 30px; }
+      .hero-visual { flex: none; width: 100%; max-width: 320px; height: 220px; }
+      .benefits { padding: 60px 24px; }
+      .benefit-grid { grid-template-columns: 1fr; }
+      .top-nav { padding: 0 20px; }
+      .nav-menu { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <a href="home.html" class="nav-brand">
+        <div class="logo-icon">Z</div>
+        <span>数据跨域流通平台</span>
+      </a>
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="home.html">首页</a></li>
+          <li><a href="data-products.html">数据产品</a></li>
+          <li><a href="data-catalog.html">数据资源目录</a></li>
+          <li><a href="demand-hall.html">需求大厅</a></li>
+          <li><a href="operator-register.html" class="active">授权运营商入驻</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="nav-right">
+      <a href="index.html" style="font-size:14px;color:var(--text-secondary);text-decoration:none;">登录</a>
+    </div>
+  </header>
+
+  <!-- Hero 招募 -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <h1 class="hero-title">授权运营商生态合作伙伴招募中…</h1>
+        <p class="hero-subtitle">加入我们，共创未来，携手前进！！！</p>
+        <div class="hero-actions">
+          <a href="operator-apply.html" class="btn-apply">立即申请</a>
+          <a href="operator-info.html" class="btn-outline">查看入驻信息</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="illustration"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 加入价值 -->
+  <section class="benefits">
+    <h2 class="section-title">为什么要加入授权运营商生态</h2>
+    <div class="benefit-grid">
+      <div class="benefit-card">
+        <div class="benefit-icon">📊</div>
+        <h3>直面海量高价值需求<br>精准触达优质客户</h3>
+        <p>平台汇聚金融、工业、政务、医疗等领域的优质需求方，快速对接精准商机，提升成交效率。</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🛡️</div>
+        <h3>共享可信基础设施<br>保障合规安全</h3>
+        <p>基于国际/国家标准提供身份认证、授权管理、隐私计算等全套能力，助您轻松实现数据可信流通，专注业务创新。</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🌐</div>
+        <h3>融入数据生态<br>共创行业未来</h3>
+        <p>加入活跃的“数据朋友圈”，与领先机构协作互动，参与行业活动，共享生态资源与发展红利。</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">⚖️</div>
+        <h3>依托平台合规保障<br>规避流通风险</h3>
+        <p>在合规框架与信任体系下开展业务，显著降低数据流通中的法律与安全风险，让您安心交易、稳健发展。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 底部 CTA -->
+  <section class="cta-section">
+    <h2>成为授权运营商生态合作伙伴，开启数据价值新机遇</h2>
+    <div class="cta-actions">
+      <a href="operator-apply.html" class="btn-white">立即申请</a>
+      <a href="operator-info.html" class="btn-ghost-white">查看入驻信息</a>
+    </div>
+  </section>
+</body>
+</html>

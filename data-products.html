@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据产品管理 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f3f6fb;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-nav {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 40px; }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 700; color: #1e3a8a;
+    }
+    .nav-brand .logo-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 8px; list-style: none; }
+    .nav-menu a {
+      display: block; padding: 8px 16px; font-size: 14px;
+      color: var(--text-secondary); text-decoration: none;
+      border-radius: 6px; transition: all .15s; white-space: nowrap;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--primary-light); }
+    .nav-menu a.active { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+    .nav-user {
+      position: relative; display: flex; align-items: center; gap: 8px;
+      font-size: 14px; color: var(--text-secondary); cursor: pointer;
+      padding: 6px 8px; border-radius: 6px; transition: background .15s;
+    }
+    .nav-user:hover { background: #f3f4f6; }
+    .nav-user .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+    }
+    .user-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 140px; background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      z-index: 300; overflow: hidden;
+    }
+    .user-dropdown.show { display: block; }
+    .user-dropdown a, .user-dropdown button {
+      display: block; width: 100%; padding: 10px 16px; font-size: 14px;
+      color: var(--text); text-decoration: none; background: #fff;
+      border: none; text-align: left; cursor: pointer;
+      transition: background .15s; font-family: inherit;
+    }
+    .user-dropdown a:hover, .user-dropdown button:hover { background: #f3f4f6; }
+
+    .page-header {
+      background: #fff; border-bottom: 1px solid var(--border); padding: 16px 40px;
+    }
+    .breadcrumb { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+    .breadcrumb span { margin: 0 6px; }
+    .page-header h1 {
+      font-size: 20px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .page-header h1::before {
+      content: ''; display: inline-block; width: 4px; height: 18px;
+      background: var(--primary); border-radius: 2px;
+    }
+
+    .page-container { flex: 1; padding: 24px 40px 40px; display: flex; gap: 20px; }
+
+    .sidebar {
+      width: 260px; min-width: 260px; background: #fff;
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    .sidebar-header {
+      padding: 16px; border-bottom: 1px solid var(--border);
+      font-size: 15px; font-weight: 700;
+    }
+    .sidebar-search {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+    }
+    .sidebar-search input {
+      width: 100%; height: 36px; padding: 0 12px;
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 14px; font-family: inherit; outline: none;
+    }
+    .sidebar-search input:focus { border-color: var(--primary); }
+    .category-tree { flex: 1; overflow-y: auto; padding: 8px 0; font-size: 14px; user-select: none; }
+    .tree-node {}
+    .tree-node-content {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 36px; padding: 0 16px; cursor: pointer;
+      transition: all .15s; color: var(--text);
+    }
+    .tree-node-content:hover { background: var(--primary-light); color: var(--primary); }
+    .tree-node-content.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .tree-node-content .node-left { display: flex; align-items: center; gap: 6px; overflow: hidden; }
+    .tree-node-content .arrow {
+      width: 14px; height: 14px; display: flex; align-items: center; justify-content: center;
+      color: var(--text-tertiary); transition: transform .2s; flex-shrink: 0; font-size: 10px;
+    }
+    .tree-node-content .arrow.expanded { transform: rotate(90deg); }
+    .tree-node-content .arrow:hover { color: var(--primary); }
+    .tree-node-content .arrow-placeholder { width: 14px; flex-shrink: 0; }
+    .tree-node-content .node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tree-node-content .count { color: var(--text-tertiary); font-size: 13px; flex-shrink: 0; margin-left: 8px; }
+    .tree-node-content.active .count { color: var(--primary); }
+    .tree-children { display: none; }
+    .tree-children.expanded { display: block; }
+
+    .main-content { flex: 1; min-width: 0; }
+
+    .card {
+      background: var(--card-bg); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .card-title { font-size: 15px; font-weight: 700; color: var(--text); }
+
+    .filter-bar {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .filter-bar input, .filter-bar select {
+      height: 36px; padding: 0 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; font-family: inherit; outline: none;
+    }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: var(--primary); }
+    .filter-bar input { width: 180px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500;
+      cursor: pointer; border: 1px solid transparent; transition: all .15s;
+      font-family: inherit; line-height: 1;
+    }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+    .btn-default { background: #fff; color: var(--text); border-color: var(--border); }
+    .btn-default:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+    .btn-success:hover { background: #059669; border-color: #059669; }
+    .btn-danger { background: #fff; color: var(--danger); border-color: var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-warning { background: #fff; color: var(--warning); border-color: var(--warning); }
+    .btn-warning:hover { background: var(--warning); color: #fff; }
+    .btn-sm { padding: 5px 12px; font-size: 13px; }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px; padding: 20px;
+    }
+    .product-card {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 0; transition: all .15s; position: relative;
+      display: flex; flex-direction: column;
+    }
+    .product-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.08); border-color: #bfdbfe; }
+
+    .product-card-top {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 14px 16px 0;
+    }
+    .product-title-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .product-name {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .status-tag {
+      display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+      padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;
+    }
+    .status-online { background: #d1fae5; color: #065f46; }
+    .status-offline { background: #f3f4f6; color: #6b7280; }
+    .status-audit { background: #fef3c7; color: #92400e; }
+    .status-passed { background: #dbeafe; color: #1e40af; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .status-pending { background: #e0e7ff; color: #3730a3; }
+    .price-tag {
+      font-size: 16px; font-weight: 700; color: var(--danger); flex-shrink: 0;
+    }
+    .price-tag .unit { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+
+    .product-card-sub {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 16px 0; min-height: 26px;
+    }
+    .parse-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 500;
+      background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
+    }
+    .type-tag-mini {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 500;
+      background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+    }
+
+    .product-info {
+      padding: 10px 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.7; flex: 1;
+    }
+    .product-info .info-row { margin-bottom: 4px; }
+    .product-info .info-row:last-child { margin-bottom: 0; }
+    .product-info .info-label { color: var(--text-tertiary); }
+    .product-info .info-desc {
+      overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+    .product-tags {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      padding: 0 16px 10px;
+    }
+    .product-tag {
+      padding: 2px 8px; border-radius: 4px; font-size: 12px;
+      background: var(--primary-light); color: var(--primary);
+    }
+    .product-tag.tag-orange { background: #fff7ed; color: #c2410c; }
+    .product-tag.tag-green { background: #f0fdf4; color: #166534; }
+
+    .product-actions {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; border-top: 1px solid var(--border); min-height: 48px;
+    }
+    .product-actions .left-actions { display: flex; gap: 8px; }
+    .more-btn {
+      width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
+      background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary); transition: all .15s; position: relative;
+    }
+    .more-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .more-menu {
+      display: none; position: absolute; top: calc(100% + 4px); right: 0;
+      min-width: 140px; background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12); z-index: 100; overflow: hidden;
+    }
+    .more-menu.show { display: block; }
+    .more-menu button {
+      display: block; width: 100%; padding: 9px 14px; font-size: 13px;
+      color: var(--text); background: #fff; border: none; text-align: left;
+      cursor: pointer; transition: background .15s; font-family: inherit;
+    }
+    .more-menu button:hover { background: #f3f4f6; color: var(--primary); }
+    .more-menu button.danger:hover { background: #fef2f2; color: var(--danger); }
+
+    .pagination {
+      display: flex; justify-content: flex-end; align-items: center; gap: 8px;
+      padding: 16px 20px; font-size: 14px; border-top: 1px solid var(--border);
+    }
+    .pagination-info { color: var(--text-secondary); margin-right: 8px; }
+    .pagination button {
+      min-width: 32px; height: 32px; padding: 0 8px; border: 1px solid var(--border);
+      background: #fff; border-radius: 6px; color: var(--text); font-size: 14px;
+      cursor: pointer; transition: all .15s; font-family: inherit;
+    }
+    .pagination button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .pagination button:disabled { opacity: .5; cursor: not-allowed; }
+    .pagination button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .pagination select {
+      height: 32px; padding: 0 8px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; font-family: inherit; outline: none;
+    }
+
+    .empty-state {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      padding: 80px 20px; color: var(--text-secondary);
+    }
+    .empty-state svg { width: 80px; height: 80px; color: var(--border); margin-bottom: 16px; }
+    .empty-state p { font-size: 14px; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 500;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: var(--radius); width: 720px;
+      max-width: 90vw; max-height: 90vh; overflow: hidden;
+      display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .modal-header {
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-title { font-size: 16px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none; font-size: 24px;
+      color: var(--text-secondary); cursor: pointer;
+    }
+    .modal-body { padding: 24px; overflow-y: auto; }
+    .modal-footer {
+      padding: 14px 24px; border-top: 1px solid var(--border);
+      display: flex; justify-content: flex-end; gap: 12px;
+    }
+
+    .form-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 20px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 13px; color: var(--text); font-weight: 500; }
+    .form-label .required { color: #ef4444; margin-right: 2px; }
+    .form-input, .form-select {
+      height: 38px; padding: 0 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; font-family: inherit; outline: none;
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--primary); }
+    .form-textarea {
+      min-height: 80px; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; font-family: inherit; outline: none; resize: vertical;
+    }
+    .form-textarea:focus { border-color: var(--primary); }
+    .form-group.error .form-input,
+    .form-group.error .form-select,
+    .form-group.error .form-textarea { border-color: var(--danger); }
+    .error-msg { font-size: 12px; color: var(--danger); display: none; }
+    .form-group.error .error-msg { display: block; }
+
+    .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    .tab {
+      padding: 10px 20px; font-size: 14px; color: var(--text-secondary);
+      cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s;
+    }
+    .tab:hover { color: var(--primary); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .detail-hero {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border-radius: 8px; padding: 20px; margin-bottom: 20px;
+      border: 1px solid #bfdbfe;
+    }
+    .detail-hero-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .detail-hero h2 { font-size: 18px; font-weight: 700; }
+    .detail-hero p { font-size: 13px; color: var(--text-secondary); line-height: 1.8; }
+    .detail-hero-meta { display: flex; gap: 20px; margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .data-table th, .data-table td {
+      padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    .data-table th { background: #f9fafb; font-weight: 600; color: var(--text-secondary); font-size: 13px; }
+    .data-table tr:hover { background: #f9fafb; }
+
+    .api-editor {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+    .api-editor-panel { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .api-editor-panel .panel-title {
+      padding: 12px 16px; background: #f9fafb; border-bottom: 1px solid var(--border);
+      font-size: 14px; font-weight: 600;
+    }
+    .api-editor-panel .panel-body { padding: 16px; }
+    .param-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+    .param-row input { flex: 1; height: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+    .param-row select { width: 100px; height: 34px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+    .param-row button {
+      width: 28px; height: 28px; border-radius: 4px; border: 1px solid var(--border);
+      background: #fff; cursor: pointer; color: var(--danger);
+    }
+
+    .test-result {
+      background: #f9fafb; border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px; font-family: monospace; font-size: 13px; white-space: pre-wrap;
+      min-height: 120px; max-height: 240px; overflow-y: auto;
+    }
+
+    .log-list { max-height: 300px; overflow-y: auto; }
+    .log-item {
+      padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-time { color: var(--text-tertiary); margin-right: 10px; }
+    .log-status { padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-right: 8px; }
+    .log-status.success { background: #d1fae5; color: #065f46; }
+    .log-status.fail { background: #fee2e2; color: #991b1b; }
+
+    .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .stat-card {
+      background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px;
+    }
+    .stat-card .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+    .stat-card .value { font-size: 22px; font-weight: 700; color: var(--text); }
+
+    .danger-zone { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; }
+    .danger-zone .title { color: #991b1b; font-weight: 600; margin-bottom: 8px; }
+    .danger-zone p { font-size: 13px; color: #b91c1c; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-left">
+    <div class="nav-brand">
+      <div class="logo-icon">Z</div>
+      <span>数据跨域流通平台</span>
+    </div>
+    <ul class="nav-menu">
+      <li><a href="dashboard.html">首页</a></li>
+      <li><a href="scenario-management.html">授权场景管理</a></li>
+      <li><a href="apply-records.html">数据资源申请</a></li>
+      <li><a href="data-products.html" class="active">数据产品管理</a></li>
+      <li><a href="outbound-management.html">出域管理</a></li>
+      <li><a href="app-management.html">应用管理</a></li>
+      <li><a href="operators.html">运营人员备案</a></li>
+      <li><a href="account-management.html">账号管理</a></li>
+    </ul>
+  </div>
+  <div class="nav-user" onclick="toggleUserDropdown(event)">
+    <div class="avatar">管</div>
+    <span>超级管理员</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    <div class="user-dropdown" id="userDropdown">
+      <button onclick="logout()">退出登录</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb">工作台 <span>/</span> 数据产品管理</div>
+  <h1>数据产品管理</h1>
+</div>
+
+<div class="page-container">
+  <aside class="sidebar">
+    <div class="sidebar-header">行业分类</div>
+    <div class="sidebar-search">
+      <input type="text" id="categoryKeyword" placeholder="输入关键词搜索" onkeydown="if(event.key==='Enter')renderCategories()">
+    </div>
+    <div class="category-tree" id="categoryTree"></div>
+  </aside>
+
+  <main class="main-content">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">数据产品列表</div>
+        <div class="filter-bar">
+          <input type="text" id="filterName" placeholder="产品名称" onkeydown="if(event.key==='Enter')renderProducts()">
+          <input type="text" id="filterDesc" placeholder="产品描述" onkeydown="if(event.key==='Enter')renderProducts()">
+          <select id="filterStatus" onchange="renderProducts()">
+            <option value="">全部状态</option>
+            <option value="online">已上架</option>
+            <option value="offline">已下架</option>
+            <option value="audit">出域审核中</option>
+            <option value="passed">审核通过</option>
+            <option value="rejected">已驳回</option>
+            <option value="pending">草稿</option>
+          </select>
+          <button class="btn btn-primary" onclick="renderProducts()">查询</button>
+          <button class="btn btn-default" onclick="resetFilters()">重置</button>
+          <button class="btn btn-primary" onclick="openPublishModal()">+ 发布数据产品</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding: 0;">
+        <div class="product-grid" id="productGrid"></div>
+        <div class="empty-state" id="emptyState">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 11h8M8 15h5"/></svg>
+          <p>暂无符合条件的数据产品</p>
+        </div>
+        <div class="pagination" id="pagination">
+          <div class="pagination-info" id="paginationInfo">共 0 条</div>
+          <button id="prevPage" onclick="changePage(-1)">上一页</button>
+          <div id="pageNumbers" style="display: flex; gap: 8px;"></div>
+          <button id="nextPage" onclick="changePage(1)">下一页</button>
+          <select id="pageSize" onchange="changePageSize()">
+            <option value="12">12条/页</option>
+            <option value="24">24条/页</option>
+            <option value="48">48条/页</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 发布数据产品弹窗 -->
+<div class="modal-overlay" id="publishModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="publishModalTitle">发布数据产品</div>
+      <button class="modal-close" onclick="closePublishModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="publishForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label"><span class="required">*</span>产品名称</label>
+            <input type="text" class="form-input" id="pubName" placeholder="请输入产品名称">
+            <div class="error-msg">请输入产品名称</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span class="required">*</span>产品编号</label>
+            <input type="text" class="form-input" id="pubCode" placeholder="系统自动生成" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span class="required">*</span>行业分类</label>
+            <select class="form-select" id="pubCategory">
+              <option value="">请选择行业分类</option>
+            </select>
+            <div class="error-msg">请选择行业分类</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span class="required">*</span>产品类型</label>
+            <select class="form-select" id="pubType">
+              <option value="">请选择产品类型</option>
+              <option value="dataset">数据集</option>
+              <option value="api">API产品</option>
+              <option value="report">数据报告</option>
+              <option value="app">数据应用</option>
+            </select>
+            <div class="error-msg">请选择产品类型</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span class="required">*</span>定价</label>
+            <input type="text" class="form-input" id="pubPrice" placeholder="如：0.01/次">
+            <div class="error-msg">请输入定价</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span class="required">*</span>计费方式</label>
+            <select class="form-select" id="pubBilling">
+              <option value="">请选择计费方式</option>
+              <option value="perCall">按次计费</option>
+              <option value="perMonth">按月计费</option>
+              <option value="perYear">按年计费</option>
+              <option value="free">免费</option>
+            </select>
+            <div class="error-msg">请选择计费方式</div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label"><span class="required">*</span>关联场景（场景申报通过后可选）</label>
+            <select class="form-select" id="pubScenario" onchange="renderResourceOptions();showScenarioScope()">
+              <option value="">请选择关联场景</option>
+            </select>
+            <div class="error-msg">请选择关联场景</div>
+            <div id="scenarioScopeTip" style="display:none;margin-top:6px;font-size:12px;color:var(--text-secondary);line-height:1.6;"></div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">使用数据资源（数据资源申请通过后可选）</label>
+            <div id="pubResourceList" style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:#fafbfc;"></div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label"><span class="required">*</span>产品描述</label>
+            <textarea class="form-textarea" id="pubDesc" placeholder="请输入产品描述"></textarea>
+            <div class="error-msg">请输入产品描述</div>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">数据字段</label>
+            <div id="fieldList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            <button type="button" class="btn btn-default btn-sm" onclick="addFieldRow()" style="margin-top: 8px;">+ 添加字段</button>
+          </div>
+          <div class="form-group full">
+            <label class="form-label">备注</label>
+            <textarea class="form-textarea" id="pubRemark" placeholder="请输入备注信息（选填）"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closePublishModal()">取消</button>
+      <button class="btn btn-primary" onclick="savePublish('draft')">保存草稿</button>
+      <button class="btn btn-success" onclick="savePublish('apply')">提交出域审核</button>
+    </div>
+  </div>
+</div>
+
+<!-- 产品详情弹窗 -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="width: 900px; max-width: 95vw;">
+    <div class="modal-header">
+      <div class="modal-title">数据产品详情</div>
+      <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="detailContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- API测试弹窗 -->
+<div class="modal-overlay" id="apiTestModal">
+  <div class="modal" style="width: 760px;">
+    <div class="modal-header">
+      <div class="modal-title">API接口测试</div>
+      <button class="modal-close" onclick="closeApiTestModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label class="form-label">请求地址</label>
+        <input type="text" class="form-input" id="testUrl" value="https://api.example.com/v1/product/query" readonly>
+      </div>
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label class="form-label">请求方式</label>
+        <select class="form-select" id="testMethod" style="width: 120px;">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label class="form-label">请求参数（JSON）</label>
+        <textarea class="form-textarea" id="testParams" rows="5" placeholder='{"page":1,"size":10}'></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">测试结果</label>
+        <div class="test-result" id="testResult">点击“发送请求”查看测试结果</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeApiTestModal()">关闭</button>
+      <button class="btn btn-primary" onclick="sendApiTest()">发送请求</button>
+    </div>
+  </div>
+</div>
+
+<!-- API配置弹窗 -->
+<div class="modal-overlay" id="apiConfigModal">
+  <div class="modal" style="width: 840px;">
+    <div class="modal-header">
+      <div class="modal-title">API图形化配置</div>
+      <button class="modal-close" onclick="closeApiConfigModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label">API名称</label>
+        <input type="text" class="form-input" id="configApiName" placeholder="请输入API名称">
+      </div>
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label class="form-label">请求路径</label>
+        <input type="text" class="form-input" id="configApiPath" placeholder="/v1/product/query">
+      </div>
+      <div class="api-editor">
+        <div class="api-editor-panel">
+          <div class="panel-title">入参配置</div>
+          <div class="panel-body" id="inputParams"></div>
+          <div style="padding: 0 16px 16px;">
+            <button type="button" class="btn btn-default btn-sm" onclick="addParamRow('input')">+ 添加入参</button>
+          </div>
+        </div>
+        <div class="api-editor-panel">
+          <div class="panel-title">出参配置</div>
+          <div class="panel-body" id="outputParams"></div>
+          <div style="padding: 0 16px 16px;">
+            <button type="button" class="btn btn-default btn-sm" onclick="addParamRow('output')">+ 添加出参</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top: 16px;">
+        <label class="form-label">调用方式</label>
+        <select class="form-select" id="configCallType" style="width: 160px;">
+          <option value="HTTP">HTTP</option>
+          <option value="HTTPS">HTTPS</option>
+          <option value="RPC">RPC</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeApiConfigModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveApiConfig()">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<!-- 下架管理弹窗 -->
+<div class="modal-overlay" id="offlineModal">
+  <div class="modal" style="width: 800px;">
+    <div class="modal-header">
+      <div class="modal-title">数据产品下架管理</div>
+      <button class="modal-close" onclick="closeOfflineModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="offlineContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeOfflineModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const categories = [
+    {
+      id: 'all', name: '全部', count: 32, expanded: true,
+      children: [
+        {
+          id: 'agriculture', name: '农、林、牧、渔业', count: 8, expanded: true,
+          children: [
+            {
+              id: 'agriculture-01', name: '农业', count: 2, expanded: true,
+              children: [
+                { id: 'agriculture-01-01', name: '谷物种植', count: 0 },
+                { id: 'agriculture-01-02', name: '豆类、油料和薯类种植', count: 0 },
+                { id: 'agriculture-01-03', name: '棉、麻、糖、烟草种植', count: 0 },
+                { id: 'agriculture-01-04', name: '蔬菜、食用菌及园艺作物种植', count: 0 },
+                { id: 'agriculture-01-05', name: '水果种植', count: 0 },
+                { id: 'agriculture-01-06', name: '坚果、含油果、香料和饮料作物种植', count: 0 },
+                { id: 'agriculture-01-07', name: '中药材种植', count: 0 },
+                { id: 'agriculture-01-08', name: '草种植及割草', count: 0 },
+                { id: 'agriculture-01-09', name: '其他农业', count: 0 }
+              ]
+            },
+            { id: 'agriculture-02', name: '林业', count: 0 },
+            { id: 'agriculture-03', name: '畜牧业', count: 0 },
+            { id: 'agriculture-04', name: '渔业', count: 0 },
+            { id: 'agriculture-05', name: '农、林、牧、渔专业及辅助性活动', count: 0 }
+          ]
+        },
+        { id: 'mining', name: '采矿业', count: 5 },
+        { id: 'manufacturing', name: '制造业', count: 1 },
+        {
+          id: 'utilities', name: '电力、热力、燃气及水生产和供应业', count: 4,
+          children: [
+            { id: 'utilities-01', name: '电力、热力生产和供应业', count: 2 },
+            { id: 'utilities-02', name: '燃气生产和供应业', count: 1 },
+            { id: 'utilities-03', name: '水的生产和供应业', count: 1 }
+          ]
+        },
+        { id: 'construction', name: '建筑业', count: 0 },
+        { id: 'wholesale', name: '批发和零售业', count: 0 },
+        {
+          id: 'transport', name: '交通运输、仓储和邮政业', count: 9, expanded: true,
+          children: [
+            { id: 'transport-01', name: '铁路运输业', count: 0 },
+            { id: 'transport-02', name: '道路运输业', count: 5 },
+            { id: 'transport-03', name: '水上运输业', count: 1 },
+            { id: 'transport-04', name: '航空运输业', count: 0 },
+            { id: 'transport-05', name: '管道运输业', count: 0 },
+            { id: 'transport-06', name: '多式联运和运输代理业', count: 1 },
+            { id: 'transport-07', name: '装卸搬运和仓储业', count: 1 },
+            { id: 'transport-08', name: '邮政业', count: 1 }
+          ]
+        },
+        { id: 'hospitality', name: '住宿和餐饮业', count: 0 },
+        { id: 'it', name: '信息传输、软件和信息技术服务业', count: 1 },
+        { id: 'finance', name: '金融业', count: 0 },
+        { id: 'realestate', name: '房地产业', count: 0 },
+        { id: 'leasing', name: '租赁和商务服务业', count: 0 },
+        { id: 'science', name: '科学研究和技术服务业', count: 0 },
+        { id: 'water', name: '水利、环境和公共设施管理业', count: 0 },
+        { id: 'resident', name: '居民服务、修理和其他服务业', count: 0 },
+        { id: 'education', name: '教育', count: 3 },
+        { id: 'health', name: '卫生和社会工作', count: 1 },
+        { id: 'culture', name: '文化、体育和娱乐业', count: 0 },
+        { id: 'public', name: '公共管理、社会保障和社会组织', count: 0 },
+        { id: 'international', name: '国际组织', count: 0 }
+      ]
+    }
+  ];
+
+  const seedProducts = [
+    { id: 1, name: '高德地图通勤路线 OD', code: '691350211M0000XQ46X0591JUV77DF7Q', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260625002'], auditTime: '2026-07-16 14:20:00', auditor: '数据空间审核员', auditOpinion: '数据来源清晰、用途合规，同意出域。', onlineTime: '2026-07-17 10:00:00', parseStatus: '解析完成', price: '0.01', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '通勤居住OD产品专注于城市通勤规律的离线数据，剖析早晚高峰的规律性出行特征。', tags: ['路线规划', '实时路况'], fields: [{name:'dt',note:'分区',type:'DATE',len:'-'}, {name:'received_time',note:'接收数据时间',type:'VARCHAR',len:'20'}] },
+    { id: 2, name: '交通流量预测', code: '691350211M0000XQ46X0591RWFSL2ABX', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260625002', 'SQ20260605005'], auditTime: '2026-07-16 15:02:11', auditor: '数据空间审核员', auditOpinion: '数据粒度为分钟级，含敏感度较低，审核通过。', onlineTime: '2026-07-17 10:00:00', parseStatus: '解析完成', price: '0.01', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '本数据集包含2026年全年全国主要城市快速路、主干道的交通流量数据，时间粒度为1分钟。', tags: ['车流量', '预测训练'], fields: [{name:'road_id',note:'道路编号',type:'VARCHAR',len:'32'}] },
+    { id: 3, name: '福建省道路信息数据', code: '691350211M0000XQ46X0591GKM2ZUYM8', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260605005'], auditTime: '2026-07-18 09:30:00', auditor: '数据空间审核员', auditOpinion: '道路网络数据为公开信息，同意出域。', onlineTime: '2026-07-18 14:00:00', parseStatus: '解析完成', price: '500', billing: 'perMonth', category: 'transport-02', type: 'dataset', desc: '本产品提供福建省完整的道路网络数据，涵盖高速公路、普通国省道、县乡道及城市道路。', tags: ['道路网络', '高速公路'], fields: [{name:'dt',note:'分区',type:'DATE',len:'-'}, {name:'received_time',note:'接收数据时间',type:'VARCHAR',len:'20'}, {name:'travelTime',note:'道路路段对应的通过时间，单位0.1秒',type:'VARCHAR',len:'20'}, {name:'state',note:'道路路段交通状态1畅通 2缓慢 3拥堵 4重度拥堵 5无数据',type:'INT',len:'-'}, {name:'speed',note:'道路路段平均速度，单位公里/小时',type:'VARCHAR',len:'20'}, {name:'linkId',note:'道路路段ID',type:'VARCHAR',len:'32'}] },
+    { id: 4, name: '车辆GPS轨迹', code: '691350211M0000XQ46X05912FMS86TTA', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260605005'], auditTime: '2026-07-18 10:15:00', auditor: '数据空间审核员', auditOpinion: '轨迹数据已按要求脱敏，同意出域。', onlineTime: '2026-07-18 14:00:00', parseStatus: '解析完成', price: '10.00', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '本产品提供福建省内营运车辆（含出租车、网约车、物流车、客车等）的实时与历史GPS轨迹数据。', tags: ['车辆轨迹', '实时位置'], fields: [] },
+    { id: 5, name: 'BUS站牌信息', code: '691350211M0000XQ46X0591P8BDKSHZQ', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260701001'], auditTime: '2026-07-18 11:42:00', auditor: '数据空间审核员', auditOpinion: '接口数据为公交运营公开信息，同意出域。', onlineTime: '2026-07-19 09:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'api', desc: '公交站牌信息查询服务，可查询公交线路、站点位置、到站时间等。', tags: ['站牌', '从业人员'], fields: [] },
+    { id: 6, name: '获取公交司机人员信息', code: '691350211M0000XQ46X0591WXDUKMB5U', status: 'online', scenario: 'SC-20260717-001', resources: ['SQ20260701001'], auditTime: '2026-07-19 08:20:00', auditor: '数据空间审核员', auditOpinion: '从业人员信息经脱敏处理，同意出域。', onlineTime: '2026-07-19 09:00:00', parseStatus: '解析完成', price: '0.02', billing: 'perCall', category: 'transport-02', type: 'api', desc: '本接口提供公交企业内部的司机人员信息查询能力。', tags: ['API产品'], fields: [] },
+    { id: 7, name: '电力行业城乡居民用电情况', code: '691350211M0000XQ46X0591CB4TP9A2V', status: 'rejected', scenario: 'SC-20260717-001', auditTime: '2026-07-20 16:00:00', auditor: '数据空间审核员', auditOpinion: '用电量数据涉及居民隐私，暂不同意出域，请补充数据脱敏与安全承诺后重新申请。', parseStatus: '解析完成', price: '100.00', billing: 'perCall', category: 'utilities-01', type: 'report', desc: '电力行业城乡居民用电量情况分析报告。', tags: ['用电量', '峰值'], fields: [] },
+    { id: 8, name: '电商用户数据', code: '691350211M0000XQ46X0591LURX4TQI', status: 'online', scenario: 'SC-20260720-002', auditTime: '2026-07-21 10:00:00', auditor: '数据空间审核员', auditOpinion: '用户数据已做匿名化处理，同意出域。', onlineTime: '2026-07-22 09:30:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'wholesale', type: 'dataset', desc: '电商用户行为数据，包含浏览、购买、收藏等多维度数据。', tags: ['电商', '用户'], fields: [] },
+    { id: 9, name: '交通产品上架流程', code: '691350211M0000XQ46X0591RA9UE9BM', status: 'audit', scenario: 'SC-20260717-001', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'app', desc: '交通产品上架流程管理应用，已提交出域审核，等待独立审批后台审批。', tags: ['上架管理'], fields: [] },
+    { id: 10, name: '市区道路信息', code: '691350211M0000XQ46X0591W5M6ZW6S', status: 'online', scenario: 'SC-20260717-001', auditTime: '2026-07-19 15:30:00', auditor: '数据空间审核员', auditOpinion: '道路信息数据同意出域。', onlineTime: '2026-07-20 09:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '市区道路信息表。', tags: ['车流量'], fields: [] },
+    { id: 11, name: '电商订单履约数据', code: '691350211M0000XQ46X0591A3N0591Y2BDF33ZB', status: 'online', scenario: 'SC-20260720-002', auditTime: '2026-07-22 11:20:00', auditor: '数据空间审核员', auditOpinion: '同意出域。', onlineTime: '2026-07-22 15:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'wholesale', type: 'dataset', desc: '电商订单履约全流程数据，包含下单、支付、物流、签收等节点信息。', tags: ['电商', '订单'], fields: [] },
+    { id: 12, name: '电力数据报告', code: '691350100MA345GRA3N0591LURX4TQI', status: 'offline', scenario: 'SC-20260717-001', auditTime: '2026-07-20 09:00:00', auditor: '数据空间审核员', auditOpinion: '审核通过。', onlineTime: '2026-07-20 10:00:00', offTime: '2026-08-05 17:00:00', parseStatus: '未解析', price: '1.00', billing: 'perCall', category: 'utilities-01', type: 'report', desc: '电力数据报告。', tags: ['数据应用'], fields: [] }
+  ];
+
+  function getProducts() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('productRecords') || '[]');
+      return saved.length ? saved : seedProducts;
+    } catch (e) {
+      return seedProducts;
+    }
+  }
+  function saveProducts() {
+    localStorage.setItem('productRecords', JSON.stringify(products));
+  }
+
+  let products = getProducts();
+  let currentCategory = 'all';
+  let currentEditId = null;
+  let currentProductId = null;
+  let pagination = { page: 1, pageSize: 12, total: 0 };
+
+  const statusMap = {
+    online: { text: '已上架', class: 'status-online' },
+    offline: { text: '已下架', class: 'status-offline' },
+    audit: { text: '出域审核中', class: 'status-audit' },
+    passed: { text: '审核通过', class: 'status-passed' },
+    rejected: { text: '已驳回', class: 'status-rejected' },
+    pending: { text: '草稿', class: 'status-pending' }
+  };
+  const billingMap = { perCall: '次', perMonth: '月', perYear: '年', free: '免费' };
+  const typeMap = { dataset: '数据集', api: 'API产品', report: '数据报告', app: '数据应用' };
+
+  function toggleUserDropdown(event) {
+    event.stopPropagation();
+    document.getElementById('userDropdown').classList.toggle('show');
+  }
+  document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown && dropdown.classList.contains('show')) {
+      const userEl = document.querySelector('.nav-user');
+      if (userEl && !userEl.contains(event.target)) dropdown.classList.remove('show');
+    }
+    document.querySelectorAll('.more-menu.show').forEach(m => m.classList.remove('show'));
+  });
+  function logout() { if (confirm('确定要退出登录吗？')) alert('已退出登录'); }
+
+  function renderCategories() {
+    const keyword = document.getElementById('categoryKeyword').value.trim();
+    const tree = document.getElementById('categoryTree');
+    if (keyword) expandForKeyword(categories, keyword);
+    tree.innerHTML = renderCategoryNodes(categories, keyword, 0);
+  }
+
+  function renderCategoryNodes(nodes, keyword, level) {
+    return nodes.map(node => {
+      const hasChildren = node.children && node.children.length > 0;
+      const visibleChildren = hasChildren ? node.children.filter(c => c.count > 0 || (c.children && c.children.some(d => d.count > 0))) : [];
+      const effectiveHasChildren = visibleChildren.length > 0;
+      const isMatch = !keyword || node.name.includes(keyword);
+      const hasVisibleChild = effectiveHasChildren && hasVisibleChildren(node, keyword);
+      const isActive = currentCategory === node.id;
+      const display = (keyword && !isMatch && !hasVisibleChild) || (!keyword && !isMatch && node.count === 0 && !effectiveHasChildren) ? 'display:none;' : '';
+      const childrenHtml = effectiveHasChildren && node.expanded ? `<div class="tree-children expanded">${renderCategoryNodes(node.children, keyword, level + 1)}</div>` : '';
+      return `
+        <div class="tree-node" style="${display}">
+          <div class="tree-node-content ${isActive ? 'active' : ''}" style="padding-left: ${16 + level * 18}px" onclick="selectCategory('${node.id}')">
+            <div class="node-left">
+              ${effectiveHasChildren ? `<span class="arrow ${node.expanded ? 'expanded' : ''}" onclick="event.stopPropagation();toggleCategory('${node.id}')">▶</span>` : '<span class="arrow-placeholder"></span>'}
+              <span class="node-name" title="${node.name}">${node.name}</span>
+            </div>
+            <span class="count">${node.count}</span>
+          </div>
+          ${childrenHtml}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function hasVisibleChildren(node, keyword) {
+    if (!keyword || !node.children) return false;
+    return node.children.some(c => c.name.includes(keyword) || hasVisibleChildren(c, keyword));
+  }
+
+  function expandForKeyword(nodes, keyword) {
+    nodes.forEach(node => {
+      if (node.children) {
+        const shouldExpand = node.children.some(c => c.name.includes(keyword) || hasVisibleChildren(c, keyword));
+        if (shouldExpand) node.expanded = true;
+        expandForKeyword(node.children, keyword);
+      }
+    });
+  }
+
+  function toggleCategory(id) {
+    const node = findCategory(categories, id);
+    if (node) { node.expanded = !node.expanded; renderCategories(); }
+  }
+
+  function findCategory(nodes, id) {
+    for (const node of nodes) {
+      if (node.id === id) return node;
+      if (node.children) { const found = findCategory(node.children, id); if (found) return found; }
+    }
+    return null;
+  }
+
+  function getCategoryIds(id) {
+    const node = findCategory(categories, id);
+    if (!node) return [id];
+    const ids = [node.id];
+    function collect(n) { if (n.children) { n.children.forEach(c => { ids.push(c.id); collect(c); }); } }
+    collect(node);
+    return ids;
+  }
+
+  function selectCategory(id) {
+    currentCategory = id;
+    pagination.page = 1;
+    renderCategories();
+    renderProducts();
+  }
+
+  function renderProducts() {
+    const name = document.getElementById('filterName').value.trim();
+    const desc = document.getElementById('filterDesc').value.trim();
+    const status = document.getElementById('filterStatus').value;
+
+    let list = products.filter(p => {
+      if (currentCategory !== 'all') {
+        const ids = getCategoryIds(currentCategory);
+        if (!ids.includes(p.category)) return false;
+      }
+      if (name && !p.name.includes(name)) return false;
+      if (desc && !p.desc.includes(desc)) return false;
+      if (status && p.status !== status) return false;
+      return true;
+    });
+
+    list.sort((a, b) => b.id - a.id);
+    pagination.total = list.length;
+    const start = (pagination.page - 1) * pagination.pageSize;
+    const pageList = list.slice(start, start + pagination.pageSize);
+
+    const grid = document.getElementById('productGrid');
+    const empty = document.getElementById('emptyState');
+    if (pageList.length === 0) {
+      grid.innerHTML = '';
+      empty.style.display = 'flex';
+      document.getElementById('pagination').style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    document.getElementById('pagination').style.display = 'flex';
+
+    grid.innerHTML = pageList.map(p => {
+      const st = statusMap[p.status];
+      const billingText = p.billing === 'free' ? '免费' : `¥${p.price}/${billingMap[p.billing]}`;
+      const tagClass = p.type === 'api' ? 'tag-orange' : (p.type === 'report' ? 'tag-green' : '');
+      let mainAction = '';
+      if (p.status === 'online') mainAction = `<button class="btn btn-sm btn-danger" onclick="openOfflineModal(${p.id})">下架</button>`;
+      else if (p.status === 'passed' || p.status === 'offline') mainAction = `<button class="btn btn-sm btn-primary" onclick="onlineProduct(${p.id})">上架</button>`;
+      else if (p.status === 'pending' || p.status === 'rejected') mainAction = `<button class="btn btn-sm btn-success" onclick="submitOutAudit(${p.id})">提交出域审核</button>`;
+      else if (p.status === 'audit') mainAction = `<button class="btn btn-sm btn-default" disabled>审核中</button>`;
+
+      const metaLines = [];
+      if (p.scenario) metaLines.push(`<span class="info-label">关联场景：</span>${getScenarioName(p.scenario)}`);
+      if (p.resources && p.resources.length) metaLines.push(`<span class="info-label">资源：</span>${p.resources.map(getResourceName).join('、')}`);
+
+      return `
+        <div class="product-card">
+          <div class="product-card-top">
+            <div class="product-title-wrap">
+              <span class="status-tag ${st.class}">${st.text}</span>
+              <span class="product-name" title="${p.name}">${p.name}</span>
+            </div>
+            <span class="price-tag">${billingText}</span>
+          </div>
+          <div class="product-card-sub">
+            <span class="type-tag-mini">${typeMap[p.type]}</span>
+            <span class="parse-tag">${p.parseStatus}</span>
+          </div>
+          <div class="product-info">
+            <div class="info-row"><span class="info-label">编号：</span>${p.code}</div>
+            <div class="info-row info-desc" title="${p.desc}">${p.desc}</div>
+            ${metaLines.length ? `<div class="info-row" style="font-size:12px;margin-top:6px;">${metaLines.join(' &nbsp;·&nbsp; ')}</div>` : ''}
+          </div>
+          <div class="product-tags">
+            ${p.tags.map(t => `<span class="product-tag ${tagClass}">${t}</span>`).join('')}
+          </div>
+          <div class="product-actions">
+            <div class="left-actions">
+              <button class="btn btn-sm btn-default" onclick="viewDetail(${p.id})">查看</button>
+              ${mainAction}
+            </div>
+            <div style="position:relative;">
+              <button class="more-btn" onclick="toggleMoreMenu(event, ${p.id})">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+              </button>
+              <div class="more-menu" id="moreMenu${p.id}">
+                <button onclick="openPublishModal(${p.id})">编辑</button>
+                ${p.type === 'api' ? `<button onclick="openApiTestModal(${p.id})">接口测试</button>` : ''}
+                ${p.type === 'api' ? `<button onclick="openApiConfigModal(${p.id})">接口配置</button>` : ''}
+                ${p.status === 'online' ? `<button class="danger" onclick="openOfflineModal(${p.id})">下架管理</button>` : ''}
+                <button onclick="viewLogs(${p.id})">调用日志</button>
+                <button class="danger" onclick="deleteProduct(${p.id})">删除</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    renderPagination();
+  }
+
+  function renderPagination() {
+    const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
+    if (pagination.page > totalPages) pagination.page = totalPages;
+    document.getElementById('paginationInfo').textContent = `共 ${pagination.total} 条`;
+    document.getElementById('prevPage').disabled = pagination.page <= 1;
+    document.getElementById('nextPage').disabled = pagination.page >= totalPages;
+    let html = '';
+    for (let i = 1; i <= totalPages; i++) {
+      html += i === pagination.page ? `<button class="active">${i}</button>` : `<button onclick="goToPage(${i})">${i}</button>`;
+    }
+    document.getElementById('pageNumbers').innerHTML = html;
+  }
+
+  function goToPage(page) { pagination.page = page; renderProducts(); }
+  function changePage(delta) { const totalPages = Math.ceil(pagination.total / pagination.pageSize); const newPage = pagination.page + delta; if (newPage < 1 || newPage > totalPages) return; pagination.page = newPage; renderProducts(); }
+  function changePageSize() { pagination.pageSize = parseInt(document.getElementById('pageSize').value, 10); pagination.page = 1; renderProducts(); }
+  function resetFilters() {
+    document.getElementById('filterName').value = '';
+    document.getElementById('filterDesc').value = '';
+    document.getElementById('filterStatus').value = '';
+    currentCategory = 'all';
+    pagination.page = 1;
+    renderCategories();
+    renderProducts();
+  }
+
+  function toggleMoreMenu(event, id) {
+    event.stopPropagation();
+    document.querySelectorAll('.more-menu.show').forEach(m => { if (m.id !== 'moreMenu' + id) m.classList.remove('show'); });
+    document.getElementById('moreMenu' + id).classList.toggle('show');
+  }
+
+  function getPassedScenarios() {
+    const custom = JSON.parse(localStorage.getItem('scenarioRecords') || '[]');
+    const seed = [
+      { id: 'SC-20260717-001', name: '城市交通精准治理场景', status: 'passed', scope: '仅用于城市交通拥堵治理、公交调度优化等政务场景，不得用于个体轨迹画像。' },
+      { id: 'SC-20260720-002', name: '中小企业信用评估场景', status: 'passed', scope: '仅用于信贷风险评估场景，不用于消费贷与催收用途。' }
+    ];
+    const list = custom.length ? custom : seed;
+    return list.filter(s => s.status === 'passed');
+  }
+
+  function getScenarioName(id) {
+    const s = getPassedScenarios().find(x => x.id === id);
+    return s ? s.name : id;
+  }
+
+  function getResourceName(id) {
+    const r = getApprovedResources().find(x => x.id === id);
+    return r ? r.resourceName : id;
+  }
+
+  function getApprovedResources() {
+    const seed = [
+      { id: 'SQ20260625002', resourceName: '高德地图通勤数据', providerUnit: '高德软件有限公司', scenario: 'SC-20260717-001' },
+      { id: 'SQ20260605005', resourceName: '出租车运行数据', providerUnit: '义乌市交通运输局', scenario: 'SC-20260717-001' },
+      { id: 'SQ20260701001', resourceName: 'BUS站牌信息', providerUnit: '义乌市交通运输局', scenario: 'SC-20260717-001' },
+      { id: 'SQ20260612004', resourceName: '城市公交GPS轨迹数据', providerUnit: '义乌市交通运输局', scenario: 'SC-20260717-001' }
+    ];
+    try {
+      const custom = JSON.parse(localStorage.getItem('dataApplyRecords') || '[]');
+      const approved = custom.filter(r => r.status === 'approved');
+      return approved.length ? approved.map(r => ({ id: r.id, resourceName: r.resourceName, providerUnit: r.providerUnit, scenario: r.scenario })) : seed;
+    } catch (e) { return seed; }
+  }
+
+  function renderResourceOptions(autoId) {
+    const scId = document.getElementById('pubScenario').value;
+    const list = getApprovedResources();
+    const filtered = scId ? list.filter(r => !r.scenario || r.scenario === scId) : list;
+    const wrap = document.getElementById('pubResourceList');
+    if (!filtered.length) {
+      wrap.innerHTML = '<div style="color:var(--text-secondary);font-size:13px;">暂无已通过的数据资源申请，请先在「数据资源申请」中完成资源申请</div>';
+      return;
+    }
+    const selected = currentEditId ? (products.find(x => x.id === currentEditId) || {}).resources || [] : [];
+    wrap.innerHTML = filtered.map(r => {
+      const checked = selected.includes(r.id) || (autoId && r.id === autoId) ? 'checked' : '';
+      return `<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+        <input type="checkbox" class="pub-resource" value="${r.id}" ${checked}>
+        <span>${r.resourceName}（${r.providerUnit}）</span>
+      </label>`;
+    }).join('');
+  }
+
+  // 展示关联场景的使用范围约束（全局约束：产品能力不得超出场景申报的使用范围）
+  function showScenarioScope() {
+    const id = document.getElementById('pubScenario').value;
+    const s = getPassedScenarios().find(x => x.id === id);
+    const el = document.getElementById('scenarioScopeTip');
+    if (!el) return;
+    if (s && s.scope) {
+      el.textContent = '该场景使用范围约束：' + s.scope + '（产品能力不得超出场景申报的使用范围）';
+      el.style.display = 'block';
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
+  function openPublishModal(id) {
+    currentEditId = id || null;
+    document.getElementById('publishModalTitle').textContent = id ? '编辑数据产品' : '发布数据产品';
+    document.getElementById('publishForm').reset();
+    document.querySelectorAll('.form-group.error').forEach(el => el.classList.remove('error'));
+
+    const catSelect = document.getElementById('pubCategory');
+    catSelect.innerHTML = '<option value="">请选择行业分类</option>' + getCategoryOptions(categories).join('');
+
+    const scSelect = document.getElementById('pubScenario');
+    const passedSc = getPassedScenarios();
+    scSelect.innerHTML = '<option value="">请选择关联场景</option>' +
+      passedSc.map(s => `<option value="${s.id}">${s.name}（${s.id}）</option>`).join('');
+    if (passedSc.length === 0) {
+      scSelect.innerHTML = '<option value="">暂无已通过场景，请先完成场景申报</option>';
+    }
+
+    document.getElementById('fieldList').innerHTML = '';
+    let autoResource = null;
+    if (id) {
+      const p = products.find(x => x.id === id);
+      if (p) {
+        document.getElementById('pubName').value = p.name;
+        document.getElementById('pubCode').value = p.code;
+        document.getElementById('pubCategory').value = p.category;
+        document.getElementById('pubType').value = p.type;
+        document.getElementById('pubPrice').value = p.price;
+        document.getElementById('pubBilling').value = p.billing;
+        document.getElementById('pubScenario').value = p.scenario || '';
+        document.getElementById('pubDesc').value = p.desc;
+        document.getElementById('pubRemark').value = p.remark || '';
+        (p.fields || []).forEach(f => addFieldRow(f));
+      }
+    } else {
+      document.getElementById('pubCode').value = 'DP' + Date.now();
+      addFieldRow();
+      // 从资源申请「去开发」带入场景与数据资源
+      const params = new URLSearchParams(location.search);
+      const sc = params.get('scenario');
+      if (sc) {
+        scSelect.value = sc;
+        const sa = params.get('sourceApply');
+        if (sa) {
+          const res = getApprovedResources().find(r => r.id === sa);
+          if (res) {
+            document.getElementById('pubScenario').value = res.scenario || sc;
+            autoResource = sa;
+          }
+        }
+      }
+    }
+    renderResourceOptions(autoResource);
+    showScenarioScope();
+    document.getElementById('publishModal').classList.add('show');
+  }
+
+  function getCategoryOptions(nodes, level = 0) {
+    const indent = '　'.repeat(level);
+    return nodes.filter(c => c.id !== 'all').map(c => {
+      const options = [`<option value="${c.id}">${indent}${c.name}</option>`];
+      if (c.children) options.push(...getCategoryOptions(c.children, level + 1));
+      return options;
+    }).flat();
+  }
+
+  function closePublishModal() { document.getElementById('publishModal').classList.remove('show'); }
+
+  function addFieldRow(field) {
+    field = field || { name: '', note: '', type: 'VARCHAR', len: '' };
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = `
+      <input type="text" placeholder="字段名" class="field-name" value="${field.name}">
+      <input type="text" placeholder="字段备注" class="field-note" value="${field.note}">
+      <select class="field-type">
+        <option value="VARCHAR" ${field.type === 'VARCHAR' ? 'selected' : ''}>VARCHAR</option>
+        <option value="INT" ${field.type === 'INT' ? 'selected' : ''}>INT</option>
+        <option value="DATE" ${field.type === 'DATE' ? 'selected' : ''}>DATE</option>
+        <option value="DECIMAL" ${field.type === 'DECIMAL' ? 'selected' : ''}>DECIMAL</option>
+      </select>
+      <input type="text" placeholder="长度" class="field-len" value="${field.len}" style="width:80px;">
+      <button type="button" onclick="this.parentElement.remove()">&times;</button>
+    `;
+    document.getElementById('fieldList').appendChild(div);
+  }
+
+  function validatePublishForm() {
+    let valid = true;
+    ['pubName', 'pubCategory', 'pubType', 'pubPrice', 'pubBilling', 'pubScenario', 'pubDesc'].forEach(id => {
+      const el = document.getElementById(id);
+      const group = el.closest('.form-group');
+      if (!el.value.trim()) { group.classList.add('error'); valid = false; }
+      else group.classList.remove('error');
+    });
+    return valid;
+  }
+
+  function savePublish(action) {
+    if (!validatePublishForm()) { alert('请完善必填信息'); return; }
+    const name = document.getElementById('pubName').value.trim();
+    const code = document.getElementById('pubCode').value.trim();
+    const category = document.getElementById('pubCategory').value;
+    const type = document.getElementById('pubType').value;
+    const price = document.getElementById('pubPrice').value.trim();
+    const billing = document.getElementById('pubBilling').value;
+    const scenario = document.getElementById('pubScenario').value;
+    const desc = document.getElementById('pubDesc').value.trim();
+    const remark = document.getElementById('pubRemark').value.trim();
+    const fields = [];
+    document.querySelectorAll('#fieldList .param-row').forEach(row => {
+      const name = row.querySelector('.field-name').value.trim();
+      if (name) fields.push({ name, note: row.querySelector('.field-note').value, type: row.querySelector('.field-type').value, len: row.querySelector('.field-len').value });
+    });
+    const resources = Array.from(document.querySelectorAll('.pub-resource:checked')).map(cb => cb.value);
+    // 越权校验：产品使用的数据源必须属于该场景已审批通过的数据资源申请
+    if (scenario) {
+      const approvedByScenario = getApprovedResources().filter(r => r.scenario === scenario);
+      const unauthorized = resources.filter(rid => !approvedByScenario.some(r => r.id === rid));
+      if (unauthorized.length) {
+        alert('产品使用的数据资源必须属于该场景已审批通过的数据资源申请；当前所选数据源未获该场景授权，请先在「数据资源申请」中完成资源申请或调整关联场景');
+        return;
+      }
+    }
+
+    if (currentEditId) {
+      const p = products.find(x => x.id === currentEditId);
+      if (p) {
+        Object.assign(p, { name, category, type, price, billing, scenario, desc, remark, fields, resources });
+        if (action === 'apply') {
+          p.status = 'audit';
+          p.auditApplyTime = new Date().toLocaleString('zh-CN', { hour12: false });
+          delete p.auditTime; delete p.auditor; delete p.auditOpinion;
+        }
+      }
+      alert(action === 'apply' ? '已提交出域审核' : '产品信息已保存');
+    } else {
+      const status = action === 'apply' ? 'audit' : 'pending';
+      const prod = { id: Date.now(), name, code, status, parseStatus: '未解析', price, billing, category, type, scenario, desc, remark, tags: [typeMap[type]], fields, resources };
+      if (action === 'apply') prod.auditApplyTime = new Date().toLocaleString('zh-CN', { hour12: false });
+      products.unshift(prod);
+      alert(action === 'apply' ? '已提交出域审核，等待独立审批后台审批' : '草稿已保存');
+    }
+    saveProducts();
+    renderProducts();
+    closePublishModal();
+  }
+
+  function viewDetail(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    const st = statusMap[p.status];
+    const billingText = p.billing === 'free' ? '免费' : `¥${p.price}/${billingMap[p.billing]}`;
+    const fieldsRows = (p.fields || []).length ? p.fields.map(f => `<tr><td>${f.name}</td><td>${f.note || '-'}</td><td>${f.type}</td><td>${f.len || '-'}</td></tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);">暂无字段信息</td></tr>';
+
+    document.getElementById('detailContent').innerHTML = `
+      <div class="detail-hero">
+        <div class="detail-hero-header">
+          <button class="btn btn-default btn-sm" onclick="closeDetailModal()" style="padding: 4px 10px;">&larr; 返回</button>
+          <h2>${p.name}</h2>
+          <span class="status-tag ${st.class}">${st.text}</span>
+        </div>
+        <p>${p.desc}</p>
+        <div class="detail-hero-meta">
+          <span>产品编号：${p.code}</span>
+          <span>产品类型：${typeMap[p.type]}</span>
+          <span>计费方式：${billingText}</span>
+          <span>解析状态：${p.parseStatus}</span>
+          ${p.scenario ? `<span>关联场景：${getScenarioName(p.scenario)}</span>` : ''}
+        </div>
+        ${(p.resources && p.resources.length) ? `<div style="margin-top:10px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;line-height:1.8;">
+          <span style="font-weight:600;color:#166534;">使用数据资源：</span>${p.resources.map(getResourceName).join('、')}
+        </div>` : ''}
+        <div style="margin-top:12px;padding:12px 16px;background:#f0f7ff;border:1px solid #d0e3ff;border-radius:8px;font-size:13px;line-height:1.9;">
+          <div style="font-weight:600;color:#1e40af;margin-bottom:4px;">出域审核信息</div>
+          ${p.status === 'pending' ? '产品为草稿状态，尚未提交出域审核。' :
+            (p.status === 'audit' ? `出域审核进行中，提交时间：${p.auditApplyTime || '-'}` :
+            (p.status === 'rejected' ? `出域审核未通过（${p.auditTime || '-'}），驳回原因：${p.rejectReason || p.auditOpinion || '-'}，可修改后重新提交。` :
+            (p.auditTime ? `出域审核通过（${p.auditTime}），审核人：${p.auditor || '-'}，意见：${p.auditOpinion || '-'}${p.onlineTime ? '；已上架：' + p.onlineTime : ''}${p.offTime ? '；已下架：' + p.offTime : ''}` : '暂无出域审核记录')))}
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this, 'tabDetail')">产品详情</div>
+        <div class="tab" onclick="switchTab(this, 'tabStrategy')">控制策略</div>
+        <div class="tab" onclick="switchTab(this, 'tabInfo')">产品信息</div>
+        <div class="tab" onclick="switchTab(this, 'tabProvider')">数据提供方</div>
+      </div>
+      <div class="tab-panel active" id="tabDetail">
+        <table class="data-table">
+          <thead><tr><th>字段名</th><th>字段备注</th><th>字段类型</th><th>字段长度</th></tr></thead>
+          <tbody>${fieldsRows}</tbody>
+        </table>
+      </div>
+      <div class="tab-panel" id="tabStrategy">
+        <div class="form-grid" style="grid-template-columns: 1fr;">
+          <div class="form-group">
+            <label class="form-label">调用频率限制</label>
+            <div class="form-input" style="background:#f9fafb;">1000 次/分钟</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">数据脱敏策略</label>
+            <div class="form-input" style="background:#f9fafb;">手机号、身份证等敏感字段默认脱敏</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">访问控制</label>
+            <div class="form-input" style="background:#f9fafb;">需申请授权并通过出域审核</div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tabInfo">
+        <div class="form-grid" style="grid-template-columns: 1fr;">
+          <div class="form-group"><label class="form-label">产品名称</label><div class="form-input" style="background:#f9fafb;">${p.name}</div></div>
+          <div class="form-group"><label class="form-label">产品编号</label><div class="form-input" style="background:#f9fafb;">${p.code}</div></div>
+          <div class="form-group"><label class="form-label">产品描述</label><div class="form-input" style="background:#f9fafb;height:auto;min-height:60px;padding:10px 12px;">${p.desc}</div></div>
+          <div class="form-group"><label class="form-label">备注</label><div class="form-input" style="background:#f9fafb;height:auto;min-height:60px;padding:10px 12px;">${p.remark || '-'}</div></div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tabProvider">
+        <div class="form-grid" style="grid-template-columns: 1fr;">
+          <div class="form-group"><label class="form-label">数据提供方</label><div class="form-input" style="background:#f9fafb;">义乌市数据运营有限公司</div></div>
+          <div class="form-group"><label class="form-label">联系人</label><div class="form-input" style="background:#f9fafb;">数据运营管理员</div></div>
+          <div class="form-group"><label class="form-label">联系方式</label><div class="form-input" style="background:#f9fafb;">0579-XXXXXXXX</div></div>
+        </div>
+      </div>
+    `;
+    document.getElementById('detailModal').classList.add('show');
+  }
+
+  function closeDetailModal() { document.getElementById('detailModal').classList.remove('show'); }
+
+  function switchTab(el, panelId) {
+    el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+  }
+
+  function openApiTestModal(id) {
+    currentProductId = id;
+    document.getElementById('testParams').value = '{"page":1,"size":10}';
+    document.getElementById('testResult').textContent = '点击"发送请求"查看测试结果';
+    document.getElementById('apiTestModal').classList.add('show');
+  }
+  function closeApiTestModal() { document.getElementById('apiTestModal').classList.remove('show'); }
+  function sendApiTest() {
+    const result = document.getElementById('testResult');
+    result.textContent = '请求发送中...';
+    setTimeout(() => {
+      const mock = {
+        code: 200,
+        message: 'success',
+        data: {
+          total: 128,
+          list: [
+            { id: 1, name: '示例数据1', value: 98.5 },
+            { id: 2, name: '示例数据2', value: 76.2 }
+          ]
+        },
+        requestTime: new Date().toLocaleString('zh-CN'),
+        responseTime: '126ms'
+      };
+      result.textContent = JSON.stringify(mock, null, 2);
+    }, 600);
+  }
+
+  function openApiConfigModal(id) {
+    currentProductId = id;
+    document.getElementById('configApiName').value = '';
+    document.getElementById('configApiPath').value = '/v1/product/query';
+    document.getElementById('configCallType').value = 'HTTPS';
+    document.getElementById('inputParams').innerHTML = '';
+    document.getElementById('outputParams').innerHTML = '';
+    addParamRow('input', { name: 'page', type: 'INT', required: true, desc: '页码' });
+    addParamRow('input', { name: 'size', type: 'INT', required: false, desc: '每页条数' });
+    addParamRow('output', { name: 'code', type: 'INT', required: true, desc: '状态码' });
+    addParamRow('output', { name: 'data', type: 'OBJECT', required: true, desc: '返回数据' });
+    document.getElementById('apiConfigModal').classList.add('show');
+  }
+  function closeApiConfigModal() { document.getElementById('apiConfigModal').classList.remove('show'); }
+
+  function addParamRow(type, param) {
+    param = param || { name: '', type: 'STRING', required: false, desc: '' };
+    const container = document.getElementById(type === 'input' ? 'inputParams' : 'outputParams');
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    div.innerHTML = `
+      <input type="text" placeholder="参数名" class="param-name" value="${param.name}">
+      <select class="param-type">
+        <option value="STRING" ${param.type === 'STRING' ? 'selected' : ''}>STRING</option>
+        <option value="INT" ${param.type === 'INT' ? 'selected' : ''}>INT</option>
+        <option value="DATE" ${param.type === 'DATE' ? 'selected' : ''}>DATE</option>
+        <option value="OBJECT" ${param.type === 'OBJECT' ? 'selected' : ''}>OBJECT</option>
+        <option value="ARRAY" ${param.type === 'ARRAY' ? 'selected' : ''}>ARRAY</option>
+      </select>
+      <select class="param-required">
+        <option value="true" ${param.required ? 'selected' : ''}>必填</option>
+        <option value="false" ${!param.required ? 'selected' : ''}>选填</option>
+      </select>
+      <input type="text" placeholder="参数说明" class="param-desc" value="${param.desc}">
+      <button type="button" onclick="this.parentElement.remove()">&times;</button>
+    `;
+    container.appendChild(div);
+  }
+
+  function saveApiConfig() {
+    alert('API配置已保存');
+    closeApiConfigModal();
+  }
+
+  function submitOutAudit(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    if (confirm(`确定为「${p.name}」提交出域审核吗？提交后将由独立审批后台审批，审批通过后方可上架。`)) {
+      p.status = 'audit';
+      p.auditApplyTime = new Date().toLocaleString('zh-CN', { hour12: false });
+      delete p.auditTime; delete p.auditor; delete p.auditOpinion; delete p.rejectReason;
+      saveProducts();
+      renderProducts();
+      alert('已提交出域审核，等待独立审批后台审批');
+    }
+  }
+
+  function getOutboundRecords() {
+    try {
+      return JSON.parse(localStorage.getItem('outboundRecords') || '[]');
+    } catch (e) { return []; }
+  }
+
+  function onlineProduct(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    const outboundList = getOutboundRecords();
+    const hasApproved = outboundList.some(o =>
+      o.status === 'approved' && (o.productId === id || (!o.productId && o.productName === p.name))
+    );
+    if (!hasApproved) {
+      alert('该产品尚未完成出域申请，请先前往出域管理提交出域申请');
+      return;
+    }
+    if (confirm(`确认将「${p.name}」上架？上架后应用可提交调用申请。`)) {
+      p.status = 'online';
+      p.onlineTime = new Date().toLocaleString('zh-CN', { hour12: false });
+      delete p.offTime;
+      saveProducts();
+      renderProducts();
+      alert('产品已上架');
+    }
+  }
+
+  // 更新场景状态（产品上架/下架时联动 scenarioRecords）
+  function updateScenarioStatus(scenarioId, patch) {
+    try {
+      const list = JSON.parse(localStorage.getItem('scenarioRecords') || '[]');
+      if (!list.length) return;
+      const s = list.find(x => x.id === scenarioId);
+      if (!s) return;
+      Object.assign(s, patch);
+      localStorage.setItem('scenarioRecords', JSON.stringify(list));
+    } catch (e) { /* ignore */ }
+  }
+
+  function openOfflineModal(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('offlineContent').innerHTML = `
+      <div class="detail-hero-header" style="margin-bottom:16px;">
+        <h2 style="font-size:16px;">${p.name}</h2>
+        <span class="status-tag ${statusMap[p.status].class}">${statusMap[p.status].text}</span>
+      </div>
+      <div class="stat-cards">
+        <div class="stat-card"><div class="label">今日调用量</div><div class="value">1,248</div></div>
+        <div class="stat-card"><div class="label">本周调用量</div><div class="value">8,932</div></div>
+        <div class="stat-card"><div class="label">本月调用量</div><div class="value">36,521</div></div>
+        <div class="stat-card"><div class="label">失败率</div><div class="value">0.12%</div></div>
+      </div>
+      <div style="margin-bottom:12px;font-weight:600;font-size:14px;">最近调用日志</div>
+      <div class="log-list">
+        <div class="log-item"><span class="log-time">2026-08-12 10:23:45</span><span class="log-status success">成功</span><span>调用方：义乌市交通科技有限公司</span></div>
+        <div class="log-item"><span class="log-time">2026-08-12 10:20:12</span><span class="log-status success">成功</span><span>调用方：XX物流平台</span></div>
+        <div class="log-item"><span class="log-time">2026-08-12 09:58:03</span><span class="log-status fail">失败</span><span>调用方：XX数据公司，原因：签名错误</span></div>
+        <div class="log-item"><span class="log-time">2026-08-12 09:45:21</span><span class="log-status success">成功</span><span>调用方：义乌市交通科技有限公司</span></div>
+      </div>
+      <div class="danger-zone" style="margin-top:20px;">
+        <div class="title">下架操作</div>
+        <p>下架后该数据产品将停止对外提供服务，已授权的调用方将无法继续调用接口。</p>
+        <button class="btn btn-danger" onclick="offlineProduct(${p.id})">确认下架</button>
+      </div>
+    `;
+    document.getElementById('offlineModal').classList.add('show');
+  }
+
+  function closeOfflineModal() { document.getElementById('offlineModal').classList.remove('show'); }
+
+  function offlineProduct(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    if (confirm(`确定下架「${p.name}」吗？`)) {
+      p.status = 'offline';
+      p.offTime = new Date().toLocaleString('zh-CN', { hour12: false });
+      delete p.onlineTime;
+      saveProducts();
+      renderProducts();
+      closeOfflineModal();
+      alert('产品已下架');
+    }
+  }
+
+  function viewLogs(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    alert(`「${p.name}」暂无调用日志记录。应用完成产品调用申请并生成密钥后，调用记录将在此展示。`);
+  }
+
+  function deleteProduct(id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    if (confirm(`确定删除「${p.name}」吗？删除后不可恢复。`)) {
+      products = products.filter(x => x.id !== id);
+      saveProducts();
+      renderProducts();
+      alert('产品已删除');
+    }
+  }
+
+  renderCategories();
+  renderProducts();
+</script>
+
+</body>
+</html>

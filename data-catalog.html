@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据资源目录 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .top-nav {
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 48px; }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 700; color: #1e3a8a;
+      text-decoration: none;
+    }
+    .nav-brand .logo-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 8px; list-style: none; }
+    .nav-menu a {
+      display: block; padding: 8px 18px; font-size: 15px;
+      color: var(--text-secondary); text-decoration: none;
+      border-radius: 6px; transition: all .15s; white-space: nowrap;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--primary-light); }
+    .nav-menu a.active { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+    .nav-user {
+      position: relative; display: flex; align-items: center; gap: 8px;
+      font-size: 14px; color: var(--text-secondary); cursor: pointer;
+      padding: 6px 8px; border-radius: 6px; transition: background .15s;
+    }
+    .nav-user:hover { background: #f3f4f6; }
+    .nav-user .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+    }
+    .user-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 150px; background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      z-index: 300; overflow: hidden;
+    }
+    .user-dropdown.show { display: block; }
+    .user-dropdown a, .user-dropdown button {
+      display: block; width: 100%; padding: 10px 16px; font-size: 14px;
+      color: var(--text); text-decoration: none; background: #fff;
+      border: none; text-align: left; cursor: pointer;
+      transition: background .15s; font-family: inherit;
+    }
+    .user-dropdown a:hover, .user-dropdown button:hover { background: #f3f4f6; }
+
+    .hero {
+      position: relative;
+      background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 60%, #e0f2fe 100%);
+      padding: 72px 48px 60px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; right: 8%; top: 50%; transform: translateY(-50%);
+      width: 320px; height: 220px;
+      background: url("data:image/svg+xml,%3Csvg width='320' height='220' viewBox='0 0 320 220' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='120' y='60' width='160' height='120' rx='12' fill='%23dbeafe' fill-opacity='0.6'/%3E%3Crect x='60' y='100' width='120' height='90' rx='10' fill='%23bfdbfe' fill-opacity='0.5'/%3E%3Crect x='170' y='30' width='100' height='80' rx='10' fill='%2393c5fd' fill-opacity='0.4'/%3E%3Ccircle cx='90' cy='70' r='28' fill='%2360a5fa' fill-opacity='0.25'/%3E%3Cpath d='M90 58 L96 76 L82 66 H98 L84 76 L90 58Z' fill='%233b82f6' fill-opacity='0.4'/%3E%3C/svg%3E") no-repeat center;
+      background-size: contain; opacity: .9; pointer-events: none;
+    }
+    .hero-inner { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+    .hero h1 { font-size: 42px; font-weight: 800; color: #1e3a8a; margin-bottom: 18px; letter-spacing: -1px; }
+    .hero p { font-size: 17px; color: var(--text-secondary); line-height: 1.8; max-width: 600px; margin: 0 auto 36px; }
+    .search-box {
+      max-width: 640px; margin: 0 auto;
+      display: flex; align-items: center;
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 50px; box-shadow: 0 8px 24px rgba(37,99,235,.12);
+      padding: 6px 6px 6px 22px;
+    }
+    .search-box input {
+      flex: 1; border: none; outline: none; font-size: 15px;
+      color: var(--text); background: transparent; padding: 10px 0;
+    }
+    .search-box input::placeholder { color: var(--text-tertiary); }
+    .search-box button {
+      background: var(--primary); color: #fff; border: none;
+      padding: 11px 36px; border-radius: 50px; font-size: 15px;
+      cursor: pointer; transition: background .15s;
+    }
+    .search-box button:hover { background: var(--primary-dark); }
+
+    .filter-bar {
+      max-width: 1360px; margin: -28px auto 0; padding: 0 48px;
+      position: relative; z-index: 2;
+    }
+    .filter-card {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 20px 28px;
+    }
+    .filter-row { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 14px; }
+    .filter-row:last-child { margin-bottom: 0; }
+    .filter-label { font-size: 14px; color: var(--text-secondary); white-space: nowrap; padding-top: 5px; }
+    .filter-options { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+    .filter-options button {
+      padding: 5px 14px; font-size: 14px; border-radius: 6px;
+      border: none; background: transparent; color: var(--text-secondary);
+      cursor: pointer; transition: all .15s;
+    }
+    .filter-options button:hover { color: var(--primary); background: var(--primary-light); }
+    .filter-options button.active { color: #fff; background: var(--primary); }
+    .filter-more {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 14px; color: var(--text-secondary); cursor: pointer;
+      white-space: nowrap; padding-top: 5px;
+    }
+    .filter-more:hover { color: var(--primary); }
+
+    .main-content {
+      max-width: 1360px; margin: 0 auto; padding: 28px 48px 60px;
+    }
+    .section-title {
+      font-size: 18px; font-weight: 700; color: var(--text);
+      margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::before {
+      content: ''; display: inline-block; width: 4px; height: 18px;
+      background: var(--primary); border-radius: 2px;
+    }
+
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 20px;
+    }
+    .resource-card {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 22px; transition: transform .15s, box-shadow .15s;
+      display: flex; flex-direction: column; cursor: pointer;
+    }
+    .resource-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    .resource-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .resource-desc {
+      font-size: 13px; color: var(--text-secondary); line-height: 1.7;
+      margin-bottom: 14px; min-height: 44px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .resource-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .resource-tags span {
+      font-size: 12px; color: var(--primary); background: var(--primary-light);
+      padding: 3px 10px; border-radius: 4px;
+    }
+    .resource-meta {
+      font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;
+      display: flex; gap: 6px;
+    }
+    .resource-meta strong { color: var(--text); font-weight: 500; }
+    .resource-meta-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px;
+      margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border);
+    }
+
+    .empty-state {
+      text-align: center; padding: 60px; color: var(--text-secondary);
+      font-size: 14px; background: #fff; border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    /* 详情页 */
+    .detail-header {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      justify-content: space-between;
+    }
+
+    .detail-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .detail-icon svg { width: 28px; height: 28px; }
+
+    .detail-info { flex: 1; }
+    .detail-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .detail-meta {
+      display: flex;
+      gap: 32px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .detail-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .detail-meta-item .label { color: var(--text-tertiary); }
+    .detail-meta-item .value { color: var(--text); font-weight: 500; }
+
+    .back-btn {
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+    }
+    .back-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    .detail-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .apply-btn {
+      padding: 8px 18px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .15s;
+      font-family: inherit;
+    }
+    .apply-btn:hover { background: var(--primary-dark); }
+
+    .detail-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .detail-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .detail-card-title::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    .detail-section { margin-bottom: 24px; }
+    .detail-section:last-child { margin-bottom: 0; }
+    .detail-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      padding-left: 10px;
+      border-left: 3px solid var(--primary);
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 24px;
+      font-size: 13px;
+    }
+    .detail-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.6;
+    }
+    .detail-item .label {
+      color: var(--text-secondary);
+      width: 80px;
+      flex-shrink: 0;
+    }
+    .detail-item .value {
+      color: var(--text);
+      flex: 1;
+      word-break: break-all;
+    }
+    .detail-item.full { grid-column: 1 / -1; }
+
+    /* 字段表格 */
+    .field-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .field-table th,
+    .field-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .field-table th {
+      background: #f8fafc;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .field-table tr:hover { background: #f8fafc; }
+    .field-table tr:last-child td { border-bottom: none; }
+
+    /* 弹窗 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 400;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+      width: 100%;
+      max-width: 820px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      line-height: 1;
+      font-family: inherit;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .form-row.three-col { grid-template-columns: repeat(3, 1fr); }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .form-group .required { color: var(--danger); margin-left: 2px; }
+    .form-group input[type="text"],
+    .form-group input[type="file"],
+    .form-group textarea {
+      height: 38px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .form-group input[type="file"] { padding: 7px 12px; }
+    .form-group textarea {
+      height: auto;
+      min-height: 72px;
+      padding: 10px 12px;
+      resize: vertical;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--primary); }
+    .form-section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 24px 0 16px;
+      padding-left: 10px;
+      border-left: 3px solid var(--primary);
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-primary, .btn-secondary {
+      height: 38px;
+      padding: 0 22px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 0 16px; height: 56px; }
+      .nav-menu { display: none; }
+      .hero { padding: 48px 16px 40px; }
+      .hero h1 { font-size: 28px; }
+      .hero p { font-size: 14px; }
+      .search-box { padding: 4px 4px 4px 16px; }
+      .search-box button { padding: 9px 20px; }
+      .filter-bar { padding: 0 16px; margin-top: -16px; }
+      .filter-card { padding: 16px; }
+      .filter-row { flex-direction: column; gap: 10px; }
+      .main-content { padding: 20px 16px 40px; }
+      .resource-grid { grid-template-columns: 1fr; }
+      .resource-meta-grid { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-meta { flex-direction: column; gap: 8px; }
+      .form-row, .form-row.three-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-nav">
+  <div class="nav-left">
+    <a href="home.html" class="nav-brand">
+      <div class="logo-icon">Z</div>
+      <span>数据跨域流通平台</span>
+    </a>
+    <ul class="nav-menu">
+      <li><a href="home.html">首页</a></li>
+      <li><a href="data-catalog.html" class="active">数据资源目录</a></li>
+      <li><a href="home.html">数据产品</a></li>
+      <li><a href="#">需求大厅</a></li>
+      <li><a href="operator-register.html">授权运营商入驻</a></li>
+    </ul>
+  </div>
+  <div class="nav-user" onclick="toggleUserDropdown(event)">
+    <div class="avatar">管</div>
+    <span>超级管理员</span>
+    <div class="user-dropdown" id="userDropdown">
+      <a href="dashboard.html">进入后台</a>
+      <button onclick="logout()">退出登录</button>
+    </div>
+  </div>
+</header>
+
+<!-- 列表视图 -->
+<div id="listView">
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>数据资源目录</h1>
+      <p>汇聚多源数据资源，提供统一的数据发现与申请入口，支撑安全、合规、高效的数据跨域流通。</p>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="请输入行业、领域或数据关键词" onkeyup="handleSearch(event)">
+        <button onclick="search()">搜索</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="filter-bar">
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="filter-label">行业分类：</div>
+        <div class="filter-options" id="industryFilter"></div>
+        <div class="filter-more" id="industryMore" onclick="toggleIndustryExpand()">
+          <span>展开</span><span>▼</span>
+        </div>
+      </div>
+      <div class="filter-row">
+        <div class="filter-label">资源类型：</div>
+        <div class="filter-options" id="typeFilter"></div>
+      </div>
+    </div>
+  </div>
+
+  <main class="main-content">
+    <div class="section-title">数据资源</div>
+    <div class="resource-grid" id="resourceGrid"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">暂无符合条件的数据资源</div>
+  </main>
+</div>
+
+<!-- 详情视图 -->
+<div id="detailView" style="display:none; padding: 24px 48px 48px;">
+  <div style="max-width:1360px;margin:0 auto;">
+    <div class="detail-header">
+      <div class="detail-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      </div>
+      <div class="detail-info">
+        <div class="detail-title" id="detailTitle">--</div>
+        <div class="detail-meta">
+          <div class="detail-meta-item">
+            <span class="label">数据资源编码</span>
+            <span class="value" id="detailCode">--</span>
+          </div>
+          <div class="detail-meta-item">
+            <span class="label">上架时间</span>
+            <span class="value" id="detailTime">--</span>
+          </div>
+        </div>
+      </div>
+      <div class="detail-actions">
+        <button class="apply-btn" onclick="openApplyModal()">授权数据申请</button>
+        <button class="back-btn" onclick="showList()">返回</button>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="detail-card-title">资源详情</div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">基本信息</div>
+        <div class="detail-grid" id="basicInfo"></div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">资源详情</div>
+        <table class="field-table">
+          <thead>
+            <tr>
+              <th style="width:18%">字段名</th>
+              <th style="width:30%">字段备注</th>
+              <th style="width:18%">字段类型</th>
+              <th style="width:18%">字段长度</th>
+            </tr>
+          </thead>
+          <tbody id="fieldTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 授权数据申请弹窗 -->
+<div class="modal-overlay" id="applyModal" onclick="if(event.target===this)closeApplyModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>授权数据申请</h3>
+      <button class="modal-close" onclick="closeApplyModal()" type="button">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="applyForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>数据资源名称 <span class="required">*</span></label>
+            <input type="text" id="applyResourceName" name="resourceName" readonly>
+          </div>
+          <div class="form-group">
+            <label>数据提供单位 <span class="required">*</span></label>
+            <input type="text" name="providerUnit" placeholder="请输入数据提供单位" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>申请单位 <span class="required">*</span></label>
+            <input type="text" name="applicant" placeholder="请输入申请单位名称" required>
+          </div>
+          <div class="form-group">
+            <label>授权运营场景 <span class="required">*</span></label>
+            <input type="text" name="scenario" id="applyScenario" list="scenarioOptions" placeholder="选择已通过场景，或手动输入" required>
+            <datalist id="scenarioOptions"></datalist>
+            <div id="scenarioHint" style="display:none;margin-top:6px;font-size:12px;color:var(--text-secondary);line-height:1.6;"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>申请数据周期 <span class="required">*</span></label>
+            <select name="applyCycle" style="width:100%;" required>
+              <option value="">请选择</option>
+              <option>月度</option>
+              <option>季度</option>
+              <option>年度</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>数据使用方式 <span class="required">*</span></label>
+            <select name="useMode" style="width:100%;" required>
+              <option value="">请选择</option>
+              <option>API实时调用</option>
+              <option>离线批量交换</option>
+              <option>数据沙箱</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label>数据资源数据项 <span class="required">*</span></label>
+          <input type="text" name="dataItems" placeholder="请输入需要申请的数据项" required>
+        </div>
+        <div class="form-group full">
+          <label>申请数据范围 <span class="required">*</span></label>
+          <textarea name="dataRange" rows="3" placeholder="例如：指定时间段内、指定特征值、指定区域等" required></textarea>
+        </div>
+        <div class="form-group full">
+          <label>待开发数据产品内容 <span class="required">*</span></label>
+          <textarea name="productContent" rows="3" placeholder="准确描述拟开发的数据产品内容" required></textarea>
+        </div>
+        <div class="form-group full">
+          <label>服务范围 <span class="required">*</span></label>
+          <textarea name="serviceScope" rows="3" placeholder="描述数据产品的服务范围" required></textarea>
+        </div>
+        <div class="form-group full">
+          <label>社会效益 <span class="required">*</span></label>
+          <textarea name="socialBenefit" rows="3" placeholder="描述预期社会效益" required></textarea>
+        </div>
+        <div class="form-row three-col">
+          <div class="form-group">
+            <label>数据安全责任单位 <span class="required">*</span></label>
+            <input type="text" name="securityOrg" placeholder="请输入单位名称" required>
+          </div>
+          <div class="form-group">
+            <label>责任人 <span class="required">*</span></label>
+            <input type="text" name="securityPerson" placeholder="请输入责任人姓名" required>
+          </div>
+          <div class="form-group">
+            <label>联系方式 <span class="required">*</span></label>
+            <input type="text" name="contact" placeholder="手机号/邮箱" required>
+          </div>
+        </div>
+        <div class="form-section-title">所需提交材料</div>
+        <div class="form-row three-col">
+          <div class="form-group">
+            <label>《授权运营协议》 <span class="required">*</span></label>
+            <input type="file" name="agreementFile" accept=".pdf,.doc,.docx" required>
+          </div>
+          <div class="form-group">
+            <label>《授权运营业务场景说明》 <span class="required">*</span></label>
+            <input type="file" name="scenarioFile" accept=".pdf,.doc,.docx" required>
+          </div>
+          <div class="form-group">
+            <label>《授权运营数据清单》 <span class="required">*</span></label>
+            <input type="file" name="dataListFile" accept=".pdf,.doc,.docx" required>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeApplyModal()" type="button">取消</button>
+      <button class="btn-primary" onclick="submitApplication()" type="button">提交申请</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 模拟数据资源
+  const resources = [
+    {
+      id: 1,
+      title: 'BUS站牌信息',
+      code: '91350211M0000XQ46X',
+      shelfTime: '2026-04-15 09:26:26',
+      description: '公交站牌信息直接服务于普通乘客，其核心是让等待变得可知、可控，将传统站点升级为集信息、便民、商业于一体的城市服务节点。',
+      tags: ['数据资产', '数据安全', '数据迁移'],
+      source: '采集',
+      industry: '城市公共交通运输',
+      type: '数据包',
+      basicInfo: {
+        name: '交通事件数据集',
+        industry: '城市公共交通运输',
+        type: '数据包',
+        desc: '公交站牌信息直接服务于普通乘客，其核心是让等待变得可知、可控，将传统站点升级为集信息、便民、商业于一体的城市服务节点。'
+      },
+      fields: [
+        { name: 'data_day', remark: '时间分区', type: 'DATE', length: '-' },
+        { name: 'xgsj', remark: '修改时间 格式：YYYY-MM-DD HH24:MI:SS', type: 'DATETIME', length: '-' },
+        { name: 'tkfsmc', remark: '停靠方式', type: 'VARCHAR', length: '50' },
+        { name: 'zmdz', remark: '具体地址（譬如路）', type: 'VARCHAR', length: '200' },
+        { name: 'ssxsqmc', remark: '所属区县（行政区划）', type: 'VARCHAR', length: '100' },
+        { name: 'gdwd', remark: '高德纬度', type: 'VARCHAR', length: '50' },
+        { name: 'gdjd', remark: '高德经度', type: 'VARCHAR', length: '50' },
+        { name: 'zwwd', remark: '站牌纬度/84坐标', type: 'VARCHAR', length: '50' },
+        { name: 'zwjd', remark: '站牌经度/84坐标', type: 'VARCHAR', length: '50' },
+        { name: 'tjd', remark: '途经线路', type: 'VARCHAR', length: '500' }
+      ]
+    },
+    {
+      id: 2,
+      title: '交通流量预测训练数据',
+      code: '91350211M0000XQ470',
+      shelfTime: '2026-04-15 09:26:33',
+      description: '用于训练时空预测模型（如LSTM、GRU、STGCN等），预测未来时间步的道路交通流量。',
+      tags: ['数据资产', '数据安全', '数据迁移'],
+      source: '采集',
+      industry: '道路运输业',
+      type: '数据包',
+      basicInfo: {
+        name: '道路交通流量数据集',
+        industry: '道路运输业',
+        type: '数据包',
+        desc: '基于历史交通流量数据构建的训练数据集，适用于各类时空预测模型训练。'
+      },
+      fields: [
+        { name: 'data_day', remark: '时间分区', type: 'DATE', length: '-' },
+        { name: 'road_id', remark: '道路编号', type: 'VARCHAR', length: '50' },
+        { name: 'flow', remark: '交通流量', type: 'INT', length: '-' },
+        { name: 'speed', remark: '平均车速', type: 'DECIMAL', length: '10,2' },
+        { name: 'occupancy', remark: '道路占有率', type: 'DECIMAL', length: '5,2' }
+      ]
+    },
+    {
+      id: 3,
+      title: '道路信息表',
+      code: '91350211M0000XQ471',
+      shelfTime: '2026-04-15 09:26:42',
+      description: '道路信息表构成了整个智能交通体系的“骨架”，是城市进行规划建设、管理和养护工作的基础。',
+      tags: ['数据资产', '数据安全', '数据迁移'],
+      source: '获取',
+      industry: '交通运输、仓储和邮政业',
+      type: '数据包',
+      basicInfo: {
+        name: '城市道路信息数据集',
+        industry: '交通运输、仓储和邮政业',
+        type: '数据包',
+        desc: '包含城市道路基础属性信息，支撑交通规划、管理与养护业务。'
+      },
+      fields: [
+        { name: 'road_id', remark: '道路编号', type: 'VARCHAR', length: '50' },
+        { name: 'road_name', remark: '道路名称', type: 'VARCHAR', length: '200' },
+        { name: 'road_level', remark: '道路等级', type: 'VARCHAR', length: '50' },
+        { name: 'road_length', remark: '道路长度（米）', type: 'DECIMAL', length: '10,2' },
+        { name: 'lane_count', remark: '车道数量', type: 'INT', length: '-' }
+      ]
+    },
+    {
+      id: 4,
+      title: '车辆GPS定位数据',
+      code: '91350211M0000XQ472',
+      shelfTime: '2026-04-15 09:27:01',
+      description: '车辆GPS定位数据是整个体系的实时“脉搏”。它提供了海量、连续的动态时空信息，是让交通系统“活”起来的关键。',
+      tags: ['数据资产', '数据安全', '数据迁移'],
+      source: '采集',
+      industry: '交通运输、仓储和邮政业',
+      type: '数据包',
+      basicInfo: {
+        name: '车辆GPS定位数据集',
+        industry: '交通运输、仓储和邮政业',
+        type: '数据包',
+        desc: '实时车辆GPS定位数据，提供车辆运行轨迹和动态位置信息。'
+      },
+      fields: [
+        { name: 'vehicle_id', remark: '车辆编号', type: 'VARCHAR', length: '50' },
+        { name: 'lon', remark: '经度', type: 'VARCHAR', length: '20' },
+        { name: 'lat', remark: '纬度', type: 'VARCHAR', length: '20' },
+        { name: 'gpstime', remark: '定位时间', type: 'DATETIME', length: '-' },
+        { name: 'speed', remark: '速度', type: 'DECIMAL', length: '5,2' }
+      ]
+    },
+    {
+      id: 5,
+      title: '高德地图通勤数据',
+      code: '91350211M0000XQ473',
+      shelfTime: '2026-07-24 14:35:04',
+      description: '主要用于宏观层面的洞察、规划和优化，为城市治理者提供量化决策支持。',
+      tags: ['数据资产', '数据安全', '数据迁移'],
+      source: '采集',
+      industry: '道路运输业',
+      type: '数据包',
+      basicInfo: {
+        name: '城市通勤特征数据集',
+        industry: '道路运输业',
+        type: '数据包',
+        desc: '基于地图大数据提取的城市通勤特征数据，支持城市规划与交通治理。'
+      },
+      fields: [
+        { name: 'od_id', remark: '通勤OD编号', type: 'VARCHAR', length: '50' },
+        { name: 'origin_zone', remark: '起点区域', type: 'VARCHAR', length: '100' },
+        { name: 'dest_zone', remark: '终点区域', type: 'VARCHAR', length: '100' },
+        { name: 'commute_count', remark: '通勤人数', type: 'INT', length: '-' },
+        { name: 'avg_time', remark: '平均通勤时间（分钟）', type: 'INT', length: '-' }
+      ]
+    },
+    {
+      id: 6,
+      title: '获取公交司机人员信息接口',
+      code: '91350211M0000XQ474',
+      shelfTime: '2026-04-15 11:21:14',
+      description: '本接口提供公交企业内部管约司机人员信息查询能力。',
+      tags: ['数据资产', '数据安全', '数据迁移'],
+      source: '获取',
+      industry: '城市公共交通运输',
+      type: '数据接口',
+      basicInfo: {
+        name: '公交司机人员信息服务',
+        industry: '城市公共交通运输',
+        type: '数据接口',
+        desc: '面向公交企业内部管理人员信息查询的标准化数据接口。'
+      },
+      fields: [
+        { name: 'driver_id', remark: '司机编号', type: 'VARCHAR', length: '50' },
+        { name: 'name', remark: '姓名', type: 'VARCHAR', length: '50' },
+        { name: 'phone', remark: '手机号', type: 'VARCHAR', length: '20' },
+        { name: 'company', remark: '所属公司', type: 'VARCHAR', length: '100' },
+        { name: 'status', remark: '在职状态', type: 'VARCHAR', length: '20' }
+      ]
+    }
+  ];
+
+  const industries = ['全部','城市公共交通运输','道路运输业','交通运输、仓储和邮政业','信息传输、软件和信息技术服务业','金融业','水利、环境和公共设施管理业'];
+  const types = ['全部','数据包','数据接口','数据集','数据报告','其他'];
+
+  let filteredResources = [...resources];
+  let currentDetailItem = null;
+  let applyScenarioPreset = '';
+  let currentIndustry = '全部';
+  let currentType = '全部';
+  let keyword = '';
+  let industryExpanded = false;
+
+  function toggleUserDropdown(event) {
+    event.stopPropagation();
+    document.getElementById('userDropdown').classList.toggle('show');
+  }
+
+  document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown && dropdown.classList.contains('show')) {
+      const userEl = document.querySelector('.nav-user');
+      if (userEl && !userEl.contains(event.target)) {
+        dropdown.classList.remove('show');
+      }
+    }
+  });
+
+  function logout() {
+    if (confirm('确定要退出登录吗？')) {
+      window.location.href = 'index.html';
+    }
+  }
+
+  function getPassedScenarios() {
+    try {
+      const custom = JSON.parse(localStorage.getItem('scenarioRecords') || '[]');
+      const seed = [
+        { id: 'SC-20260717-001', name: '城市交通精准治理场景', scope: '仅用于城市交通拥堵治理、公交调度优化等政务场景。' },
+        { id: 'SC-20260720-002', name: '中小企业信用评估场景', scope: '仅用于信贷风险评估场景，不用于消费贷与催收用途。' }
+      ];
+      const list = custom.length ? custom : seed;
+      return list.filter(s => s.status === 'passed');
+    } catch (e) { return []; }
+  }
+
+  function renderScenarioOptions() {
+    const dl = document.getElementById('scenarioOptions');
+    if (!dl) return;
+    dl.innerHTML = getPassedScenarios().map(s =>
+      '<option value="' + s.name + '（' + s.id + '）">'
+    ).join('');
+    const input = document.getElementById('applyScenario');
+    if (input && !input.dataset.hooked) {
+      input.dataset.hooked = '1';
+      input.addEventListener('input', updateScenarioHint);
+    }
+  }
+
+  function updateScenarioHint() {
+    const input = document.getElementById('applyScenario');
+    const hint = document.getElementById('scenarioHint');
+    if (!input || !hint) return;
+    const v = input.value.trim();
+    const m = v.match(/[（(](SC-[^)）]+)[)）]/);
+    const list = getPassedScenarios();
+    const sc = m ? list.find(s => s.id === m[1]) : (v ? list.find(s => s.name === v || s.id === v) : null);
+    if (sc && sc.scope) {
+      hint.textContent = '该场景数据使用范围：' + sc.scope;
+      hint.style.display = 'block';
+    } else if (v && !m) {
+      hint.textContent = '未匹配到已通过场景，将以文本形式提交';
+      hint.style.display = 'block';
+    } else {
+      hint.style.display = 'none';
+    }
+  }
+
+  function init() {
+    const params = new URLSearchParams(location.search);
+    applyScenarioPreset = params.get('scenario') || '';
+    renderIndustryFilter();
+    renderTypeFilter();
+    renderList();
+    renderScenarioOptions();
+    applyUrlScenario();
+  }
+
+  // 从场景详情「申请数据资源」跳转而来时预填场景
+  function applyUrlScenario() {
+    if (!applyScenarioPreset) return;
+    const input = document.getElementById('applyScenario');
+    const list = getPassedScenarios();
+    const sc = list.find(s => s.id === applyScenarioPreset);
+    if (!input || !sc) return;
+    input.value = sc.name + '（' + sc.id + '）';
+    updateScenarioHint();
+  }
+
+  function renderIndustryFilter() {
+    const container = document.getElementById('industryFilter');
+    const show = industryExpanded ? industries : industries.slice(0, 5);
+    container.innerHTML = show.map(item =>
+      `<button class="${currentIndustry === item ? 'active' : ''}" onclick="setIndustry('${item}')">${item}</button>`
+    ).join('');
+    document.querySelector('#industryMore span:first-child').textContent = industryExpanded ? '收起' : '展开';
+  }
+
+  function renderTypeFilter() {
+    const container = document.getElementById('typeFilter');
+    container.innerHTML = types.map(item =>
+      `<button class="${currentType === item ? 'active' : ''}" onclick="setType('${item}')">${item}</button>`
+    ).join('');
+  }
+
+  function toggleIndustryExpand() {
+    industryExpanded = !industryExpanded;
+    renderIndustryFilter();
+  }
+
+  function setIndustry(item) {
+    currentIndustry = item;
+    renderIndustryFilter();
+    filterResources();
+  }
+
+  function setType(item) {
+    currentType = item;
+    renderTypeFilter();
+    filterResources();
+  }
+
+  function handleSearch(e) {
+    keyword = e.target.value.trim();
+    if (e.key === 'Enter') filterResources();
+  }
+
+  function search() {
+    keyword = document.getElementById('searchInput').value.trim();
+    filterResources();
+  }
+
+  function filterResources() {
+    const kw = keyword.toLowerCase();
+    filteredResources = resources.filter(item => {
+      const matchIndustry = currentIndustry === '全部' || item.industry === currentIndustry;
+      const matchType = currentType === '全部' || item.type === currentType;
+      const matchKeyword = !kw ||
+        item.title.toLowerCase().includes(kw) ||
+        item.description.toLowerCase().includes(kw) ||
+        item.industry.toLowerCase().includes(kw) ||
+        item.type.toLowerCase().includes(kw);
+      return matchIndustry && matchType && matchKeyword;
+    });
+    renderList();
+  }
+
+  function renderList() {
+    const grid = document.getElementById('resourceGrid');
+    const empty = document.getElementById('emptyState');
+    if (filteredResources.length === 0) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    grid.innerHTML = filteredResources.map(item => `
+      <div class="resource-card" onclick="showDetail(${item.id})">
+        <div class="resource-title">${item.title}</div>
+        <div class="resource-desc">${item.description}</div>
+        <div class="resource-tags">
+          ${item.tags.map(tag => `<span>${tag}</span>`).join('')}
+        </div>
+        <div class="resource-meta-grid">
+          <div class="resource-meta"><strong>数据来源</strong> ${item.source}</div>
+          <div class="resource-meta"><strong>行业分类</strong> ${item.industry}</div>
+          <div class="resource-meta"><strong>资源类型</strong> ${item.type}</div>
+          <div class="resource-meta"><strong>上架时间</strong> ${item.shelfTime}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function showDetail(id) {
+    const item = resources.find(r => r.id === id);
+    if (!item) return;
+    currentDetailItem = item;
+
+    document.getElementById('detailTitle').textContent = item.title;
+    document.getElementById('detailCode').textContent = item.code;
+    document.getElementById('detailTime').textContent = item.shelfTime;
+
+    const basicInfo = document.getElementById('basicInfo');
+    basicInfo.innerHTML = `
+      <div class="detail-item"><span class="label">资源名称</span><span class="value">${item.basicInfo.name}</span></div>
+      <div class="detail-item"><span class="label">行业分类</span><span class="value">${item.basicInfo.industry}</span></div>
+      <div class="detail-item"><span class="label">资源类型</span><span class="value">${item.basicInfo.type}</span></div>
+      <div class="detail-item full"><span class="label">资源描述</span><span class="value">${item.basicInfo.desc}</span></div>
+    `;
+
+    document.getElementById('fieldTableBody').innerHTML = item.fields.map(field => `
+      <tr>
+        <td>${field.name}</td>
+        <td>${field.remark}</td>
+        <td>${field.type}</td>
+        <td>${field.length}</td>
+      </tr>
+    `).join('');
+
+    document.getElementById('listView').style.display = 'none';
+    document.getElementById('detailView').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showList() {
+    document.getElementById('listView').style.display = 'block';
+    document.getElementById('detailView').style.display = 'none';
+    currentDetailItem = null;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function openApplyModal() {
+    if (!currentDetailItem) return;
+    document.getElementById('applyResourceName').value = currentDetailItem.title;
+    document.getElementById('applyModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeApplyModal() {
+    document.getElementById('applyModal').classList.remove('show');
+    document.body.style.overflow = '';
+    document.getElementById('applyForm').reset();
+  }
+
+  function submitApplication() {
+    const form = document.getElementById('applyForm');
+    const requiredInputs = form.querySelectorAll('input[required], textarea[required]');
+    for (const input of requiredInputs) {
+      if (!input.value.trim()) {
+        alert('请填写所有必填项');
+        input.focus();
+        return;
+      }
+    }
+    const fileInputs = form.querySelectorAll('input[type="file"]');
+    for (const input of fileInputs) {
+      if (!input.files || input.files.length === 0) {
+        alert('请上传所需材料：' + input.previousElementSibling.textContent.replace(/\s*\*\s*$/, ''));
+        input.focus();
+        return;
+      }
+    }
+    // 收集表单数据并写入 dataApplyRecords，供后台 apply-records.html 查看
+    const fd = new FormData(form);
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const id = 'SQ' + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) +
+      pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+    // 场景：优先解析为场景 ID（与后台 scenario 下拉对齐），无法匹配时保留文本
+    let scenario = fd.get('scenario') || '';
+    if (scenario) {
+      const m = scenario.match(/[（(](SC-[^)）]+)[)）]/);
+      const hit = m
+        ? getPassedScenarios().find(s => s.id === m[1])
+        : getPassedScenarios().find(s => s.name === scenario || s.id === scenario);
+      if (hit) scenario = hit.id;
+    }
+    const record = {
+      id: id,
+      resourceName: fd.get('resourceName') || '',
+      providerUnit: fd.get('providerUnit') || '',
+      scenario: scenario,
+      applicant: fd.get('applicant') || '',
+      applyCycle: fd.get('applyCycle') || '',
+      useMode: fd.get('useMode') || '',
+      securityOrg: fd.get('securityOrg') || '',
+      securityPerson: fd.get('securityPerson') || '',
+      contact: fd.get('contact') || '',
+      applyTime: now.toLocaleString('zh-CN', { hour12: false }),
+      status: 'pending',
+      dataItems: fd.get('dataItems') || '',
+      dataRange: fd.get('dataRange') || '',
+      productContent: fd.get('productContent') || '',
+      serviceScope: fd.get('serviceScope') || '',
+      socialBenefit: fd.get('socialBenefit') || '',
+      materials: ['《授权运营协议》', '《授权运营业务场景说明》', '《授权运营数据清单》']
+    };
+    const list = JSON.parse(localStorage.getItem('dataApplyRecords') || '[]');
+    list.unshift(record);
+    localStorage.setItem('dataApplyRecords', JSON.stringify(list));
+
+    alert('授权数据申请已提交，等待独立审批后台审批。');
+    closeApplyModal();
+  }
+
+  init();
+</script>
+
+</body>
+</html>

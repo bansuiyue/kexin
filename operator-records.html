@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>授权运营商入驻记录 - 数据跨域流通平台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #1f2937;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #f3f6fb;
+      --card-bg: #ffffff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-nav {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .nav-left { display: flex; align-items: center; gap: 40px; }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 700; color: #1e3a8a; text-decoration: none;
+    }
+    .nav-brand .logo-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px;
+    }
+    .nav-menu { display: flex; align-items: center; gap: 8px; list-style: none; }
+    .nav-menu a {
+      display: block; padding: 8px 16px; font-size: 14px;
+      color: var(--text-secondary); text-decoration: none;
+      border-radius: 6px; transition: all .15s; white-space: nowrap;
+    }
+    .nav-menu a:hover { color: var(--primary); background: var(--primary-light); }
+    .nav-menu a.active { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+
+    .nav-user {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 6px;
+      transition: background .15s;
+    }
+    .nav-user:hover { background: #f3f4f6; }
+    .nav-user .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+    }
+    .user-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 150px; background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      z-index: 300; overflow: hidden;
+    }
+    .user-dropdown.show { display: block; }
+    .user-dropdown a, .user-dropdown button {
+      display: block; width: 100%; padding: 10px 16px; font-size: 14px;
+      color: var(--text); text-decoration: none; background: #fff; border: none;
+      text-align: left; cursor: pointer; transition: background .15s; font-family: inherit;
+    }
+    .user-dropdown a:hover, .user-dropdown button:hover { background: #f3f4f6; }
+
+    .page-title-bar {
+      background: #fff; border-bottom: 1px solid var(--border); padding: 24px 40px;
+      text-align: center;
+    }
+    .page-title-bar h1 {
+      font-size: 22px; font-weight: 700; color: var(--text);
+      display: inline-flex; align-items: center; gap: 10px;
+    }
+    .page-title-bar h1::before {
+      content: ''; display: inline-block; width: 4px; height: 18px;
+      background: var(--primary); border-radius: 2px;
+    }
+
+    .page-container { flex: 1; padding: 24px 40px 60px; }
+    .main-layout { max-width: 1100px; margin: 0 auto; }
+
+    .stats-bar {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 16px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 18px 20px; text-align: center;
+    }
+    .stat-value { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+    .stat-label { font-size: 13px; color: var(--text-secondary); }
+    .stat-card.total .stat-value { color: var(--primary); }
+    .stat-card.pending .stat-value { color: var(--warning); }
+    .stat-card.approved .stat-value { color: var(--success); }
+    .stat-card.rejected .stat-value { color: var(--danger); }
+
+    .card {
+      background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .card-header h3 {
+      font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+    }
+    .card-header h3::before {
+      content: ''; width: 4px; height: 16px; background: var(--primary); border-radius: 2px;
+    }
+    .filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .filter-row input, .filter-row select {
+      height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 14px; font-family: inherit; color: var(--text);
+    }
+    .filter-row input { width: 220px; }
+    .filter-row button {
+      height: 36px; padding: 0 18px; border-radius: 6px; font-size: 14px;
+      border: 1px solid var(--primary); background: var(--primary); color: #fff;
+      cursor: pointer; font-family: inherit;
+    }
+    .filter-row button:hover { background: var(--primary-dark); }
+    .filter-row button.outline { background: #fff; color: var(--primary); }
+    .filter-row button.outline:hover { background: var(--primary-light); }
+
+    .record-list { display: flex; flex-direction: column; gap: 16px; padding: 24px; }
+    .record-card {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; display: flex; gap: 20px; align-items: flex-start; transition: all .15s;
+    }
+    .record-card:hover { box-shadow: var(--shadow); border-color: var(--primary-light); }
+    .record-icon {
+      width: 48px; height: 48px; border-radius: 10px;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 20px; font-weight: 700;
+    }
+    .record-main { flex: 1; }
+    .record-title {
+      font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .record-meta {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 24px;
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .record-meta span strong { color: var(--text); font-weight: 500; }
+    .record-status {
+      flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+      min-width: 120px;
+    }
+    .status-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 12px; border-radius: 50px; font-size: 13px; font-weight: 600;
+    }
+    .status-tag.pending { background: #fffbeb; color: var(--warning); }
+    .status-tag.approved { background: #d1fae5; color: var(--success); }
+    .status-tag.rejected { background: #fee2e2; color: var(--danger); }
+    .status-time { font-size: 12px; color: var(--text-tertiary); }
+    .record-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .record-actions button {
+      height: 32px; padding: 0 14px; font-size: 13px; border-radius: 6px;
+      border: 1px solid var(--border); background: #fff; color: var(--text);
+      cursor: pointer; font-family: inherit; transition: all .15s;
+    }
+    .record-actions button:hover { border-color: var(--primary); color: var(--primary); }
+    .record-actions button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .record-actions button.primary:hover { background: var(--primary-dark); }
+
+    .empty-state {
+      text-align: center; padding: 60px 24px; color: var(--text-secondary); font-size: 14px;
+    }
+
+    .progress-wrap {
+      margin-top: 12px; padding: 14px 16px; background: #f8fafc; border-radius: 6px;
+    }
+    .progress-title { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
+    .progress-track { display: flex; align-items: center; gap: 8px; position: relative; }
+    .progress-step {
+      display: flex; align-items: center; gap: 6px; font-size: 12px;
+      color: var(--text-tertiary); white-space: nowrap;
+    }
+    .progress-step .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+    .progress-step.done { color: var(--text); }
+    .progress-step.done .dot { background: var(--success); }
+    .progress-step.current { color: var(--primary); font-weight: 600; }
+    .progress-step.current .dot { background: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+    .progress-line { flex: 1; height: 2px; background: var(--border); min-width: 20px; }
+    .progress-line.done { background: var(--success); }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(15,23,42,.5);
+      z-index: 1000; align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 12px; width: 100%; max-width: 720px;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .modal-header {
+      padding: 18px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-header h3 { font-size: 16px; font-weight: 600; }
+    .modal-close {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; cursor: pointer; border: none; background: none;
+      font-size: 20px; color: var(--text-secondary);
+    }
+    .modal-close:hover { background: #f3f4f6; }
+    .modal-body { padding: 24px; }
+    .detail-section-title {
+      font-size: 14px; font-weight: 700; color: var(--text);
+      margin-bottom: 14px; padding-left: 10px; border-left: 3px solid var(--primary);
+    }
+    .detail-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 24px;
+      font-size: 13px; margin-bottom: 20px;
+    }
+    .detail-item { display: flex; gap: 8px; line-height: 1.6; }
+    .detail-item .label { color: var(--text-secondary); width: 110px; flex-shrink: 0; }
+    .detail-item .value { color: var(--text); flex: 1; word-break: break-all; }
+    .rejection-box {
+      background: #fee2e2; border: 1px solid #fecaca; border-radius: 6px;
+      padding: 12px 16px; color: #991b1b; font-size: 13px; line-height: 1.6;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .top-nav { padding: 0 16px; }
+      .nav-menu { display: none; }
+      .page-title-bar { padding: 18px 16px; }
+      .page-title-bar h1 { font-size: 18px; }
+      .page-container { padding: 16px 16px 40px; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .record-card { flex-direction: column; }
+      .record-status { align-items: flex-start; width: 100%; }
+      .record-meta { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-nav">
+  <div class="nav-left">
+    <a href="home.html" class="nav-brand">
+      <div class="logo-icon">Z</div>
+      <span>数据跨域流通平台</span>
+    </a>
+    <ul class="nav-menu">
+      <li><a href="home.html">首页</a></li>
+      <li><a href="data-catalog.html">数据资源目录</a></li>
+      <li><a href="home.html">数据产品</a></li>
+      <li><a href="#">需求大厅</a></li>
+      <li><a href="operator-register.html" class="active">授权运营商入驻</a></li>
+    </ul>
+  </div>
+  <div class="nav-user" onclick="toggleUserDropdown(event)">
+    <div class="avatar">管</div>
+    <span>超级管理员</span>
+    <div class="user-dropdown" id="userDropdown">
+      <a href="operator-apply.html">授权运营商入驻申请</a>
+      <a href="dashboard.html">进入后台</a>
+      <button onclick="logout()">退出登录</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-title-bar">
+  <h1>授权运营商入驻记录</h1>
+</div>
+
+<div class="page-container">
+  <div class="main-layout">
+
+    <div class="stats-bar">
+      <div class="stat-card total"><div class="stat-value" id="statTotal">0</div><div class="stat-label">全部申请</div></div>
+      <div class="stat-card pending"><div class="stat-value" id="statPending">0</div><div class="stat-label">审核中</div></div>
+      <div class="stat-card approved"><div class="stat-value" id="statApproved">0</div><div class="stat-label">已通过</div></div>
+      <div class="stat-card rejected"><div class="stat-value" id="statRejected">0</div><div class="stat-label">已驳回</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>入驻申请列表</h3>
+        <div class="filter-row">
+          <select id="statusFilter" onchange="renderRecords()">
+            <option value="">全部状态</option>
+            <option value="reviewing">审核中</option>
+            <option value="approved">已通过</option>
+            <option value="rejected">已驳回</option>
+          </select>
+          <input type="text" id="keywordInput" placeholder="授权运营商名称/统一信用代码" onkeyup="if(event.key==='Enter') renderRecords()">
+          <button onclick="renderRecords()">查询</button>
+          <button class="outline" onclick="goApply()">+ 重新申请</button>
+        </div>
+      </div>
+      <div id="recordListContainer">
+        <div class="record-list" id="recordList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetail()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>入驻申请详情</h3>
+      <button class="modal-close" onclick="closeDetail()" type="button">&times;</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<script>
+  const statusMap = {
+    reviewing: { label: '审核中', className: 'pending', icon: '⏳' },
+    approved: { label: '已通过', className: 'approved', icon: '✓' },
+    rejected: { label: '已驳回', className: 'rejected', icon: '✕' }
+  };
+
+  // 默认模拟记录（含不同审批状态），新提交会追加
+  let records = JSON.parse(localStorage.getItem('operatorRecords') || '[]');
+  if (records.length === 0) {
+    records = [
+      {
+        id: 'OP20260801001', operatorName: '义乌市授权运营数据服务有限公司',
+        creditCode: '91330782MA2JX8KQ3T', legalRep: '陈志远',
+        domains: '商贸物流、金融服务', bizScope: '数据产品开发',
+        contactName: '吴晓婷', contactPhone: '15957902345',
+        applyTime: '2026-08-01 10:20:15', status: 'approved',
+        progress: ['提交申请', '资质审核', '安全评估', '入驻开通'],
+        remark: '资质审核通过，安全评估无风险项，已开通授权运营权限。'
+      },
+      {
+        id: 'OP20260806002', operatorName: '浙江云算大数据科技有限公司',
+        creditCode: '91330782MA2JX9AB1C', legalRep: '王建国',
+        domains: '工业制造、城市治理', bizScope: '数据治理',
+        contactName: '李芳', contactPhone: '13857906666',
+        applyTime: '2026-08-06 14:22:08', status: 'reviewing',
+        progress: ['提交申请', '资质审核', '安全评估', '入驻开通'],
+        remark: ''
+      },
+      {
+        id: 'OP20260809003', operatorName: '义乌市智联网络技术有限公司',
+        creditCode: '91330782MA2JX0XY2Z', legalRep: '赵敏',
+        domains: '交通运输', bizScope: '数据采集',
+        contactName: '赵敏', contactPhone: '13757907777',
+        applyTime: '2026-08-09 11:05:42', status: 'rejected',
+        progress: ['提交申请', '资质审核', '安全评估', '已驳回'],
+        remark: '数据安全自评估报告内容不完整，缺少数据分级分类方案，请补充后重新提交。'
+      }
+    ];
+    saveRecords();
+  }
+
+  function toggleUserDropdown(event) {
+    event.stopPropagation();
+    document.getElementById('userDropdown').classList.toggle('show');
+  }
+
+  document.addEventListener('click', function (event) {
+    const dropdown = document.getElementById('userDropdown');
+    if (dropdown && dropdown.classList.contains('show')) {
+      const userEl = document.querySelector('.nav-user');
+      if (userEl && !userEl.contains(event.target)) {
+        dropdown.classList.remove('show');
+      }
+    }
+  });
+
+  function logout() {
+    if (confirm('确定要退出登录吗？')) {
+      location.href = 'index.html';
+    }
+  }
+
+  function saveRecords() {
+    localStorage.setItem('operatorRecords', JSON.stringify(records));
+  }
+
+  function goApply() {
+    location.href = 'operator-apply.html';
+  }
+
+  function formatStatus(status) {
+    const s = statusMap[status] || { label: status, className: 'pending', icon: '' };
+    return `<span class="status-tag ${s.className}">${s.icon} ${s.label}</span>`;
+  }
+
+  function renderStats() {
+    const total = records.length;
+    const pending = records.filter(r => r.status === 'reviewing').length;
+    const approved = records.filter(r => r.status === 'approved').length;
+    const rejected = records.filter(r => r.status === 'rejected').length;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statApproved').textContent = approved;
+    document.getElementById('statRejected').textContent = rejected;
+  }
+
+  function renderProgress(progress, status) {
+    const steps = progress || ['提交申请', '资质审核', '安全评估', '入驻开通'];
+    const doneIndex = status === 'rejected' ? steps.length - 1 : (status === 'approved' ? steps.length - 1 : steps.length - 2);
+    let html = '<div class="progress-wrap"><div class="progress-title">审批进度</div><div class="progress-track">';
+    steps.forEach((step, idx) => {
+      const isDone = idx <= doneIndex;
+      const isCurrent = status === 'reviewing' && idx === doneIndex + 1;
+      let cls = '';
+      if (isCurrent) cls = 'current';
+      else if (isDone) cls = 'done';
+      if (idx > 0) {
+        html += `<div class="progress-line ${isDone ? 'done' : ''}"></div>`;
+      }
+      html += `<div class="progress-step ${cls}"><span class="dot"></span>${step}</div>`;
+    });
+    html += '</div></div>';
+    return html;
+  }
+
+  function renderRecords() {
+    const status = document.getElementById('statusFilter').value;
+    const kw = document.getElementById('keywordInput').value.trim().toLowerCase();
+
+    const filtered = records.filter(r => {
+      const matchStatus = !status || r.status === status;
+      const matchKw = !kw || r.operatorName.toLowerCase().includes(kw) || r.creditCode.toLowerCase().includes(kw);
+      return matchStatus && matchKw;
+    }).sort((a, b) => b.applyTime.localeCompare(a.applyTime));
+
+    const container = document.getElementById('recordListContainer');
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty-state">暂无授权运营商入驻申请记录</div>';
+      return;
+    }
+    container.innerHTML = '<div class="record-list" id="recordList"></div>';
+    const newList = document.getElementById('recordList');
+    newList.innerHTML = filtered.map(r => `
+      <div class="record-card">
+        <div class="record-icon">${r.operatorName.charAt(0)}</div>
+        <div class="record-main">
+          <div class="record-title">${r.operatorName} ${formatStatus(r.status)}</div>
+          <div class="record-meta">
+            <span><strong>申请编号</strong> ${r.id}</span>
+            <span><strong>统一社会信用代码</strong> ${r.creditCode}</span>
+            <span><strong>主营数据业务</strong> ${r.bizScope}</span>
+            <span><strong>申请时间</strong> ${r.applyTime}</span>
+          </div>
+          ${renderProgress(r.progress, r.status)}
+        </div>
+        <div class="record-status">
+          <div class="status-time">${r.applyTime}</div>
+          <div class="record-actions">
+            <button onclick="showDetail('${r.id}')">查看详情</button>
+            ${r.status === 'rejected' ? '<button class="primary" onclick="reApply(\'' + r.id + '\')">重新申请</button>' : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function showDetail(id) {
+    const r = records.find(x => x.id === id);
+    if (!r) return;
+    const body = document.getElementById('detailBody');
+    body.innerHTML = `
+      <div class="detail-section-title">申请信息</div>
+      <div class="detail-grid">
+        <div class="detail-item"><span class="label">申请编号</span><span class="value">${r.id}</span></div>
+        <div class="detail-item"><span class="label">申请状态</span><span class="value">${formatStatus(r.status)}</span></div>
+        <div class="detail-item"><span class="label">授权运营商名称</span><span class="value">${r.operatorName}</span></div>
+        <div class="detail-item"><span class="label">统一信用代码</span><span class="value">${r.creditCode}</span></div>
+        <div class="detail-item"><span class="label">法定代表人</span><span class="value">${r.legalRep}</span></div>
+        <div class="detail-item"><span class="label">主营数据领域</span><span class="value">${r.domains}</span></div>
+        <div class="detail-item"><span class="label">主营数据业务</span><span class="value">${r.bizScope}</span></div>
+        <div class="detail-item"><span class="label">联系人</span><span class="value">${r.contactName}</span></div>
+        <div class="detail-item"><span class="label">联系电话</span><span class="value">${r.contactPhone}</span></div>
+        <div class="detail-item"><span class="label">申请时间</span><span class="value">${r.applyTime}</span></div>
+      </div>
+      <div class="detail-section-title">审批进度</div>
+      ${renderProgress(r.progress, r.status)}
+      ${r.remark ? `<div class="rejection-box"><strong>审核意见：</strong>${r.remark}</div>` : ''}
+    `;
+    document.getElementById('detailModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDetail() {
+    document.getElementById('detailModal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  function reApply(id) {
+    location.href = 'operator-apply.html?reApply=' + encodeURIComponent(id);
+  }
+
+  renderStats();
+  renderRecords();
+</script>
+
+</body>
+</html>
