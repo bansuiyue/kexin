@@ -174,6 +174,11 @@
     }
     .product-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
     .product-title { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .product-source-badge {
+      display: inline-block; font-size: 11px; font-weight: 600; color: #fff;
+      background: linear-gradient(90deg, #2563eb, #06b6d4); border-radius: 3px;
+      padding: 1px 6px; margin-right: 6px; vertical-align: 2px;
+    }
     .product-desc {
       font-size: 13px; color: var(--text-secondary); line-height: 1.7;
       margin-bottom: 14px; min-height: 44px;
@@ -239,7 +244,6 @@
         <li><a href="home.html" class="active">数据产品</a></li>
         <li><a href="scenarios.html">授权场景</a></li>
         <li><a href="data-catalog.html">数据资源目录</a></li>
-        <li><a href="consult-records.html">数据咨询</a></li>
         <li><a href="#">需求大厅</a></li>
         <li><a href="operator-register.html">授权运营商入驻</a></li>
       </ul>
@@ -335,6 +339,63 @@
     var keyword = '';
     var industryExpanded = false;
 
+    // 数据产品管理 → 出域审批通过 → 上架 后，同步展示到平台数据产品列表
+    var managedProductTypeMap = { dataset: '数据集', api: 'API产品', report: '数据报告', app: '数据应用' };
+    function loadManagedProducts() {
+      var list = [];
+      try {
+        list = JSON.parse(localStorage.getItem('productRecords') || '[]');
+      } catch (e) { list = []; }
+      return (list || []).filter(function(p) {
+        return p.shelfStatus === 'online';
+      }).map(function(p) {
+        return {
+          id: 'm' + p.id,
+          title: p.name,
+          desc: p.desc || '',
+          tags: (p.tags && p.tags.length) ? p.tags.slice(0, 3) : [managedProductTypeMap[p.type] || '数据集'],
+          time: p.onlineTime || p.auditTime || '-',
+          industry: categoryIndustryName(p.category),
+          type: managedProductTypeMap[p.type] || '数据集',
+          price: p.fee || '0',
+          unit: (p.feeUnit && p.feeUnit !== '免费') ? '/' + p.feeUnit : ''
+        };
+      });
+    }
+    // 数据产品分类ID → 平台行业分类
+    function categoryIndustryName(catId) {
+      if (!catId) return '其他';
+      if (catId.indexOf('agriculture') === 0) return '农、林、牧、渔业';
+      if (catId.indexOf('mining') === 0) return '采矿业';
+      if (catId.indexOf('manufacturing') === 0) return '制造业';
+      if (catId.indexOf('utilities') === 0) return '电力、热力、燃气及水生产和供应业';
+      if (catId.indexOf('construction') === 0) return '建筑业';
+      if (catId.indexOf('wholesale') === 0 || catId.indexOf('retail') === 0) return '批发和零售业';
+      if (catId.indexOf('transport') === 0) return '交通运输、仓储和邮政业';
+      if (catId.indexOf('hospitality') === 0) return '住宿和餐饮业';
+      if (catId.indexOf('it') === 0 || catId.indexOf('software') === 0) return '信息传输、软件和信息技术服务业';
+      if (catId.indexOf('finance') === 0) return '金融业';
+      if (catId.indexOf('realestate') === 0) return '房地产业';
+      if (catId.indexOf('leasing') === 0) return '租赁和商务服务业';
+      if (catId.indexOf('science') === 0) return '科学研究和技术服务业';
+      if (catId.indexOf('water') === 0) return '水利、环境和公共设施管理业';
+      return '其他';
+    }
+    // 合并：平台已展示产品 + 管理端已上架产品（名称去重，管理端产品优先并控制展示）
+    function getAllProducts() {
+      var managed = loadManagedProducts();
+      var managedTitles = {};
+      try {
+        var all = JSON.parse(localStorage.getItem('productRecords') || '[]');
+        (all || []).forEach(function(p) { if (p.name) managedTitles[p.name] = true; });
+      } catch (e) { /* ignore */ }
+      var merged = managed.slice();
+      products.forEach(function(p) {
+        if (!managedTitles[p.title]) merged.push(p);
+      });
+      return merged;
+    }
+
     function init() {
       renderIndustryFilter();
       renderTypeFilter();
@@ -385,7 +446,7 @@
     }
 
     function renderProducts() {
-      var filtered = products.filter(function(p) {
+      var filtered = getAllProducts().filter(function(p) {
         var matchIndustry = currentIndustry === '全部' || p.industry === currentIndustry;
         var matchType = currentType === '全部' || p.type === currentType;
         var matchKeyword = !keyword || p.title.indexOf(keyword) !== -1 || p.desc.indexOf(keyword) !== -1 || p.tags.some(function(t){ return t.indexOf(keyword) !== -1; });
@@ -401,8 +462,9 @@
       }
       empty.style.display = 'none';
       grid.innerHTML = filtered.map(function(p) {
+        var badge = p.id.indexOf('m') === 0 ? '<span class="product-source-badge">运营方上架</span>' : '';
         return '<div class="product-card">' +
-          '<div class="product-title">' + p.title + '</div>' +
+          '<div class="product-title">' + badge + p.title + '</div>' +
           '<div class="product-desc">' + p.desc + '</div>' +
           '<div class="product-tags">' + p.tags.map(function(t){ return '<span>' + t + '</span>'; }).join('') + '</div>' +
           '<div class="product-meta"><strong>上架时间</strong> ' + p.time + '</div>' +

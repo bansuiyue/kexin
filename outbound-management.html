@@ -326,7 +326,7 @@
         </select>
         <button class="btn btn-primary" onclick="renderRecords()">查询</button>
         <button class="btn btn-default" onclick="resetFilters()">重置</button>
-        <button class="btn btn-primary" onclick="openApplyModal()">+ 提交出域申请</button>
+        <button class="btn btn-primary" onclick="openApplyModal()">提交出域申请</button>
       </div>
     </div>
     <div class="record-table-wrap">
@@ -384,10 +384,11 @@
             <div class="error-msg">请选择数据敏感类型</div>
           </div>
           <div class="form-group full">
-            <label class="form-label">关联数据产品</label>
-            <select class="form-select" id="afProduct">
-              <option value="">请选择关联数据产品（选填）</option>
+            <label class="form-label"><span class="required">*</span>关联数据产品</label>
+            <select class="form-select" id="afProduct" onchange="onProductChange()">
+              <option value="">请选择关联数据产品</option>
             </select>
+            <div class="error-msg">请选择关联数据产品</div>
           </div>
           <div class="form-group full">
             <label class="form-label">出域产品信息</label>
@@ -401,7 +402,6 @@
               </thead>
               <tbody id="productRows"></tbody>
             </table>
-            <button type="button" class="btn btn-default btn-sm" onclick="addProductRow()" style="margin-top:8px;">+ 添加产品目录</button>
           </div>
           <div class="form-group full">
             <label class="form-label"><span class="required">*</span>出域申请表</label>
@@ -453,6 +453,28 @@
     <div class="modal-body" id="detailContent"></div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 审核弹窗 -->
+<div class="modal-overlay" id="auditModal" onclick="if(event.target===this)closeAuditModal()">
+  <div class="modal" style="width: 560px;">
+    <div class="modal-header">
+      <div class="modal-title" id="auditTitle">审核出域申请</div>
+      <button class="modal-close" onclick="closeAuditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="auditRecordInfo" style="margin-bottom:16px;padding:12px 16px;background:#f8fafc;border-radius:6px;font-size:13px;line-height:2;"></div>
+      <div class="form-group">
+        <label class="form-label"><span class="required">*</span>审核意见</label>
+        <textarea class="form-textarea" id="auditOpinion" placeholder="请输入审核意见"></textarea>
+        <div class="error-msg">请填写审核意见</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeAuditModal()">取消</button>
+      <button class="btn btn-primary" id="auditSubmitBtn" onclick="submitAudit()">确认</button>
     </div>
   </div>
 </div>
@@ -574,20 +596,37 @@
     renderRecords();
   }
 
-  function openApplyModal() {
+  function openApplyModal(preProductId) {
     document.getElementById('applyForm').reset();
     document.querySelectorAll('.form-group.error').forEach(function(el) { el.classList.remove('error'); });
     document.querySelectorAll('.file-name').forEach(function(el) { el.style.display = 'none'; el.textContent = ''; });
     document.getElementById('productRows').innerHTML = '';
-    addProductRow();
 
     const prodSelect = document.getElementById('afProduct');
-    const products = getProducts();
-    prodSelect.innerHTML = '<option value="">请选择关联数据产品（选填）</option>' +
+    // 仅列出已发布的数据产品（productRecords 中的产品均来自「发布数据产品」）
+    const products = getProducts().filter(function(p) { return p && p.name; });
+    prodSelect.innerHTML = '<option value="">请选择关联数据产品</option>' +
       products.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('');
+
+    if (preProductId) {
+      prodSelect.value = String(preProductId);
+      onProductChange();
+    }
 
     document.getElementById('applyModal').classList.add('show');
     document.body.style.overflow = 'hidden';
+  }
+
+  function onProductChange() {
+    const productId = document.getElementById('afProduct').value;
+    const tbody = document.getElementById('productRows');
+    tbody.innerHTML = '';
+    if (!productId) return;
+    const products = getProducts();
+    const p = products.find(function(x) { return String(x.id) === String(productId); });
+    if (p) {
+      addProductRow(p.name, p.desc || '');
+    }
   }
 
   function closeApplyModal() {
@@ -595,11 +634,11 @@
     document.body.style.overflow = '';
   }
 
-  function addProductRow() {
+  function addProductRow(name, desc) {
     const tbody = document.getElementById('productRows');
     const tr = document.createElement('tr');
-    tr.innerHTML = '<td><input type="text" placeholder="请输入目录名称"></td>' +
-      '<td><input type="text" placeholder="请输入目录描述"></td>' +
+    tr.innerHTML = '<td><input type="text" value="' + (name || '') + '" placeholder="请输入目录名称" readonly></td>' +
+      '<td><input type="text" value="' + (desc || '') + '" placeholder="请输入目录描述" readonly></td>' +
       '<td class="action-cell"><button type="button" onclick="this.closest(\'tr\').remove()">&times;</button></td>';
     tbody.appendChild(tr);
   }
@@ -618,7 +657,7 @@
 
   function validateForm() {
     let valid = true;
-    ['afOutboundType', 'afSensitivityType'].forEach(function(id) {
+    ['afOutboundType', 'afSensitivityType', 'afProduct'].forEach(function(id) {
       const el = document.getElementById(id);
       const group = el.closest('.form-group');
       if (!el.value.trim()) { group.classList.add('error'); valid = false; }
@@ -668,9 +707,30 @@
       status: 'pending'
     });
     saveOutboundRecords(records);
+    // 联动数据产品状态：出域申请提交后，产品进入「出域审核中」
+    if (productId) {
+      try {
+        const prods = JSON.parse(localStorage.getItem('productRecords') || '[]');
+        const target = prods.find(function(p) { return String(p.id) === String(productId); });
+        if (target) {
+          target.outboundStatus = 'audit';
+          target.shelfStatus = 'offline';
+          target.auditApplyTime = now.toLocaleString('zh-CN', { hour12: false });
+          localStorage.setItem('productRecords', JSON.stringify(prods));
+        }
+      } catch (e) { /* ignore */ }
+    }
     closeApplyModal();
     renderRecords();
-    alert('出域申请已提交，等待独立审批后台审批');
+    // 从数据产品管理跳转（URL 带 product）提交申请后，提供返回入口
+    const fromProduct = new URLSearchParams(window.location.search).get('product');
+    if (fromProduct) {
+      if (confirm('出域申请已提交，等待独立审批后台审批。是否返回数据产品管理查看产品状态？')) {
+        location.href = 'data-products.html?focus=' + encodeURIComponent(fromProduct);
+      }
+    } else {
+      alert('出域申请已提交，等待独立审批后台审批');
+    }
   }
 
   function viewDetail(id) {
@@ -715,7 +775,121 @@
     document.body.style.overflow = '';
   }
 
+  /* ===== 出域审核 ===== */
+  let currentAuditId = null;
+  let currentAuditAction = 'approved';
+
+  function openAuditModal(id, action) {
+    const records = getOutboundRecords();
+    const r = records.find(function(item) { return item.id === id; });
+    if (!r) return;
+    currentAuditId = id;
+    currentAuditAction = action;
+    document.getElementById('auditTitle').textContent = action === 'approved' ? '通过出域申请' : '驳回出域申请';
+    document.getElementById('auditOpinion').value = '';
+    document.getElementById('auditRecordInfo').innerHTML =
+      '<div><span style="color:var(--text-secondary);">申请编号：</span><strong>' + r.id + '</strong></div>' +
+      '<div><span style="color:var(--text-secondary);">关联数据产品：</span>' + (r.productName || '-') + '</div>' +
+      '<div><span style="color:var(--text-secondary);">出域场景类型：</span>' + (r.outboundType || '-') + ' · 数据敏感类型：' + (r.sensitivityType || '-') + '</div>';
+    const btn = document.getElementById('auditSubmitBtn');
+    btn.textContent = action === 'approved' ? '确认通过' : '确认驳回';
+    btn.className = action === 'approved' ? 'btn btn-success' : 'btn btn-danger';
+    document.getElementById('auditModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAuditModal() {
+    document.getElementById('auditModal').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  function submitAudit() {
+    const opinion = document.getElementById('auditOpinion').value.trim();
+    if (!opinion) { alert('请填写审核意见'); return; }
+    const records = getOutboundRecords();
+    const r = records.find(function(item) { return item.id === currentAuditId; });
+    if (!r) return;
+    const now = new Date();
+    r.status = currentAuditAction;
+    r.auditTime = now.toLocaleString('zh-CN', { hour12: false });
+    r.auditor = '数据空间管理员';
+    r.auditOpinion = opinion;
+    if (currentAuditAction === 'rejected') { r.rejectReason = opinion; }
+    saveOutboundRecords(records);
+    // 联动数据产品状态
+    try {
+      const prods = JSON.parse(localStorage.getItem('productRecords') || '[]');
+      let changed = false;
+      prods.forEach(function(p) {
+        const matched = (r.productId && String(p.id) === String(r.productId)) ||
+          (r.productName && p.name === r.productName);
+        if (matched) {
+          p.outboundStatus = currentAuditAction === 'approved' ? 'passed' : 'rejected';
+          p.shelfStatus = 'offline';
+          p.auditTime = r.auditTime;
+          p.auditor = r.auditor;
+          p.auditOpinion = r.auditOpinion;
+          if (currentAuditAction === 'rejected') { p.rejectReason = r.rejectReason; }
+          changed = true;
+        }
+      });
+      if (changed) { localStorage.setItem('productRecords', JSON.stringify(prods)); }
+    } catch (e) { /* ignore */ }
+    closeAuditModal();
+    renderRecords();
+    if (currentAuditAction === 'approved') {
+      // 找到关联产品 id，便于跳转到数据产品管理定位上架
+      let linkedProductId = r.productId || '';
+      if (!linkedProductId) {
+        try {
+          const prods = JSON.parse(localStorage.getItem('productRecords') || '[]');
+          const hit = prods.find(function(p) { return p.name === r.productName; });
+          if (hit) linkedProductId = hit.id;
+        } catch (e) { /* ignore */ }
+      }
+      if (confirm('已通过该出域申请，关联数据产品状态已更新为「出域已通过」。是否立即前往数据产品管理上架该产品？')) {
+        location.href = 'data-products.html?focus=' + encodeURIComponent(linkedProductId || r.productName || '');
+      }
+    } else {
+      alert('已驳回该出域申请，关联数据产品状态已更新为「出域已驳回」。');
+    }
+  }
+
+  /* ===== URL 参数联动（从数据产品管理跳转定位） ===== */
+  function handleUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('product');
+    const recordId = params.get('record');
+    const forceApply = params.get('apply') === '1';
+    const records = getOutboundRecords();
+
+    if (recordId) {
+      const found = records.find(function(r) { return r.id === recordId; });
+      if (found) {
+        document.getElementById('filterKeyword').value = recordId;
+        document.getElementById('filterStatus').value = '';
+        renderRecords();
+        viewDetail(recordId);
+      }
+      return;
+    }
+
+    if (productId) {
+      const found = records.find(function(r) { return String(r.productId) === String(productId); });
+      if (found && !forceApply) {
+        document.getElementById('filterKeyword').value = found.id;
+        document.getElementById('filterStatus').value = '';
+        renderRecords();
+        viewDetail(found.id);
+      } else {
+        // 尚无申请记录（或强制重新申请）→ 自动打开申请弹窗并预选该产品
+        openApplyModal(productId);
+      }
+    }
+  }
+
   renderRecords();
+  handleUrlParams();
 </script>
 
 </body>

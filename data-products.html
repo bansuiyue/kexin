@@ -357,6 +357,37 @@
       border-radius: 6px; font-size: 14px; font-family: inherit; outline: none;
     }
     .form-input:focus, .form-select:focus { border-color: var(--primary); }
+    .multi-select { position: relative; }
+    .multi-select-trigger {
+      min-height: 38px; padding: 6px 12px; border: 1px solid var(--border);
+      border-radius: 6px; background: #fff; cursor: pointer; display: flex;
+      align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .multi-select-trigger:hover { border-color: var(--primary); }
+    .multi-select-tags {
+      display: flex; flex-wrap: wrap; gap: 6px; flex: 1;
+      font-size: 14px; color: var(--text);
+    }
+    .multi-select-tags .placeholder { color: var(--text-tertiary); }
+    .multi-select-tags .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; background: #eef2ff; color: var(--primary);
+      border-radius: 4px; font-size: 12px;
+    }
+    .multi-select-trigger .arrow { font-size: 12px; color: var(--text-tertiary); }
+    .multi-select-dropdown {
+      display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
+      margin-top: 4px; max-height: 240px; overflow-y: auto;
+      background: #fff; border: 1px solid var(--border); border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .multi-select-dropdown.show { display: block; }
+    .multi-select-option {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 12px; font-size: 14px; cursor: pointer;
+    }
+    .multi-select-option:hover { background: #f3f4f6; }
+    .multi-select-option input { margin: 0; }
     .form-textarea {
       min-height: 80px; padding: 10px 12px; border: 1px solid var(--border);
       border-radius: 6px; font-size: 14px; font-family: inherit; outline: none; resize: vertical;
@@ -438,6 +469,90 @@
     .danger-zone { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; }
     .danger-zone .title { color: #991b1b; font-weight: 600; margin-bottom: 8px; }
     .danger-zone p { font-size: 13px; color: #b91c1c; margin-bottom: 12px; }
+
+    .pub-form { display: flex; flex-direction: column; gap: 16px; }
+    .pub-row { display: flex; gap: 20px; align-items: flex-start; }
+    .pub-row-main { flex: 1; min-width: 0; }
+    .pub-row-main.full { width: 100%; flex: none; }
+    .section-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 700; color: var(--text);
+      margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+    .section-title::before {
+      content: ''; width: 3px; height: 14px; background: var(--primary); border-radius: 2px;
+    }
+    .sub-title {
+      font-size: 13px; font-weight: 600; color: var(--text-secondary);
+      margin: 14px 0 10px;
+    }
+    .radio-group { display: flex; gap: 20px; align-items: center; height: 38px; }
+    .radio-item { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+    .radio-item input { width: 16px; height: 16px; accent-color: var(--primary); margin: 0; }
+    .input-prefix-row { display: flex; align-items: center; }
+    .input-prefix-row .prefix {
+      height: 38px; padding: 0 12px; border: 1px solid var(--border); border-right: none;
+      border-radius: 6px 0 0 6px; background: #f9fafb; display: flex; align-items: center;
+      font-size: 14px; color: var(--text-secondary);
+    }
+    .input-prefix-row .form-input { border-radius: 0; flex: 1; }
+    .input-prefix-row .form-input:last-child { border-radius: 0 6px 6px 0; border-left: none; width: 120px; flex: none; }
+    .time-range-row { display: flex; align-items: center; gap: 8px; }
+    .time-range-row .prefix-icon {
+      width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary); font-size: 14px;
+    }
+    .time-range-row .form-input { flex: 1; }
+    .time-range-row .sep { color: var(--text-tertiary); }
+    .strategy-layout { display: flex; gap: 16px; border: 1px solid var(--border); border-radius: 8px; background: #fafbfc; padding: 12px; }
+    .strategy-left { flex: 1; min-width: 0; }
+    .strategy-right { width: 200px; border-left: 1px solid var(--border); padding-left: 16px; display: flex; flex-direction: column; }
+    .strategy-tabs { display: flex; gap: 20px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+    .title-bar { display: inline-block; width: 4px; height: 16px; background: var(--primary); border-radius: 2px; margin-right: 8px; vertical-align: middle; }
+    .strategy-tab { padding: 6px 0 10px; font-size: 13px; color: var(--text-secondary); cursor: pointer; position: relative; }
+    .strategy-tab.active { color: var(--primary); font-weight: 600; }
+    .strategy-tab.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--primary); border-radius: 2px 2px 0 0; }
+    .strategy-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    #strategyCardsBehavior.strategy-cards { grid-template-columns: repeat(2, 1fr); }
+    .strategy-card {
+      display: flex; align-items: center; gap: 10px;
+      background: #fff; border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; cursor: pointer; transition: .15s;
+    }
+    .strategy-card:hover { border-color: var(--primary-light); }
+    .strategy-card.active { border-color: var(--primary); background: #f0f7ff; }
+    .strategy-card-radio {
+      width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0;
+      border: 2px solid var(--border); background: #fff; position: relative;
+    }
+    .strategy-card.active .strategy-card-radio { border-color: var(--primary); }
+    .strategy-card.active .strategy-card-radio::after {
+      content: ''; position: absolute; top: 3px; left: 3px; width: 6px; height: 6px;
+      border-radius: 50%; background: var(--primary);
+    }
+    .strategy-card-label { font-size: 13px; color: var(--text); }
+    .strategy-card-hint { font-size: 12px; color: var(--text-tertiary); margin-left: auto; }
+    .strategy-card-input { width: 86px; height: 30px; padding: 0 8px; flex-shrink: 0; text-align: center; }
+    .strategy-card-unit { font-size: 12px; color: var(--text-tertiary); flex-shrink: 0; }
+    .strategy-config-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+    .strategy-config-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-tertiary); font-size: 13px; gap: 8px; text-align: center; }
+    .strategy-config-list { display: flex; flex-direction: column; gap: 10px; }
+    .strategy-config-item { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 12px; line-height: 1.5; }
+    .strategy-config-item .name { font-weight: 600; color: var(--text); }
+    .strategy-config-item .value { color: var(--text-secondary); margin-top: 2px; }
+    .behavior-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 999px; font-size: 13px;
+      margin: 0 8px 8px 0;
+    }
+    .behavior-chip.on { background: #d1fae5; color: #065f46; }
+    .behavior-chip.off { background: #f3f4f6; color: #9ca3af; }
+    .behavior-chip.on::before { content: '✓'; font-weight: 700; }
+    .behavior-chip.off::before { content: '×'; }
+    .provider-card {
+      background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 16px; font-size: 13px; line-height: 2;
+    }
   </style>
 </head>
 <body>
@@ -528,89 +643,219 @@
 
 <!-- 发布数据产品弹窗 -->
 <div class="modal-overlay" id="publishModal">
-  <div class="modal">
+  <div class="modal" style="width: 1000px; max-width: 96vw;">
     <div class="modal-header">
-      <div class="modal-title" id="publishModalTitle">发布数据产品</div>
+      <div class="modal-title" id="publishModalTitle"><span class="title-bar"></span>新增产品</div>
       <button class="modal-close" onclick="closePublishModal()">&times;</button>
     </div>
     <div class="modal-body">
       <form id="publishForm">
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label"><span class="required">*</span>产品名称</label>
-            <input type="text" class="form-input" id="pubName" placeholder="请输入产品名称">
-            <div class="error-msg">请输入产品名称</div>
+        <div class="section-title">产品信息</div>
+        <div class="pub-form">
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label"><span class="required">*</span>行业分类</label>
+              <select class="form-select" id="pubCategory">
+                <option value="">请输入行业分类</option>
+              </select>
+              <div class="error-msg">请选择行业分类</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><span class="required">*</span>产品编号</label>
-            <input type="text" class="form-input" id="pubCode" placeholder="系统自动生成" disabled>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label"><span class="required">*</span>产品名称</label>
+              <input type="text" class="form-input" id="pubName" placeholder="请输入产品名称">
+              <div class="error-msg">请输入产品名称</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><span class="required">*</span>行业分类</label>
-            <select class="form-select" id="pubCategory">
-              <option value="">请选择行业分类</option>
-            </select>
-            <div class="error-msg">请选择行业分类</div>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label"><span class="required">*</span>产品类型</label>
+              <select class="form-select" id="pubType">
+                <option value="">请选择产品类型</option>
+                <option value="dataset">数据集</option>
+                <option value="api">API产品</option>
+                <option value="report">数据报告</option>
+                <option value="app">数据应用</option>
+              </select>
+              <div class="error-msg">请选择产品类型</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><span class="required">*</span>产品类型</label>
-            <select class="form-select" id="pubType">
-              <option value="">请选择产品类型</option>
-              <option value="dataset">数据集</option>
-              <option value="api">API产品</option>
-              <option value="report">数据报告</option>
-              <option value="app">数据应用</option>
-            </select>
-            <div class="error-msg">请选择产品类型</div>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label"><span class="required">*</span>数据资源</label>
+              <div class="multi-select" id="pubResourceWrap">
+                <div class="multi-select-trigger" onclick="toggleResourceDropdown(event)">
+                  <div class="multi-select-tags" id="pubResourceTags">请选择数据资源</div>
+                  <span class="arrow">▼</span>
+                </div>
+                <div class="multi-select-dropdown" id="pubResourceDropdown"></div>
+                <input type="hidden" id="pubResource">
+              </div>
+              <div class="error-msg">请选择数据资源</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><span class="required">*</span>定价</label>
-            <input type="text" class="form-input" id="pubPrice" placeholder="如：0.01/次">
-            <div class="error-msg">请输入定价</div>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label"><span class="required">*</span>产品费用</label>
+              <div class="input-prefix-row">
+                <span class="prefix">¥</span>
+                <input type="number" class="form-input" id="pubFee" placeholder="请输入产品费用" min="0" step="0.01">
+                <input type="text" class="form-input" id="pubFeeUnit" placeholder="请输入费用单位">
+              </div>
+              <div class="error-msg">请输入产品费用及单位</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label"><span class="required">*</span>计费方式</label>
-            <select class="form-select" id="pubBilling">
-              <option value="">请选择计费方式</option>
-              <option value="perCall">按次计费</option>
-              <option value="perMonth">按月计费</option>
-              <option value="perYear">按年计费</option>
-              <option value="free">免费</option>
-            </select>
-            <div class="error-msg">请选择计费方式</div>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label">覆盖时间范围</label>
+              <div class="time-range-row">
+                <span class="prefix-icon">&#128336;</span>
+                <input type="text" class="form-input" id="pubTimeRangeStart" placeholder="开始时间">
+                <span class="sep">-</span>
+                <input type="text" class="form-input" id="pubTimeRangeEnd" placeholder="结束时间">
+              </div>
+            </div>
           </div>
-          <div class="form-group full">
-            <label class="form-label"><span class="required">*</span>关联场景（场景申报通过后可选）</label>
-            <select class="form-select" id="pubScenario" onchange="renderResourceOptions();showScenarioScope()">
-              <option value="">请选择关联场景</option>
-            </select>
-            <div class="error-msg">请选择关联场景</div>
-            <div id="scenarioScopeTip" style="display:none;margin-top:6px;font-size:12px;color:var(--text-secondary);line-height:1.6;"></div>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label">是否涉及个人信息</label>
+              <div class="radio-group">
+                <label class="radio-item"><input type="radio" name="pubHasPersonalInfo" value="1"> 是</label>
+                <label class="radio-item"><input type="radio" name="pubHasPersonalInfo" value="0" checked> 否</label>
+              </div>
+            </div>
           </div>
-          <div class="form-group full">
-            <label class="form-label">使用数据资源（数据资源申请通过后可选）</label>
-            <div id="pubResourceList" style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:#fafbfc;"></div>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label"><span class="required">*</span>数据主体</label>
+              <select class="form-select" id="pubDataSubject">
+                <option value="">请选择数据主体</option>
+                <option value="企业">企业</option>
+                <option value="个人">个人</option>
+                <option value="政府">政府</option>
+                <option value="其他">其他</option>
+              </select>
+              <div class="error-msg">请选择数据主体</div>
+            </div>
           </div>
-          <div class="form-group full">
-            <label class="form-label"><span class="required">*</span>产品描述</label>
-            <textarea class="form-textarea" id="pubDesc" placeholder="请输入产品描述"></textarea>
-            <div class="error-msg">请输入产品描述</div>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label">资源标签</label>
+              <input type="text" class="form-input" id="pubTags" placeholder="请输入产品标签(回车确认)">
+            </div>
           </div>
-          <div class="form-group full">
-            <label class="form-label">数据字段</label>
-            <div id="fieldList" style="display: flex; flex-direction: column; gap: 8px;"></div>
-            <button type="button" class="btn btn-default btn-sm" onclick="addFieldRow()" style="margin-top: 8px;">+ 添加字段</button>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label">费用模式</label>
+              <input type="text" class="form-input" id="pubFeeModel" placeholder="请输入费用模式">
+            </div>
           </div>
-          <div class="form-group full">
-            <label class="form-label">备注</label>
-            <textarea class="form-textarea" id="pubRemark" placeholder="请输入备注信息（选填）"></textarea>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label">推荐场景</label>
+              <input type="text" class="form-input" id="pubRecommendedScenario" placeholder="请输入推荐场景">
+            </div>
+          </div>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label"><span class="required">*</span>交付方式</label>
+              <select class="form-select" id="pubDeliveryMethod">
+                <option value="">请选择交付方式</option>
+                <option value="API">API</option>
+                <option value="文件下载">文件下载</option>
+                <option value="在线预览">在线预览</option>
+                <option value="离线交付">离线交付</option>
+              </select>
+              <div class="error-msg">请选择交付方式</div>
+            </div>
+          </div>
+          <div class="pub-row">
+            <div class="pub-row-main full form-group">
+              <label class="form-label">地域分类</label>
+              <select class="form-select" id="pubRegion">
+                <option value="">请输入地域分类</option>
+                <option value="国内">国内</option>
+                <option value="省内">省内</option>
+                <option value="市内">市内</option>
+                <option value="跨境">跨境</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="section-title" style="margin-top: 22px;">控制策略</div>
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label class="form-label">策略模板</label>
+          <select class="form-select" id="pubStrategyTemplate" onchange="applyStrategyTemplate()" style="max-width: 260px;">
+            <option value="">请选择策略模板</option>
+            <option value="default">默认策略（推荐）</option>
+            <option value="strict">严格策略</option>
+            <option value="custom">自定义策略</option>
+          </select>
+        </div>
+        <div class="strategy-layout">
+          <div class="strategy-left">
+            <div class="strategy-tabs">
+              <div class="strategy-tab active" id="tabConstraint" onclick="switchStrategyTab('constraint')">约束策略</div>
+              <div class="strategy-tab" id="tabBehavior" onclick="switchStrategyTab('behavior')">行为策略</div>
+            </div>
+            <div class="strategy-cards" id="strategyCardsConstraint">
+              <div class="strategy-card active">
+                <span class="strategy-card-radio"></span>
+                <span class="strategy-card-label">每分钟调用不超过</span>
+                <input type="number" class="form-input strategy-card-input" id="pubFreqLimit" value="1000" min="1" oninput="renderStrategyConfig()">
+                <span class="strategy-card-unit">次</span>
+              </div>
+              <div class="strategy-card active">
+                <span class="strategy-card-radio"></span>
+                <span class="strategy-card-label">最大并发数不超过</span>
+                <input type="number" class="form-input strategy-card-input" id="pubConcurrencyLimit" value="100" min="1" oninput="renderStrategyConfig()">
+                <span class="strategy-card-unit">个</span>
+              </div>
+              <div class="strategy-card active">
+                <span class="strategy-card-radio"></span>
+                <span class="strategy-card-label">单次返回数据量不超过</span>
+                <input type="number" class="form-input strategy-card-input" id="pubDataLimit" value="10000" min="1" oninput="renderStrategyConfig()">
+                <span class="strategy-card-unit">条</span>
+              </div>
+            </div>
+            <div class="strategy-cards" id="strategyCardsBehavior" style="display:none;">
+              <div class="strategy-card" data-behavior="allowRead" onclick="toggleBehaviorCard(this, 'pubAllowRead')">
+                <span class="strategy-card-radio"></span>
+                <span class="strategy-card-label">允许读取操作</span>
+                <input type="checkbox" id="pubAllowRead" checked style="display:none;" onchange="renderStrategyConfig()">
+              </div>
+              <div class="strategy-card" data-behavior="allowCompute" onclick="toggleBehaviorCard(this, 'pubAllowCompute')">
+                <span class="strategy-card-radio"></span>
+                <span class="strategy-card-label">允许进行计算</span>
+                <input type="checkbox" id="pubAllowCompute" checked style="display:none;" onchange="renderStrategyConfig()">
+              </div>
+              <div class="strategy-card" data-behavior="allowDownload" onclick="toggleBehaviorCard(this, 'pubAllowDownload')">
+                <span class="strategy-card-radio"></span>
+                <span class="strategy-card-label">允许下载结果</span>
+                <input type="checkbox" id="pubAllowDownload" checked style="display:none;" onchange="renderStrategyConfig()">
+              </div>
+              <div class="strategy-card" data-behavior="allowOnlineAccess" onclick="toggleBehaviorCard(this, 'pubAllowOnlineAccess')">
+                <span class="strategy-card-radio"></span>
+                <span class="strategy-card-label">允许在线访问数据产品</span>
+                <input type="checkbox" id="pubAllowOnlineAccess" checked style="display:none;" onchange="renderStrategyConfig()">
+              </div>
+            </div>
+          </div>
+          <div class="strategy-right">
+            <div class="strategy-config-title">策略配置</div>
+            <div class="strategy-config-empty" id="strategyConfigEmpty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="width:56px;height:56px;opacity:.5;"><path d="M9 17v-2a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+              <div>暂无数据</div>
+            </div>
+            <div class="strategy-config-list" id="strategyConfigList" style="display:none;"></div>
           </div>
         </div>
       </form>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closePublishModal()">取消</button>
-      <button class="btn btn-primary" onclick="savePublish()">发布</button>
+      <button class="btn btn-primary" onclick="savePublish()">确定</button>
     </div>
   </div>
 </div>
@@ -726,6 +971,21 @@
   </div>
 </div>
 
+<!-- 上架确认弹窗 -->
+<div class="modal-overlay" id="onlineModal">
+  <div class="modal" style="width: 720px;">
+    <div class="modal-header">
+      <div class="modal-title">数据产品上架确认</div>
+      <button class="modal-close" onclick="closeOnlineModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="onlineContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeOnlineModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmOnline()">确认上架</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const categories = [
     {
@@ -797,31 +1057,58 @@
   ];
 
   const seedProducts = [
-    { id: 1, name: '高德地图通勤路线 OD', code: '691350211M0000XQ46X0591JUV77DF7Q', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260625002'], auditTime: '2026-07-16 14:20:00', auditor: '数据空间审核员', auditOpinion: '数据来源清晰、用途合规，同意出域。', onlineTime: '2026-07-17 10:00:00', parseStatus: '解析完成', price: '0.01', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '通勤居住OD产品专注于城市通勤规律的离线数据，剖析早晚高峰的规律性出行特征。', tags: ['路线规划', '实时路况'], fields: [{name:'dt',note:'分区',type:'DATE',len:'-'}, {name:'received_time',note:'接收数据时间',type:'VARCHAR',len:'20'}] },
-    { id: 2, name: '交通流量预测', code: '691350211M0000XQ46X0591RWFSL2ABX', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260625002', 'SQ20260605005'], auditTime: '2026-07-16 15:02:11', auditor: '数据空间审核员', auditOpinion: '数据粒度为分钟级，含敏感度较低，审核通过。', onlineTime: '2026-07-17 10:00:00', parseStatus: '解析完成', price: '0.01', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '本数据集包含2026年全年全国主要城市快速路、主干道的交通流量数据，时间粒度为1分钟。', tags: ['车流量', '预测训练'], fields: [{name:'road_id',note:'道路编号',type:'VARCHAR',len:'32'}] },
-    { id: 3, name: '福建省道路信息数据', code: '691350211M0000XQ46X0591GKM2ZUYM8', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260605005'], auditTime: '2026-07-18 09:30:00', auditor: '数据空间审核员', auditOpinion: '道路网络数据为公开信息，同意出域。', onlineTime: '2026-07-18 14:00:00', parseStatus: '解析完成', price: '500', billing: 'perMonth', category: 'transport-02', type: 'dataset', desc: '本产品提供福建省完整的道路网络数据，涵盖高速公路、普通国省道、县乡道及城市道路。', tags: ['道路网络', '高速公路'], fields: [{name:'dt',note:'分区',type:'DATE',len:'-'}, {name:'received_time',note:'接收数据时间',type:'VARCHAR',len:'20'}, {name:'travelTime',note:'道路路段对应的通过时间，单位0.1秒',type:'VARCHAR',len:'20'}, {name:'state',note:'道路路段交通状态1畅通 2缓慢 3拥堵 4重度拥堵 5无数据',type:'INT',len:'-'}, {name:'speed',note:'道路路段平均速度，单位公里/小时',type:'VARCHAR',len:'20'}, {name:'linkId',note:'道路路段ID',type:'VARCHAR',len:'32'}] },
-    { id: 4, name: '车辆GPS轨迹', code: '691350211M0000XQ46X05912FMS86TTA', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260605005'], auditTime: '2026-07-18 10:15:00', auditor: '数据空间审核员', auditOpinion: '轨迹数据已按要求脱敏，同意出域。', onlineTime: '2026-07-18 14:00:00', parseStatus: '解析完成', price: '10.00', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '本产品提供福建省内营运车辆（含出租车、网约车、物流车、客车等）的实时与历史GPS轨迹数据。', tags: ['车辆轨迹', '实时位置'], fields: [] },
-    { id: 5, name: 'BUS站牌信息', code: '691350211M0000XQ46X0591P8BDKSHZQ', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260701001'], auditTime: '2026-07-18 11:42:00', auditor: '数据空间审核员', auditOpinion: '接口数据为公交运营公开信息，同意出域。', onlineTime: '2026-07-19 09:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'api', desc: '公交站牌信息查询服务，可查询公交线路、站点位置、到站时间等。', tags: ['站牌', '从业人员'], fields: [] },
-    { id: 6, name: '获取公交司机人员信息', code: '691350211M0000XQ46X0591WXDUKMB5U', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resources: ['SQ20260701001'], auditTime: '2026-07-19 08:20:00', auditor: '数据空间审核员', auditOpinion: '从业人员信息经脱敏处理，同意出域。', onlineTime: '2026-07-19 09:00:00', parseStatus: '解析完成', price: '0.02', billing: 'perCall', category: 'transport-02', type: 'api', desc: '本接口提供公交企业内部的司机人员信息查询能力。', tags: ['API产品'], fields: [] },
-    { id: 7, name: '电力行业城乡居民用电情况', code: '691350211M0000XQ46X0591CB4TP9A2V', shelfStatus: 'offline', outboundStatus: 'rejected', scenario: 'SC-20260717-001', auditTime: '2026-07-20 16:00:00', auditor: '数据空间审核员', auditOpinion: '用电量数据涉及居民隐私，暂不同意出域，请补充数据脱敏与安全承诺后重新申请。', parseStatus: '解析完成', price: '100.00', billing: 'perCall', category: 'utilities-01', type: 'report', desc: '电力行业城乡居民用电量情况分析报告。', tags: ['用电量', '峰值'], fields: [] },
-    { id: 8, name: '电商用户数据', code: '691350211M0000XQ46X0591LURX4TQI', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260720-002', auditTime: '2026-07-21 10:00:00', auditor: '数据空间审核员', auditOpinion: '用户数据已做匿名化处理，同意出域。', onlineTime: '2026-07-22 09:30:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'wholesale', type: 'dataset', desc: '电商用户行为数据，包含浏览、购买、收藏等多维度数据。', tags: ['电商', '用户'], fields: [] },
-    { id: 9, name: '交通产品上架流程', code: '691350211M0000XQ46X0591RA9UE9BM', shelfStatus: 'offline', outboundStatus: 'audit', scenario: 'SC-20260717-001', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'app', desc: '交通产品上架流程管理应用，已提交出域审核，等待独立审批后台审批。', tags: ['上架管理'], fields: [] },
-    { id: 10, name: '市区道路信息', code: '691350211M0000XQ46X0591W5M6ZW6S', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', auditTime: '2026-07-19 15:30:00', auditor: '数据空间审核员', auditOpinion: '道路信息数据同意出域。', onlineTime: '2026-07-20 09:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'transport-02', type: 'dataset', desc: '市区道路信息表。', tags: ['车流量'], fields: [] },
-    { id: 11, name: '电商订单履约数据', code: '691350211M0000XQ46X0591A3N0591Y2BDF33ZB', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260720-002', auditTime: '2026-07-22 11:20:00', auditor: '数据空间审核员', auditOpinion: '同意出域。', onlineTime: '2026-07-22 15:00:00', parseStatus: '解析完成', price: '1.00', billing: 'perCall', category: 'wholesale', type: 'dataset', desc: '电商订单履约全流程数据，包含下单、支付、物流、签收等节点信息。', tags: ['电商', '订单'], fields: [] },
-    { id: 12, name: '电力数据报告', code: '691350100MA345GRA3N0591LURX4TQI', shelfStatus: 'offline', outboundStatus: 'passed', scenario: 'SC-20260717-001', auditTime: '2026-07-20 09:00:00', auditor: '数据空间审核员', auditOpinion: '审核通过。', onlineTime: '2026-07-20 10:00:00', offTime: '2026-08-05 17:00:00', parseStatus: '未解析', price: '1.00', billing: 'perCall', category: 'utilities-01', type: 'report', desc: '电力数据报告。', tags: ['数据应用'], fields: [] }
+    { id: 1, name: '高德地图通勤路线 OD', code: '691350211M0000XQ46X0591JUV77DF7Q', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resource: 'SQ20260625002', auditTime: '2026-07-16 14:20:00', auditor: '数据空间审核员', auditOpinion: '数据来源清晰、用途合规，同意出域。', onlineTime: '2026-07-17 10:00:00', parseStatus: '解析完成', fee: '0.01', feeUnit: '次', feeModel: '按次计费', category: 'transport-02', type: 'dataset', desc: '通勤居住OD产品专注于城市通勤规律的离线数据，剖析早晚高峰的规律性出行特征。', tags: ['路线规划', '实时路况'], fields: [{name:'dt',note:'分区',type:'DATE',len:'-'}, {name:'received_time',note:'接收数据时间',type:'VARCHAR',len:'20'}], deliveryMethod: '文件下载', dataSubject: '企业', updateFreq: { value: '1', unit: '天' } },
+    { id: 5, name: 'BUS站牌信息', code: '691350211M0000XQ46X0591P8BDKSHZQ', shelfStatus: 'online', outboundStatus: 'passed', scenario: 'SC-20260717-001', resource: 'SQ20260701001', auditTime: '2026-07-18 11:42:00', auditor: '数据空间审核员', auditOpinion: '接口数据为公交运营公开信息，同意出域。', onlineTime: '2026-07-19 09:00:00', parseStatus: '解析完成', fee: '1.00', feeUnit: '次', feeModel: '按次计费', category: 'transport-02', type: 'api', desc: '公交站牌信息查询服务，可查询公交线路、站点位置、到站时间等。', tags: ['站牌', '从业人员'], fields: [], deliveryMethod: 'API', dataSubject: '企业', updateFreq: { value: '实时', unit: '' } },
+    { id: 7, name: '电力行业城乡居民用电情况', code: '691350211M0000XQ46X0591CB4TP9A2V', shelfStatus: 'offline', outboundStatus: 'rejected', scenario: 'SC-20260717-001', resource: 'SQ20260605005', auditTime: '2026-07-20 16:00:00', auditor: '数据空间审核员', auditOpinion: '用电量数据涉及居民隐私，暂不同意出域，请补充数据脱敏与安全承诺后重新申请。', parseStatus: '解析完成', fee: '100.00', feeUnit: '次', feeModel: '按次计费', category: 'utilities-01', type: 'report', desc: '电力行业城乡居民用电量情况分析报告。', tags: ['用电量', '峰值'], fields: [], deliveryMethod: '文件下载', dataSubject: '个人', updateFreq: { value: '1', unit: '季度' } },
+    { id: 9, name: '交通产品上架流程', code: '691350211M0000XQ46X0591RA9UE9BM', shelfStatus: 'offline', outboundStatus: 'audit', scenario: 'SC-20260717-001', resource: 'SQ20260605005', parseStatus: '解析完成', fee: '1.00', feeUnit: '次', feeModel: '按次计费', category: 'transport-02', type: 'app', desc: '交通产品上架流程管理应用，已提交出域审核，等待独立审批后台审批。', tags: ['上架管理'], fields: [], deliveryMethod: '在线预览', dataSubject: '企业', updateFreq: { value: '1', unit: '月' } },
+    { id: 10, name: '义乌市场客流分析', code: '691350211M0000XQ46X0591FCA7BE3D', shelfStatus: 'offline', outboundStatus: 'none', scenario: 'SC-20260717-001', resource: 'SQ20260605005', parseStatus: '解析完成', fee: '50.00', feeUnit: '次', feeModel: '按次计费', category: 'commerce-01', type: 'report', desc: '基于市场出入口客流监测数据，分析各时段客流量、来源地分布及热点区域，辅助市场运营决策。', tags: ['客流量', '热点区域'], fields: [], deliveryMethod: '文件下载', dataSubject: '企业', updateFreq: { value: '1', unit: '周' } }
   ];
 
   function migrateProduct(p) {
-    if (p.shelfStatus) return p;
-    const old = p.status;
-    if (old === 'online') { p.shelfStatus = 'online'; p.outboundStatus = 'passed'; }
-    else if (old === 'offline') { p.shelfStatus = 'offline'; p.outboundStatus = 'passed'; }
-    else if (old === 'audit') { p.shelfStatus = 'offline'; p.outboundStatus = 'audit'; }
-    else if (old === 'passed') { p.shelfStatus = 'offline'; p.outboundStatus = 'passed'; }
-    else if (old === 'rejected') { p.shelfStatus = 'offline'; p.outboundStatus = 'rejected'; }
-    else if (old === 'pending') { p.shelfStatus = 'offline'; p.outboundStatus = 'none'; }
-    else { p.shelfStatus = 'offline'; p.outboundStatus = 'none'; }
-    delete p.status;
+    if (!p.shelfStatus) {
+      const old = p.status;
+      if (old === 'online') { p.shelfStatus = 'online'; p.outboundStatus = 'passed'; }
+      else if (old === 'offline') { p.shelfStatus = 'offline'; p.outboundStatus = 'passed'; }
+      else if (old === 'audit') { p.shelfStatus = 'offline'; p.outboundStatus = 'audit'; }
+      else if (old === 'passed') { p.shelfStatus = 'offline'; p.outboundStatus = 'passed'; }
+      else if (old === 'rejected') { p.shelfStatus = 'offline'; p.outboundStatus = 'rejected'; }
+      else if (old === 'pending') { p.shelfStatus = 'offline'; p.outboundStatus = 'none'; }
+      else { p.shelfStatus = 'offline'; p.outboundStatus = 'none'; }
+      delete p.status;
+    }
+    if (!p.strategy) {
+      p.strategy = { template: 'default', freqLimit: 1000, concurrencyLimit: 100, dataLimit: 10000, allowRead: true, allowCompute: true, allowDownload: true, allowOnlineAccess: true };
+    }
+    if (!p.provider) {
+      p.provider = { name: '义乌市数据运营有限公司', contact: '数据运营管理员', phone: '0579-XXXXXXXX' };
+    }
+    if (!p.typeExtras) p.typeExtras = { type: p.type };
+    if (!p.fee && p.price) p.fee = p.price;
+    if (!p.feeUnit && p.billing) {
+      const unitMap = { perCall: '次', perMonth: '月', perYear: '年', free: '免费' };
+      p.feeUnit = unitMap[p.billing] || '';
+    }
+    if (p.feeModel === undefined) p.feeModel = '';
+    if (p.resource === undefined) p.resource = (Array.isArray(p.resources) && p.resources[0]) || '';
+    if (!Array.isArray(p.resources)) p.resources = p.resource ? [p.resource] : [];
+    if (p.hasPersonalInfo === undefined) p.hasPersonalInfo = 0;
+    if (p.dataSubject === undefined) p.dataSubject = '';
+    if (!Array.isArray(p.tags)) p.tags = [typeMap[p.type]];
+    if (p.recommendedScenario === undefined) p.recommendedScenario = p.scenario ? getScenarioName(p.scenario) : '';
+    if (p.deliveryMethod === undefined) p.deliveryMethod = '';
+    if (p.region === undefined) p.region = '';
+    if (p.authorizedUse === undefined) p.authorizedUse = 0;
+    if (p.dataScaleValue === undefined) p.dataScaleValue = '';
+    if (p.dataScaleUnit === undefined) p.dataScaleUnit = '';
+    if (!p.updateFreq) p.updateFreq = { value: '', unit: '' };
+    if (p.securityLevel === undefined) p.securityLevel = '';
+    if (p.qualityEval === undefined) p.qualityEval = '';
+    if (p.compliance === undefined) p.compliance = '';
+    if (p.dataSource === undefined) p.dataSource = '';
+    if (p.authorizationLetter === undefined) p.authorizationLetter = '';
+    if (p.timeRangeStart === undefined) p.timeRangeStart = '';
+    if (p.timeRangeEnd === undefined) p.timeRangeEnd = '';
+    if (p.desc === undefined) p.desc = '';
     return p;
   }
 
@@ -836,6 +1123,21 @@
   }
   function saveProducts() {
     localStorage.setItem('productRecords', JSON.stringify(products));
+  }
+
+  // 强制重置：如果本地存储的产品数量与 seed 不一致，说明 seed 已更新，清空本地存储重新加载
+  function shouldResetProducts() {
+    try {
+      const stored = localStorage.getItem('productRecords');
+      if (!stored) return false;
+      const parsed = JSON.parse(stored);
+      return parsed.length !== seedProducts.length;
+    } catch (e) {
+      return true;
+    }
+  }
+  if (shouldResetProducts()) {
+    localStorage.removeItem('productRecords');
   }
 
   let products = getProducts();
@@ -854,7 +1156,6 @@
     passed: { text: '出域已通过', class: 'outbound-passed' },
     rejected: { text: '出域已驳回', class: 'outbound-rejected' }
   };
-  const billingMap = { perCall: '次', perMonth: '月', perYear: '年', free: '免费' };
   const typeMap = { dataset: '数据集', api: 'API产品', report: '数据报告', app: '数据应用' };
 
   function toggleUserDropdown(event) {
@@ -868,6 +1169,8 @@
       if (userEl && !userEl.contains(event.target)) dropdown.classList.remove('show');
     }
     document.querySelectorAll('.more-menu.show').forEach(m => m.classList.remove('show'));
+    const resourceWrap = document.getElementById('pubResourceWrap');
+    if (resourceWrap && !resourceWrap.contains(event.target)) closeResourceDropdown();
   });
   function logout() { if (confirm('确定要退出登录吗？')) alert('已退出登录'); }
 
@@ -989,26 +1292,24 @@
     grid.innerHTML = pageList.map(p => {
       const shelf = shelfStatusMap[p.shelfStatus] || shelfStatusMap.offline;
       const outbound = outboundStatusMap[p.outboundStatus] || outboundStatusMap.none;
-      const billingText = p.billing === 'free' ? '免费' : `¥${p.price}/${billingMap[p.billing]}`;
+      const billingText = p.fee ? `¥${p.fee}${p.feeUnit ? '/' + p.feeUnit : ''}` : '-';
       const tagClass = p.type === 'api' ? 'tag-orange' : (p.type === 'report' ? 'tag-green' : '');
       let mainAction = '';
       if (p.shelfStatus === 'online') {
         mainAction = `<button class="btn btn-sm btn-danger" onclick="openOfflineModal(${p.id})">下架</button>`;
-      } else {
-        if (p.outboundStatus === 'passed') {
-          mainAction = `<button class="btn btn-sm btn-primary" onclick="onlineProduct(${p.id})">上架</button>`;
-        } else if (p.outboundStatus === 'rejected') {
-          mainAction = `<button class="btn btn-sm btn-success" onclick="submitOutAudit(${p.id})">重新提交出域</button>`;
-        } else if (p.outboundStatus === 'audit') {
-          mainAction = `<button class="btn btn-sm btn-default" disabled>出域审核中</button>`;
-        } else {
-          mainAction = `<button class="btn btn-sm btn-success" onclick="submitOutAudit(${p.id})">提交出域审核</button>`;
-        }
+      } else if (p.outboundStatus === 'passed') {
+        mainAction = `<button class="btn btn-sm btn-primary" onclick="onlineProduct(${p.id})">上架</button>`;
       }
+      // 已下架且出域未通过时，操作区不显示按钮（出域状态已在卡片顶部标签展示）
 
       const metaLines = [];
-      if (p.scenario) metaLines.push(`<span class="info-label">关联场景：</span>${getScenarioName(p.scenario)}`);
-      if (p.resources && p.resources.length) metaLines.push(`<span class="info-label">资源：</span>${p.resources.map(getResourceName).join('、')}`);
+      if (p.deliveryMethod) metaLines.push(`<span class="info-label">交付方式：</span>${p.deliveryMethod}`);
+      const resList = (p.resources || []).filter(Boolean);
+      if (resList.length) {
+        const first = getResourceName(resList[0]);
+        const more = resList.length > 1 ? ` 等${resList.length}个资源` : '';
+        metaLines.push(`<span class="info-label">资源：</span>${first}${more}`);
+      }
 
       return `
         <div class="product-card">
@@ -1132,109 +1433,125 @@
     } catch (e) { return seed; }
   }
 
-  function renderResourceOptions(autoId) {
-    const scId = document.getElementById('pubScenario').value;
-    const wrap = document.getElementById('pubResourceList');
-    // 优先从场景 attachList 中获取数据源
-    const scenario = getPassedScenarios().find(s => s.id === scId);
-    const attachList = scenario && scenario.attachList ? scenario.attachList : [];
-    const approvedList = getApprovedResources();
-    const approvedFiltered = scId ? approvedList.filter(r => !r.scenario || r.scenario === scId) : approvedList;
-
-    const resourceMap = new Map();
-    attachList.forEach(item => {
-      resourceMap.set(item.dataset, { id: item.dataset, name: item.dataset, unit: item.unit });
-    });
-    approvedFiltered.forEach(r => {
-      if (!resourceMap.has(r.resourceName)) {
-        resourceMap.set(r.resourceName, { id: r.id, name: r.resourceName, unit: r.providerUnit });
+  function renderResourceOptions(selectedIds) {
+    const dropdown = document.getElementById('pubResourceDropdown');
+    if (!dropdown) return;
+    const list = getApprovedResources();
+    const ids = Array.isArray(selectedIds) ? selectedIds : (selectedIds ? [selectedIds] : []);
+    if (!ids.length && currentEditId) {
+      const p = products.find(x => x.id === currentEditId);
+      if (p) {
+        if (Array.isArray(p.resources) && p.resources.length) ids.push(...p.resources);
+        else if (p.resource) ids.push(p.resource);
       }
-    });
-    const allResources = Array.from(resourceMap.values());
+    }
+    dropdown.innerHTML = list.map(r => {
+      const checked = ids.includes(r.id) ? 'checked' : '';
+      return `<label class="multi-select-option" onclick="event.stopPropagation()">
+        <input type="checkbox" value="${r.id}" ${checked} onchange="updateResourceSelection('${r.id}', this.checked)">
+        <span>${r.resourceName}（${r.id}）</span>
+      </label>`;
+    }).join('');
+    if (!list.length) dropdown.innerHTML = '<div class="multi-select-option" style="color:var(--text-tertiary);cursor:default;"><span>暂无可用数据资源</span></div>';
+    updateResourceTags();
+  }
 
-    if (!allResources.length) {
-      wrap.innerHTML = '<div style="color:var(--text-secondary);font-size:13px;">暂无数据资源</div>';
+  function getSelectedResources() {
+    return Array.from(document.querySelectorAll('#pubResourceDropdown input[type="checkbox"]:checked')).map(cb => cb.value);
+  }
+
+  function updateResourceSelection(id, checked) {
+    updateResourceTags();
+  }
+
+  function updateResourceTags() {
+    const ids = getSelectedResources();
+    const container = document.getElementById('pubResourceTags');
+    const hidden = document.getElementById('pubResource');
+    if (!container) return;
+    if (hidden) hidden.value = ids.join(',');
+    if (!ids.length) {
+      container.innerHTML = '<span class="placeholder">请选择数据资源</span>';
       return;
     }
-    const selected = currentEditId ? (products.find(x => x.id === currentEditId) || {}).resources || [] : [];
-    wrap.innerHTML = allResources.map(r => {
-      const checked = selected.includes(r.id) || selected.includes(r.name) || (autoId && (r.id === autoId || r.name === autoId)) ? 'checked' : '';
-      return `<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
-        <input type="checkbox" class="pub-resource" value="${r.id}" ${checked}>
-        <span>${r.name}（${r.unit}）</span>
-      </label>`;
+    const list = getApprovedResources();
+    container.innerHTML = ids.map(id => {
+      const r = list.find(x => x.id === id);
+      const label = r ? `${r.resourceName}（${r.id}）` : id;
+      return `<span class="tag">${label}</span>`;
     }).join('');
   }
 
-  // 展示关联场景的使用范围约束（全局约束：产品能力不得超出场景申报的使用范围）
-  function showScenarioScope() {
-    const id = document.getElementById('pubScenario').value;
-    const s = getPassedScenarios().find(x => x.id === id);
-    const el = document.getElementById('scenarioScopeTip');
-    if (!el) return;
-    if (s && s.scope) {
-      el.textContent = '该场景使用范围约束：' + s.scope + '（产品能力不得超出场景申报的使用范围）';
-      el.style.display = 'block';
-    } else {
-      el.style.display = 'none';
-    }
+  function toggleResourceDropdown(event) {
+    if (event) event.stopPropagation();
+    const dropdown = document.getElementById('pubResourceDropdown');
+    if (!dropdown) return;
+    const willShow = !dropdown.classList.contains('show');
+    document.querySelectorAll('.multi-select-dropdown.show').forEach(el => el.classList.remove('show'));
+    if (willShow) dropdown.classList.add('show');
+  }
+
+  function closeResourceDropdown() {
+    const dropdown = document.getElementById('pubResourceDropdown');
+    if (dropdown) dropdown.classList.remove('show');
+  }
+
+  function setRadio(name, value) {
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => { r.checked = r.value === String(value); });
+  }
+  function getRadio(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : '';
+  }
+
+  function generateProductCode() {
+    return 'DP' + Date.now();
   }
 
   function openPublishModal(id) {
     currentEditId = id || null;
-    document.getElementById('publishModalTitle').textContent = id ? '编辑数据产品' : '发布数据产品';
+    document.getElementById('publishModalTitle').innerHTML = (id ? '<span class="title-bar"></span>编辑产品' : '<span class="title-bar"></span>新增产品');
     document.getElementById('publishForm').reset();
     document.querySelectorAll('.form-group.error').forEach(el => el.classList.remove('error'));
 
-    const catSelect = document.getElementById('pubCategory');
-    catSelect.innerHTML = '<option value="">请选择行业分类</option>' + getCategoryOptions(categories).join('');
+    document.getElementById('pubCategory').innerHTML = '<option value="">请输入行业分类</option>' + getCategoryOptions(categories).join('');
 
-    const scSelect = document.getElementById('pubScenario');
-    const passedSc = getPassedScenarios();
-    scSelect.innerHTML = '<option value="">请选择关联场景</option>' +
-      passedSc.map(s => `<option value="${s.id}">${s.name}（${s.id}）</option>`).join('');
-    if (passedSc.length === 0) {
-      scSelect.innerHTML = '<option value="">暂无已通过场景，请先完成场景申报</option>';
-    }
-
-    document.getElementById('fieldList').innerHTML = '';
     let autoResource = null;
     if (id) {
       const p = products.find(x => x.id === id);
       if (p) {
-        document.getElementById('pubName').value = p.name;
-        document.getElementById('pubCode').value = p.code;
-        document.getElementById('pubCategory').value = p.category;
-        document.getElementById('pubType').value = p.type;
-        document.getElementById('pubPrice').value = p.price;
-        document.getElementById('pubBilling').value = p.billing;
-        document.getElementById('pubScenario').value = p.scenario || '';
-        document.getElementById('pubDesc').value = p.desc;
-        document.getElementById('pubRemark').value = p.remark || '';
-        (p.fields || []).forEach(f => addFieldRow(f));
+        document.getElementById('pubName').value = p.name || '';
+        document.getElementById('pubCategory').value = p.category || '';
+        document.getElementById('pubType').value = p.type || '';
+        document.getElementById('pubFee').value = p.fee || '';
+        document.getElementById('pubFeeUnit').value = p.feeUnit || '';
+        document.getElementById('pubFeeModel').value = p.feeModel || '';
+        document.getElementById('pubTimeRangeStart').value = p.timeRangeStart || '';
+        document.getElementById('pubTimeRangeEnd').value = p.timeRangeEnd || '';
+        setRadio('pubHasPersonalInfo', p.hasPersonalInfo === 1 || p.hasPersonalInfo === '1' ? '1' : '0');
+        document.getElementById('pubDataSubject').value = p.dataSubject || '';
+        document.getElementById('pubTags').value = Array.isArray(p.tags) ? p.tags.join(',') : (p.tags || '');
+        document.getElementById('pubRecommendedScenario').value = p.recommendedScenario || '';
+        document.getElementById('pubDeliveryMethod').value = p.deliveryMethod || '';
+        document.getElementById('pubRegion').value = p.region || '';
+        const st = p.strategy || {};
+        document.getElementById('pubStrategyTemplate').value = st.template || '';
+        document.getElementById('pubFreqLimit').value = st.freqLimit || 1000;
+        document.getElementById('pubConcurrencyLimit').value = st.concurrencyLimit || 100;
+        document.getElementById('pubDataLimit').value = st.dataLimit || 10000;
+        document.getElementById('pubAllowRead').checked = st.allowRead !== false;
+        document.getElementById('pubAllowCompute').checked = st.allowCompute !== false;
+        document.getElementById('pubAllowDownload').checked = st.allowDownload !== false;
+        document.getElementById('pubAllowOnlineAccess').checked = st.allowOnlineAccess !== false;
       }
     } else {
-      document.getElementById('pubCode').value = 'DP' + Date.now();
-      addFieldRow();
-      // 从资源申请「去开发」带入场景与数据资源
       const params = new URLSearchParams(location.search);
-      const sc = params.get('scenario');
-      if (sc) {
-        scSelect.value = sc;
-        const sa = params.get('sourceApply');
-        if (sa) {
-          const res = getApprovedResources().find(r => r.id === sa);
-          if (res) {
-            document.getElementById('pubScenario').value = res.scenario || sc;
-            autoResource = sa;
-          } else {
-            autoResource = sa;
-          }
-        }
-      }
+      autoResource = params.get('sourceApply') || null;
     }
+    syncBehaviorCards();
+    renderStrategyConfig();
+    switchStrategyTab('constraint');
     renderResourceOptions(autoResource);
-    showScenarioScope();
     document.getElementById('publishModal').classList.add('show');
   }
 
@@ -1249,82 +1566,136 @@
 
   function closePublishModal() { document.getElementById('publishModal').classList.remove('show'); }
 
-  function addFieldRow(field) {
-    field = field || { name: '', note: '', type: 'VARCHAR', len: '' };
-    const div = document.createElement('div');
-    div.className = 'param-row';
-    div.innerHTML = `
-      <input type="text" placeholder="字段名" class="field-name" value="${field.name}">
-      <input type="text" placeholder="字段备注" class="field-note" value="${field.note}">
-      <select class="field-type">
-        <option value="VARCHAR" ${field.type === 'VARCHAR' ? 'selected' : ''}>VARCHAR</option>
-        <option value="INT" ${field.type === 'INT' ? 'selected' : ''}>INT</option>
-        <option value="DATE" ${field.type === 'DATE' ? 'selected' : ''}>DATE</option>
-        <option value="DECIMAL" ${field.type === 'DECIMAL' ? 'selected' : ''}>DECIMAL</option>
-      </select>
-      <input type="text" placeholder="长度" class="field-len" value="${field.len}" style="width:80px;">
-      <button type="button" onclick="this.parentElement.remove()">&times;</button>
-    `;
-    document.getElementById('fieldList').appendChild(div);
+  // 策略模板快速应用
+  function applyStrategyTemplate() {
+    const t = document.getElementById('pubStrategyTemplate').value;
+    if (t === 'default') {
+      document.getElementById('pubFreqLimit').value = 1000;
+      document.getElementById('pubConcurrencyLimit').value = 100;
+      document.getElementById('pubDataLimit').value = 10000;
+      ['pubAllowRead', 'pubAllowCompute', 'pubAllowDownload', 'pubAllowOnlineAccess'].forEach(id => document.getElementById(id).checked = true);
+    } else if (t === 'strict') {
+      document.getElementById('pubFreqLimit').value = 100;
+      document.getElementById('pubConcurrencyLimit').value = 20;
+      document.getElementById('pubDataLimit').value = 1000;
+      ['pubAllowRead', 'pubAllowCompute', 'pubAllowDownload', 'pubAllowOnlineAccess'].forEach(id => document.getElementById(id).checked = true);
+    }
+    // custom 保持当前值，由用户自定义
+    syncBehaviorCards();
+    renderStrategyConfig();
+  }
+
+  function switchStrategyTab(tab) {
+    document.getElementById('tabConstraint').classList.toggle('active', tab === 'constraint');
+    document.getElementById('tabBehavior').classList.toggle('active', tab === 'behavior');
+    document.getElementById('strategyCardsConstraint').style.display = tab === 'constraint' ? 'grid' : 'none';
+    document.getElementById('strategyCardsBehavior').style.display = tab === 'behavior' ? 'grid' : 'none';
+  }
+
+  function toggleBehaviorCard(el, inputId) {
+    const cb = document.getElementById(inputId);
+    cb.checked = !cb.checked;
+    syncBehaviorCards();
+    renderStrategyConfig();
+  }
+
+  function syncBehaviorCards() {
+    document.querySelectorAll('#strategyCardsBehavior .strategy-card').forEach(card => {
+      const input = card.querySelector('input[type="checkbox"]');
+      card.classList.toggle('active', input && input.checked);
+    });
+  }
+
+  function renderStrategyConfig() {
+    const list = [];
+    const freq = document.getElementById('pubFreqLimit').value;
+    const con = document.getElementById('pubConcurrencyLimit').value;
+    const data = document.getElementById('pubDataLimit').value;
+    if (freq) list.push({ name: '调用频率限制', value: `每分钟不超过 ${freq} 次` });
+    if (con) list.push({ name: '并发数限制', value: `最大并发数不超过 ${con} 个` });
+    if (data) list.push({ name: '数据量限制', value: `单次返回不超过 ${data} 条` });
+    const behaviors = [
+      { id: 'pubAllowRead', name: '允许读取操作' },
+      { id: 'pubAllowCompute', name: '允许进行计算' },
+      { id: 'pubAllowDownload', name: '允许下载结果' },
+      { id: 'pubAllowOnlineAccess', name: '允许在线访问数据产品' }
+    ];
+    behaviors.forEach(b => {
+      if (document.getElementById(b.id).checked) list.push({ name: b.name, value: '已开启' });
+    });
+    const emptyEl = document.getElementById('strategyConfigEmpty');
+    const listEl = document.getElementById('strategyConfigList');
+    if (list.length === 0) {
+      emptyEl.style.display = 'flex';
+      listEl.style.display = 'none';
+      listEl.innerHTML = '';
+    } else {
+      emptyEl.style.display = 'none';
+      listEl.style.display = 'flex';
+      listEl.innerHTML = list.map(item => `<div class="strategy-config-item"><div class="name">${item.name}</div><div class="value">${item.value}</div></div>`).join('');
+    }
   }
 
   function validatePublishForm() {
     let valid = true;
-    ['pubName', 'pubCategory', 'pubType', 'pubPrice', 'pubBilling', 'pubScenario', 'pubDesc'].forEach(id => {
+    ['pubName', 'pubCategory', 'pubType', 'pubFee', 'pubFeeUnit', 'pubDataSubject', 'pubDeliveryMethod'].forEach(id => {
       const el = document.getElementById(id);
       const group = el.closest('.form-group');
       if (!el.value.trim()) { group.classList.add('error'); valid = false; }
       else group.classList.remove('error');
     });
+    const resourceGroup = document.getElementById('pubResourceWrap').closest('.form-group');
+    if (getSelectedResources().length === 0) { resourceGroup.classList.add('error'); valid = false; }
+    else resourceGroup.classList.remove('error');
     return valid;
   }
 
   function savePublish() {
     if (!validatePublishForm()) { alert('请完善必填信息'); return; }
     const name = document.getElementById('pubName').value.trim();
-    const code = document.getElementById('pubCode').value.trim();
     const category = document.getElementById('pubCategory').value;
     const type = document.getElementById('pubType').value;
-    const price = document.getElementById('pubPrice').value.trim();
-    const billing = document.getElementById('pubBilling').value;
-    const scenario = document.getElementById('pubScenario').value;
-    const desc = document.getElementById('pubDesc').value.trim();
-    const remark = document.getElementById('pubRemark').value.trim();
-    const fields = [];
-    document.querySelectorAll('#fieldList .param-row').forEach(row => {
-      const name = row.querySelector('.field-name').value.trim();
-      if (name) fields.push({ name, note: row.querySelector('.field-note').value, type: row.querySelector('.field-type').value, len: row.querySelector('.field-len').value });
-    });
-    const resources = Array.from(document.querySelectorAll('.pub-resource:checked')).map(cb => cb.value);
-    // 越权校验：产品使用的数据源必须属于该场景已审批通过的数据资源申请或场景 attachList
-    if (scenario) {
-      const approvedByScenario = getApprovedResources().filter(r => r.scenario === scenario);
-      const scObj = getPassedScenarios().find(s => s.id === scenario);
-      const attachNames = scObj && scObj.attachList ? scObj.attachList.map(a => a.dataset) : [];
-      const unauthorized = resources.filter(rid => !approvedByScenario.some(r => r.id === rid) && !attachNames.includes(rid));
-      if (unauthorized.length) {
-        alert('产品使用的数据资源必须属于该场景已审批通过的数据资源申请或场景关联的数据源；当前所选数据源未获该场景授权，请先在「数据资源申请」中完成资源申请或调整关联场景');
-        return;
-      }
-    }
+    const resources = getSelectedResources();
+    const resource = resources[0] || '';
+    const fee = document.getElementById('pubFee').value.trim();
+    const feeUnit = document.getElementById('pubFeeUnit').value.trim();
+    const feeModel = document.getElementById('pubFeeModel').value.trim();
+    const timeRangeStart = document.getElementById('pubTimeRangeStart').value.trim();
+    const timeRangeEnd = document.getElementById('pubTimeRangeEnd').value.trim();
+    const hasPersonalInfo = parseInt(getRadio('pubHasPersonalInfo'), 10) || 0;
+    const dataSubject = document.getElementById('pubDataSubject').value;
+    const tagsInput = document.getElementById('pubTags').value.trim();
+    const tags = tagsInput ? tagsInput.split(/[,，\s]+/).filter(Boolean) : [typeMap[type]];
+    const recommendedScenario = document.getElementById('pubRecommendedScenario').value.trim();
+    const deliveryMethod = document.getElementById('pubDeliveryMethod').value;
+    const region = document.getElementById('pubRegion').value;
+    const strategy = {
+      template: document.getElementById('pubStrategyTemplate').value || 'default',
+      freqLimit: document.getElementById('pubFreqLimit').value || 1000,
+      concurrencyLimit: document.getElementById('pubConcurrencyLimit').value || 100,
+      dataLimit: document.getElementById('pubDataLimit').value || 10000,
+      allowRead: document.getElementById('pubAllowRead').checked,
+      allowCompute: document.getElementById('pubAllowCompute').checked,
+      allowDownload: document.getElementById('pubAllowDownload').checked,
+      allowOnlineAccess: document.getElementById('pubAllowOnlineAccess').checked
+    };
+    const provider = { name: '义乌市数据运营有限公司', contact: '数据运营管理员', phone: '0579-XXXXXXXX' };
 
     if (currentEditId) {
       const p = products.find(x => x.id === currentEditId);
       if (p) {
-        Object.assign(p, { name, category, type, price, billing, scenario, desc, remark, fields, resources });
+        Object.assign(p, { name, category, type, resources, resource, fee, feeUnit, feeModel, timeRangeStart, timeRangeEnd, hasPersonalInfo, dataSubject, tags, recommendedScenario, deliveryMethod, region, strategy, provider });
       }
       alert('产品信息已保存');
     } else {
       const prod = {
-        id: Date.now(), name, code,
-        shelfStatus: 'offline',
-        outboundStatus: 'none',
-        parseStatus: '未解析',
-        price, billing, category, type, scenario, desc, remark,
-        tags: [typeMap[type]], fields, resources
+        id: Date.now(), name,
+        code: generateProductCode(),
+        shelfStatus: 'offline', outboundStatus: 'none', parseStatus: '未解析',
+        category, type, resources, resource, fee, feeUnit, feeModel, timeRangeStart, timeRangeEnd, hasPersonalInfo, dataSubject, tags, recommendedScenario, deliveryMethod, region, strategy, provider
       };
       products.unshift(prod);
-      alert('产品已发布，当前为下架状态');
+      alert('产品已发布，当前为下架状态。请前往「出域管理」模块提交出域申请，出域审批通过后方可上架。');
     }
     saveProducts();
     renderProducts();
@@ -1336,8 +1707,92 @@
     if (!p) return;
     const shelf = shelfStatusMap[p.shelfStatus] || shelfStatusMap.offline;
     const outbound = outboundStatusMap[p.outboundStatus] || outboundStatusMap.none;
-    const billingText = p.billing === 'free' ? '免费' : `¥${p.price}/${billingMap[p.billing]}`;
+    const billingText = p.fee ? `¥${p.fee}${p.feeUnit ? '/' + p.feeUnit : ''}` : '-';
     const fieldsRows = (p.fields || []).length ? p.fields.map(f => `<tr><td>${f.name}</td><td>${f.note || '-'}</td><td>${f.type}</td><td>${f.len || '-'}</td></tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);">暂无字段信息</td></tr>';
+    const fieldsTableHtml = `<table class="data-table">
+          <thead><tr><th>字段名</th><th>字段备注</th><th>字段类型</th><th>字段长度</th></tr></thead>
+          <tbody>${fieldsRows}</tbody>
+        </table>`;
+    const st = p.strategy || {};
+    const pv = p.provider || {};
+    const catNode = p.category ? findCategory(categories, p.category) : null;
+    const resourceText = (p.resources || []).length ? p.resources.map(id => getResourceName(id)).join('、') : '-';
+    // 按产品类型渲染「产品详情」页签
+    const tx = p.typeExtras || {};
+    let typeDetailHtml = fieldsTableHtml;
+    if (p.type === 'dataset') {
+      typeDetailHtml = `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;line-height:2;">
+          <div style="font-weight:600;color:#166534;margin-bottom:4px;">数据集信息</div>
+          <div>数据格式：${tx.format || '-'}&nbsp;&nbsp;|&nbsp;&nbsp;数据量：${tx.size || '-'}&nbsp;&nbsp;|&nbsp;&nbsp;更新频率：${tx.update || '-'}</div>
+          <div>数据来源：${tx.source || '-'}</div>
+        </div>
+        <div style="font-weight:600;margin-bottom:8px;">数据字段</div>
+        ${fieldsTableHtml}`;
+    } else if (p.type === 'api') {
+      typeDetailHtml = `<div style="background:#f0f7ff;border:1px solid #d0e3ff;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;line-height:2;">
+          <div style="font-weight:600;color:#1e40af;margin-bottom:4px;">接口信息</div>
+          <div>接口地址：${tx.url || `https://api.example.com/v1/${p.code}`}</div>
+          <div>请求方式：${tx.method || 'POST'}（HTTPS）&nbsp;&nbsp;|&nbsp;&nbsp;鉴权方式：${tx.auth || 'API Key'}</div>
+          <div>数据格式：${tx.format || 'JSON'}&nbsp;&nbsp;|&nbsp;&nbsp;支持分页：${tx.paging === false ? '否' : '是'}&nbsp;&nbsp;|&nbsp;&nbsp;QPS 限制：${st.freqLimit || 1000}/分钟</div>
+        </div>
+        <div style="font-weight:600;margin-bottom:8px;">数据字段</div>
+        ${fieldsTableHtml}`;
+    } else if (p.type === 'report') {
+      typeDetailHtml = `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;line-height:2;">
+          <div style="font-weight:600;color:#92400e;margin-bottom:4px;">报告信息</div>
+          <div>报告形式：${tx.format || 'PDF / 在线预览'}&nbsp;&nbsp;|&nbsp;&nbsp;更新频率：${tx.update || '-'}&nbsp;&nbsp;|&nbsp;&nbsp;报告篇幅：${tx.pages || '-'}</div>
+          <div>内容摘要：${p.desc || '-'}</div>
+        </div>`;
+    } else if (p.type === 'app') {
+      typeDetailHtml = `<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;line-height:2;">
+          <div style="font-weight:600;color:#5b21b6;margin-bottom:4px;">应用信息</div>
+          <div>应用形式：${tx.form || 'Web应用 / 开放API'}&nbsp;&nbsp;|&nbsp;&nbsp;部署方式：${tx.deploy || '数据空间内受控部署'}</div>
+          <div>应用类型：${tx.appType || '-'}&nbsp;&nbsp;|&nbsp;&nbsp;应用说明：${p.desc || '-'}</div>
+        </div>
+        <div style="font-weight:600;margin-bottom:8px;">数据字段</div>
+        ${fieldsTableHtml}`;
+    }
+    // 控制策略（动态渲染）
+    const strategyHtml = `<div class="form-grid" style="grid-template-columns: 1fr; margin-bottom: 4px;">
+          <div class="form-group"><label class="form-label">策略模板</label><div class="form-input" style="background:#f9fafb;">${st.template === 'strict' ? '严格策略' : (st.template === 'custom' ? '自定义策略' : '默认策略')}</div></div>
+        </div>
+        <div class="sub-title">约束策略</div>
+        <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="form-group"><label class="form-label">调用频率限制</label><div class="form-input" style="background:#f9fafb;">${st.freqLimit || 1000} 次/分钟</div></div>
+          <div class="form-group"><label class="form-label">并发数限制</label><div class="form-input" style="background:#f9fafb;">${st.concurrencyLimit || 100} 个</div></div>
+          <div class="form-group"><label class="form-label">单次返回数据量</label><div class="form-input" style="background:#f9fafb;">${st.dataLimit || 10000} 条</div></div>
+        </div>
+        <div class="sub-title">行为策略</div>
+        <div>
+          <span class="behavior-chip ${st.allowRead === false ? 'off' : 'on'}">允许读取操作</span>
+          <span class="behavior-chip ${st.allowCompute === false ? 'off' : 'on'}">允许进行计算</span>
+          <span class="behavior-chip ${st.allowDownload === false ? 'off' : 'on'}">允许下载结果</span>
+          <span class="behavior-chip ${st.allowOnlineAccess === false ? 'off' : 'on'}">允许在线访问数据产品</span>
+        </div>`;
+    // 数据提供方（动态渲染）
+    const providerHtml = `<div class="provider-card">
+          <div><strong>数据提供方：</strong>${pv.name || '义乌市数据运营有限公司'}</div>
+          <div><strong>联系人：</strong>${pv.contact || '数据运营管理员'}</div>
+          <div><strong>联系方式：</strong>${pv.phone || '0579-XXXXXXXX'}</div>
+          <div><strong>数据质量评级：</strong>良好（A级）</div>
+        </div>`;
+    // 产品信息页签（按新增弹窗产品信息字段展示）
+    const personalInfoText = p.hasPersonalInfo === 1 || p.hasPersonalInfo === '1' ? '是' : '否';
+    const infoHtml = `<div class="form-grid" style="grid-template-columns: repeat(2, 1fr);">
+          <div class="form-group"><label class="form-label">产品名称</label><div class="form-input" style="background:#f9fafb;">${p.name}</div></div>
+          <div class="form-group"><label class="form-label">产品编号</label><div class="form-input" style="background:#f9fafb;">${p.code}</div></div>
+          <div class="form-group"><label class="form-label">行业分类</label><div class="form-input" style="background:#f9fafb;">${catNode ? catNode.name : '-'}</div></div>
+          <div class="form-group"><label class="form-label">产品类型</label><div class="form-input" style="background:#f9fafb;">${typeMap[p.type]}</div></div>
+          <div class="form-group"><label class="form-label">数据资源</label><div class="form-input" style="background:#f9fafb;">${resourceText}</div></div>
+          <div class="form-group"><label class="form-label">产品费用</label><div class="form-input" style="background:#f9fafb;">${billingText}</div></div>
+          <div class="form-group"><label class="form-label">费用模式</label><div class="form-input" style="background:#f9fafb;">${p.feeModel || '-'}</div></div>
+          <div class="form-group"><label class="form-label">交付方式</label><div class="form-input" style="background:#f9fafb;">${p.deliveryMethod || '-'}</div></div>
+          <div class="form-group"><label class="form-label">覆盖时间范围</label><div class="form-input" style="background:#f9fafb;">${p.timeRangeStart || '-'} 至 ${p.timeRangeEnd || '-'}</div></div>
+          <div class="form-group"><label class="form-label">是否涉及个人信息</label><div class="form-input" style="background:#f9fafb;">${personalInfoText}</div></div>
+          <div class="form-group"><label class="form-label">数据主体</label><div class="form-input" style="background:#f9fafb;">${p.dataSubject || '-'}</div></div>
+          <div class="form-group"><label class="form-label">地域分类</label><div class="form-input" style="background:#f9fafb;">${p.region || '-'}</div></div>
+          <div class="form-group full"><label class="form-label">推荐场景</label><div class="form-input" style="background:#f9fafb;height:auto;min-height:60px;padding:10px 12px;">${p.recommendedScenario || '-'}</div></div>
+        </div>`;
 
     document.getElementById('detailContent').innerHTML = `
       <div class="detail-hero">
@@ -1347,22 +1802,22 @@
           <span class="status-tag ${shelf.class}">${shelf.text}</span>
           <span class="outbound-tag ${outbound.class}">${outbound.text}</span>
         </div>
-        <p>${p.desc}</p>
+        <p>${p.desc || ''}</p>
         <div class="detail-hero-meta">
           <span>产品编号：${p.code}</span>
           <span>产品类型：${typeMap[p.type]}</span>
-          <span>计费方式：${billingText}</span>
+          <span>产品费用：${billingText}</span>
           <span>解析状态：${p.parseStatus}</span>
-          ${p.scenario ? `<span>关联场景：${getScenarioName(p.scenario)}</span>` : ''}
+          ${p.deliveryMethod ? `<span>交付方式：${p.deliveryMethod}</span>` : ''}
         </div>
-        ${(p.resources && p.resources.length) ? `<div style="margin-top:10px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;line-height:1.8;">
-          <span style="font-weight:600;color:#166534;">使用数据资源：</span>${p.resources.map(getResourceName).join('、')}
+        ${p.resource ? `<div style="margin-top:10px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;line-height:1.8;">
+          <span style="font-weight:600;color:#166534;">使用数据资源：</span>${resourceText}
         </div>` : ''}
         <div style="margin-top:12px;padding:12px 16px;background:#f0f7ff;border:1px solid #d0e3ff;border-radius:8px;font-size:13px;line-height:1.9;">
           <div style="font-weight:600;color:#1e40af;margin-bottom:4px;">出域审核信息</div>
-          ${p.outboundStatus === 'none' ? '产品尚未提交出域审核。' :
+          ${p.outboundStatus === 'none' ? '产品尚未提交出域审核，请前往「出域管理」模块提交出域申请。' :
             (p.outboundStatus === 'audit' ? `出域审核进行中，提交时间：${p.auditApplyTime || '-'}` :
-            (p.outboundStatus === 'rejected' ? `出域审核未通过（${p.auditTime || '-'}），驳回原因：${p.rejectReason || p.auditOpinion || '-'}，可修改后重新提交。` :
+            (p.outboundStatus === 'rejected' ? `出域审核未通过（${p.auditTime || '-'}），驳回原因：${p.rejectReason || p.auditOpinion || '-'}，可前往「出域管理」模块重新提交申请。` :
             (p.auditTime ? `出域审核通过（${p.auditTime}），审核人：${p.auditor || '-'}，意见：${p.auditOpinion || '-'}${p.onlineTime ? '；已上架：' + p.onlineTime : ''}${p.offTime ? '；已下架：' + p.offTime : ''}` : '暂无出域审核记录')))}
         </div>
       </div>
@@ -1373,41 +1828,16 @@
         <div class="tab" onclick="switchTab(this, 'tabProvider')">数据提供方</div>
       </div>
       <div class="tab-panel active" id="tabDetail">
-        <table class="data-table">
-          <thead><tr><th>字段名</th><th>字段备注</th><th>字段类型</th><th>字段长度</th></tr></thead>
-          <tbody>${fieldsRows}</tbody>
-        </table>
+        ${typeDetailHtml}
       </div>
       <div class="tab-panel" id="tabStrategy">
-        <div class="form-grid" style="grid-template-columns: 1fr;">
-          <div class="form-group">
-            <label class="form-label">调用频率限制</label>
-            <div class="form-input" style="background:#f9fafb;">1000 次/分钟</div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">数据脱敏策略</label>
-            <div class="form-input" style="background:#f9fafb;">手机号、身份证等敏感字段默认脱敏</div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">访问控制</label>
-            <div class="form-input" style="background:#f9fafb;">需申请授权并通过出域审核</div>
-          </div>
-        </div>
+        ${strategyHtml}
       </div>
       <div class="tab-panel" id="tabInfo">
-        <div class="form-grid" style="grid-template-columns: 1fr;">
-          <div class="form-group"><label class="form-label">产品名称</label><div class="form-input" style="background:#f9fafb;">${p.name}</div></div>
-          <div class="form-group"><label class="form-label">产品编号</label><div class="form-input" style="background:#f9fafb;">${p.code}</div></div>
-          <div class="form-group"><label class="form-label">产品描述</label><div class="form-input" style="background:#f9fafb;height:auto;min-height:60px;padding:10px 12px;">${p.desc}</div></div>
-          <div class="form-group"><label class="form-label">备注</label><div class="form-input" style="background:#f9fafb;height:auto;min-height:60px;padding:10px 12px;">${p.remark || '-'}</div></div>
-        </div>
+        ${infoHtml}
       </div>
       <div class="tab-panel" id="tabProvider">
-        <div class="form-grid" style="grid-template-columns: 1fr;">
-          <div class="form-group"><label class="form-label">数据提供方</label><div class="form-input" style="background:#f9fafb;">义乌市数据运营有限公司</div></div>
-          <div class="form-group"><label class="form-label">联系人</label><div class="form-input" style="background:#f9fafb;">数据运营管理员</div></div>
-          <div class="form-group"><label class="form-label">联系方式</label><div class="form-input" style="background:#f9fafb;">0579-XXXXXXXX</div></div>
-        </div>
+        ${providerHtml}
       </div>
     `;
     document.getElementById('detailModal').classList.add('show');
@@ -1494,24 +1924,47 @@
     closeApiConfigModal();
   }
 
-  function submitOutAudit(id) {
-    const p = products.find(x => x.id === id);
-    if (!p) return;
-    if (confirm(`确定为「${p.name}」提交出域审核吗？提交后将由独立审批后台审批，审批通过后方可上架。`)) {
-      p.shelfStatus = 'offline';
-      p.outboundStatus = 'audit';
-      p.auditApplyTime = new Date().toLocaleString('zh-CN', { hour12: false });
-      delete p.auditTime; delete p.auditor; delete p.auditOpinion; delete p.rejectReason;
-      saveProducts();
-      renderProducts();
-      alert('已提交出域审核，等待独立审批后台审批');
+  const outboundTypeMap = { dataset: '数据出域', api: '数据出域', report: '报告出域', app: '模型出域' };
+
+  // 与出域管理页保持一致的历史申请记录（localStorage 为空时用于初始化，避免首次提交覆盖历史数据）
+  const outboundSeedRecords = [
+    {
+      id: 'CY20260801001',
+      outboundType: '数据出域',
+      sensitivityType: '一般数据',
+      productId: 'DP20260715001',
+      productName: '通勤路线OD数据',
+      products: [
+        { name: '通勤路线OD数据', desc: '通勤居住OD产品，剖析早晚高峰规律性出行特征' },
+        { name: '交通流量预测数据', desc: '包含快速路、主干道交通流量数据，时间粒度1分钟' }
+      ],
+      files: ['出域申请表', '加工情况说明', '专家评审会意见'],
+      applyTime: '2026-08-01 10:30:00',
+      status: 'approved',
+      auditTime: '2026-08-05 14:20:00',
+      auditor: '数据空间审核员',
+      auditOpinion: '数据来源清晰、用途合规，同意出域。'
+    },
+    {
+      id: 'CY20260810002',
+      outboundType: '报告出域',
+      sensitivityType: '重要数据',
+      productId: '',
+      productName: '',
+      products: [
+        { name: '企业信用评估报告', desc: '基于经营许可数据的信用评估分析报告' }
+      ],
+      files: ['出域申请表', '加工情况说明', '专家评审会意见'],
+      applyTime: '2026-08-10 09:15:00',
+      status: 'pending'
     }
-  }
+  ];
 
   function getOutboundRecords() {
     try {
-      return JSON.parse(localStorage.getItem('outboundRecords') || '[]');
-    } catch (e) { return []; }
+      const saved = JSON.parse(localStorage.getItem('outboundRecords') || '[]');
+      return saved.length ? saved : outboundSeedRecords.slice();
+    } catch (e) { return outboundSeedRecords.slice(); }
   }
 
   function onlineProduct(id) {
@@ -1519,18 +1972,53 @@
     if (!p) return;
     if (p.outboundStatus !== 'passed') {
       if (confirm('该产品尚未通过出域审核，是否前往出域管理进行出域申请？')) {
-        location.href = 'outbound-management.html';
+        const needReapply = p.outboundStatus === 'none' || p.outboundStatus === 'rejected';
+        location.href = 'outbound-management.html?product=' + encodeURIComponent(p.id) + (needReapply ? '&apply=1' : '');
       }
       return;
     }
-    if (confirm(`确认将「${p.name}」上架？上架后应用可提交调用申请。`)) {
-      p.shelfStatus = 'online';
-      p.onlineTime = new Date().toLocaleString('zh-CN', { hour12: false });
-      delete p.offTime;
-      saveProducts();
-      renderProducts();
-      alert('产品已上架');
-    }
+    // 上架确认：展示产品信息与控制策略摘要
+    const st = p.strategy || {};
+    const strategySummary = `<div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="form-group"><label class="form-label">调用频率</label><div class="form-input" style="background:#f9fafb;">${st.freqLimit || 1000} 次/分钟</div></div>
+        <div class="form-group"><label class="form-label">并发数</label><div class="form-input" style="background:#f9fafb;">${st.concurrencyLimit || 100} 个</div></div>
+        <div class="form-group"><label class="form-label">单次数据量</label><div class="form-input" style="background:#f9fafb;">${st.dataLimit || 10000} 条</div></div>
+      </div>
+      <div style="margin-top:12px;">
+        <span class="behavior-chip ${st.allowRead === false ? 'off' : 'on'}">允许读取操作</span>
+        <span class="behavior-chip ${st.allowCompute === false ? 'off' : 'on'}">允许进行计算</span>
+        <span class="behavior-chip ${st.allowDownload === false ? 'off' : 'on'}">允许下载结果</span>
+        <span class="behavior-chip ${st.allowOnlineAccess === false ? 'off' : 'on'}">允许在线访问数据产品</span>
+      </div>`;
+    document.getElementById('onlineContent').innerHTML = `
+      <div style="padding:14px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;line-height:1.9;margin-bottom:16px;">
+        <div style="font-weight:600;color:#166534;">即将上架的产品</div>
+        <div><strong>产品名称：</strong>${p.name}</div>
+        <div><strong>产品编号：</strong>${p.code}</div>
+        <div><strong>产品类型：</strong>${typeMap[p.type]}&nbsp;&nbsp;|&nbsp;&nbsp;<strong>产品费用：</strong>${p.fee ? `¥${p.fee}${p.feeUnit ? '/' + p.feeUnit : ''}` : '-'}</div>
+        <div><strong>出域审核：</strong>已通过（${p.auditTime || '-'}）</div>
+      </div>
+      <div class="section-title">上架后将执行的控制策略</div>
+      ${strategySummary}
+      <div style="margin-top:14px;padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:13px;color:#92400e;">
+        上架后，该产品将同步展示至平台「数据产品」列表，数据空间内的应用方可通过目录检索到该产品并提交调用申请，所有调用行为将按上述策略进行管控。
+      </div>`;
+    document.getElementById('onlineModal').classList.add('show');
+    window._onlineTargetId = id;
+  }
+
+  function closeOnlineModal() { document.getElementById('onlineModal').classList.remove('show'); }
+
+  function confirmOnline() {
+    const p = products.find(x => x.id === window._onlineTargetId);
+    if (!p) return;
+    p.shelfStatus = 'online';
+    p.onlineTime = new Date().toLocaleString('zh-CN', { hour12: false });
+    delete p.offTime;
+    saveProducts();
+    renderProducts();
+    closeOnlineModal();
+    alert('产品已上架，已同步展示至平台「数据产品」列表，可前往平台首页查看。');
   }
 
   // 更新场景状态（产品上架/下架时联动 scenarioRecords）
@@ -1590,7 +2078,7 @@
       saveProducts();
       renderProducts();
       closeOfflineModal();
-      alert('产品已下架');
+      alert('产品已下架，已从平台「数据产品」列表移除。');
     }
   }
 
@@ -1613,6 +2101,18 @@
 
   renderCategories();
   renderProducts();
+
+  // 从出域管理审核通过后跳转定位（?focus=产品ID或产品名）
+  const focusParam = new URLSearchParams(location.search).get('focus');
+  if (focusParam) {
+    const fp = products.find(x => String(x.id) === String(focusParam) || x.name === focusParam);
+    if (fp) {
+      const nameInput = document.getElementById('filterName');
+      if (nameInput) { nameInput.value = fp.name; }
+      renderProducts();
+      viewDetail(fp.id);
+    }
+  }
 </script>
 
 </body>
